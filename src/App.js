@@ -397,7 +397,7 @@ export default function App() {
       updateHistory(q);
     } catch(e) {
       setError(e.message);
-      setMessages(p=>p.slice(0,-1));
+      // Keep user message visible so conversation stays on screen
     }
     setLoading(false);
   };
@@ -482,7 +482,7 @@ export default function App() {
 
       <div style={{position:"fixed",inset:0,background:"radial-gradient(ellipse 100% 50% at 50% 0%,#152e18 0%,#0b1a0d 60%)",zIndex:0,pointerEvents:"none"}}/>
 
-      <div style={{position:"relative",zIndex:1,maxWidth:740,margin:"0 auto",padding:"0 0 130px"}}>
+      <div style={{position:"relative",zIndex:1,maxWidth:740,margin:"0 auto",padding:"0 0 60px"}}>
 
         {/* NAV */}
         <div style={{padding:"16px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",borderBottom:"1px solid rgba(80,180,100,.07)"}}>
@@ -499,6 +499,31 @@ export default function App() {
                 </button>
               : <button onClick={()=>setShowAuth(true)} style={{background:"linear-gradient(135deg,#22a35a,#1a7a44)",border:"none",borderRadius:20,padding:"6px 16px",color:"#e8f5eb",fontSize:".73rem",cursor:"pointer",fontFamily:"'Georgia',serif",fontWeight:600}}>Sign in</button>
             }
+          </div>
+        </div>
+
+        {/* ── ALWAYS-VISIBLE SEARCH BAR ── */}
+        <div style={{padding:"16px 20px 8px"}}>
+          {hasConvo && (
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+              <button onClick={reset} style={{background:"none",border:"none",color:"#2e5535",fontSize:".72rem",cursor:"pointer",fontFamily:"'Georgia',serif"}}>← Start over</button>
+              <span style={{color:"#1e3d25",fontSize:".68rem"}}>
+                {messages.filter(m=>m.role==="user").length} search{messages.filter(m=>m.role==="user").length!==1?"es":""} this session
+                {user && <span style={{marginLeft:8,color:"#2e5535"}}>· {user.credits??0} credits left</span>}
+              </span>
+            </div>
+          )}
+          <div style={{background:"rgba(255,255,255,.06)",border:"1.5px solid rgba(80,180,100,.32)",borderRadius:20,padding:"6px 6px 6px 18px",display:"flex",alignItems:"center",gap:10,boxShadow:"0 4px 32px rgba(34,163,90,.1)"}}>
+            <span style={{fontSize:16,opacity:.5}}>🔍</span>
+            <input value={input} onChange={e=>setInput(e.target.value)}
+              onKeyDown={e=>e.key==="Enter"&&!loading&&handleQuery(input)}
+              placeholder={hasConvo?"Ask a follow-up question...":"e.g. I've been exhausted after lunch every day this week..."}
+              className="search-input"
+              style={{flex:1,background:"transparent",border:"none",outline:"none",color:"#c8e8ce",fontSize:".92rem",fontFamily:"'Georgia',serif",padding:"13px 0",caretColor:"#4ec97a"}}/>
+            <button onClick={()=>handleQuery(input)} disabled={!input.trim()||loading}
+              style={{background:input.trim()&&!loading?"linear-gradient(135deg,#22a35a,#1a7a44)":"rgba(34,163,90,.15)",border:"none",borderRadius:14,padding:"11px 20px",color:"#e8f5eb",fontSize:".85rem",cursor:input.trim()&&!loading?"pointer":"not-allowed",fontFamily:"'Georgia',serif",whiteSpace:"nowrap",fontWeight:600,transition:"all .2s"}}>
+              {hasConvo?"Ask →":"Search"}
+            </button>
           </div>
         </div>
 
@@ -528,6 +553,12 @@ export default function App() {
               )}
             </div>
 
+            {/* divider */}
+            <div style={{padding:"4px 20px 12px",display:"flex",alignItems:"center",gap:12}}>
+              <div style={{flex:1,height:1,background:"rgba(80,180,100,.1)"}}/>
+              <span style={{color:"#2e5535",fontSize:".7rem",letterSpacing:".1em",whiteSpace:"nowrap"}}>or pick a symptom</span>
+              <div style={{flex:1,height:1,background:"rgba(80,180,100,.1)"}}/>
+            </div>
             <div style={{padding:"0 20px 16px",display:"flex",flexWrap:"wrap",gap:9,justifyContent:"center"}}>
               {SUGGESTIONS.map(s=>(
                 <button key={s.label} className="chip" onClick={()=>handleQuery(s.query)}
@@ -666,32 +697,7 @@ export default function App() {
           </div>
         )}
 
-        {/* FIXED INPUT BAR */}
-        <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:50,background:"linear-gradient(transparent,#0b1a0d 35%)",padding:"16px 0 22px"}}>
-          <div style={{maxWidth:740,margin:"0 auto",padding:"0 20px"}}>
-            {hasConvo&&(
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:7}}>
-                <button onClick={reset} style={{background:"none",border:"none",color:"#2e5535",fontSize:".7rem",cursor:"pointer",fontFamily:"'Georgia',serif"}}>← Start over</button>
-                <span style={{color:"#1e3d25",fontSize:".66rem"}}>
-                  {messages.filter(m=>m.role==="user").length} search{messages.filter(m=>m.role==="user").length!==1?"es":""} this session
-                  {user && <span style={{marginLeft:8,color:"#2e5535"}}>· {user.credits??0} credits left</span>}
-                </span>
-              </div>
-            )}
-            <div style={{background:"rgba(255,255,255,.06)",border:"1.5px solid rgba(80,180,100,.28)",borderRadius:20,padding:"5px 5px 5px 17px",display:"flex",alignItems:"center",gap:9,boxShadow:"0 4px 32px rgba(0,0,0,.45)"}}>
-              <span style={{fontSize:15,opacity:.45}}>🔍</span>
-              <input value={input} onChange={e=>setInput(e.target.value)}
-                onKeyDown={e=>e.key==="Enter"&&!loading&&handleQuery(input)}
-                placeholder={hasConvo?"Ask a follow-up question...":"e.g. I've been exhausted after lunch every day this week..."}
-                className="search-input"
-                style={{flex:1,background:"transparent",border:"none",outline:"none",color:"#c8e8ce",fontSize:".9rem",fontFamily:"'Georgia',serif",padding:"12px 0",caretColor:"#4ec97a"}}/>
-              <button onClick={()=>handleQuery(input)} disabled={!input.trim()||loading}
-                style={{background:input.trim()&&!loading?"linear-gradient(135deg,#22a35a,#1a7a44)":"rgba(34,163,90,.15)",border:"none",borderRadius:14,padding:"10px 19px",color:"#e8f5eb",fontSize:".83rem",cursor:input.trim()&&!loading?"pointer":"not-allowed",fontFamily:"'Georgia',serif",whiteSpace:"nowrap",fontWeight:600,transition:"all .2s"}}>
-                {hasConvo?"Ask →":"Search"}
-              </button>
-            </div>
-          </div>
-        </div>
+
 
       </div>
     </div>
