@@ -105,36 +105,21 @@ const CSS = `
   .modal-wrap    {animation:fadeIn .2s ease;}
   .modal-box     {animation:slideUp .25s ease;}
   .search-ring:focus-within{border-color:rgba(80,180,100,.6)!important;box-shadow:0 0 0 3px rgba(34,163,90,.12)!important;}
-  /* ── Mobile-first responsive ── */
-  .np-nav-name { display:inline; }
-  .np-credits-label { display:inline; }
-
-  @media(max-width:400px){
-    .np-nav-name { display:none; }
-    .np-tier-grid { grid-template-columns:1fr!important; }
-    .np-food-grid { grid-template-columns:repeat(2,1fr)!important; }
-    .np-week-grid { grid-template-columns:repeat(4,1fr)!important; gap:4px!important; }
-    .np-search-btn-text { display:none; }
-    .np-search-btn-icon { display:inline!important; }
-    .np-modal-pad { padding:22px 18px!important; }
-    .np-hero-pad { padding:32px 16px 20px!important; }
-    .np-chat-pad { padding:0 12px!important; }
-    .np-bar-pad  { padding:10px 12px 6px!important; }
-    .np-disclaimer { margin:0 12px 14px!important; }
-    .np-chips-pad { padding:0 12px 14px!important; }
-  }
-  @media(min-width:401px) and (max-width:540px){
-    .np-food-grid { grid-template-columns:repeat(3,1fr)!important; }
+  /* ── Responsive ── */
+  @media(max-width:480px){
     .np-week-grid { grid-template-columns:repeat(4,1fr)!important; }
+    .np-food-grid { grid-template-columns:repeat(2,1fr)!important; }
+    .np-tier-grid { grid-template-columns:1fr!important; }
+    .np-modal-pad { padding:22px 16px!important; }
+  }
+  @media(min-width:481px) and (max-width:680px){
+    .np-week-grid { grid-template-columns:repeat(4,1fr)!important; }
+    .np-food-grid { grid-template-columns:repeat(3,1fr)!important; }
     .np-tier-grid { grid-template-columns:1fr!important; }
   }
-  @media(min-width:541px){
-    .home-title { font-size:2.5rem!important; }
-    .home-sub   { font-size:1rem!important; }
-    .np-food-grid { grid-template-columns:repeat(auto-fill,minmax(120px,1fr))!important; }
-  }
-  @media(min-width:640px){
-    .home-title { font-size:2.7rem!important; }
+  @media(min-width:681px){
+    .np-week-grid { grid-template-columns:repeat(7,1fr)!important; }
+    .np-food-grid { grid-template-columns:repeat(auto-fill,minmax(140px,1fr))!important; }
   }
 `;
 
@@ -382,7 +367,7 @@ function ResultCard({ result, isLast, onGetMore, activeRecipe, setActiveRecipe, 
         <div style={{background:"linear-gradient(135deg,rgba(34,163,90,.1),rgba(20,80,40,.07))",border:"1px solid rgba(34,163,90,.22)",borderRadius:16,padding:"18px 20px",marginBottom:16,position:"relative",overflow:"hidden"}}>
           <div style={{position:"absolute",top:12,right:14,fontSize:20,opacity:.1}}>🌿</div>
           <div style={{color:"#4a9960",fontSize:".62rem",letterSpacing:".14em",textTransform:"uppercase",marginBottom:7}}>A note for you</div>
-          <p style={{color:"#b8e8c4",fontSize:".87rem",lineHeight:1.78,margin:0,fontStyle:"italic"}}>{result.acknowledgment}</p>
+          <p className="np-ack-text" style={{color:"#b8e8c4",fontSize:"clamp(.87rem,1.5vw,1.02rem)",lineHeight:1.8,margin:0,fontStyle:"italic"}}>{result.acknowledgment}</p>
         </div>
       )}
 
@@ -392,10 +377,10 @@ function ResultCard({ result, isLast, onGetMore, activeRecipe, setActiveRecipe, 
           <div style={{color:"#4a9960",fontSize:".62rem",letterSpacing:".14em",textTransform:"uppercase",marginBottom:10}}>🌱 Foods that help</div>
           <div className="np-food-grid" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(110px,1fr))",gap:7}}>
             {result.foods.map((f,i)=>(
-              <div key={i} className="food-card" style={{background:"rgba(34,163,90,.07)",border:"1px solid rgba(34,163,90,.16)",borderRadius:12,padding:"13px 9px",textAlign:"center",transition:"transform .18s"}}>
-                <div style={{fontSize:22,marginBottom:5}}>{f.emoji||"🌿"}</div>
-                <div style={{color:"#b8e8c4",fontSize:".76rem",fontWeight:600,marginBottom:3}}>{f.name}</div>
-                <div style={{color:"#4a7a56",fontSize:".62rem",lineHeight:1.35}}>{f.benefit}</div>
+              <div key={i} className="food-card" style={{background:"rgba(34,163,90,.07)",border:"1px solid rgba(34,163,90,.16)",borderRadius:14,padding:"clamp(13px,1.5vw,20px) clamp(9px,1.2vw,14px)",textAlign:"center",transition:"transform .18s"}}>
+                <div className="np-food-emoji" style={{fontSize:"clamp(22px,2.5vw,30px)",marginBottom:6}}>{f.emoji||"🌿"}</div>
+                <div className="np-food-name" style={{color:"#b8e8c4",fontSize:"clamp(.76rem,1.2vw,.9rem)",fontWeight:600,marginBottom:4}}>{f.name}</div>
+                <div className="np-food-benefit" style={{color:"#4a7a56",fontSize:"clamp(.62rem,1vw,.75rem)",lineHeight:1.4}}>{f.benefit}</div>
               </div>
             ))}
           </div>
@@ -413,7 +398,7 @@ function ResultCard({ result, isLast, onGetMore, activeRecipe, setActiveRecipe, 
               <div key={i} className="rc" style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(34,163,90,.16)",borderRadius:12,overflow:"hidden",marginBottom:7,transition:"border-color .18s"}}>
                 <button onClick={()=>setActiveRecipe(open?null:rid)}
                   style={{width:"100%",textAlign:"left",background:"transparent",border:"none",padding:"12px 16px",cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                  <span style={{color:"#c8e8ce",fontSize:".85rem"}}>{r.emoji||"🍽️"} {r.name}</span>
+                  <span className="np-recipe-name" style={{color:"#c8e8ce",fontSize:"clamp(.85rem,1.4vw,1rem)"}}>{r.emoji||"🍽️"} {r.name}</span>
                   <span style={{color:"#3a6644",fontSize:".68rem",transform:open?"rotate(180deg)":"rotate(0deg)",transition:"transform .2s",display:"inline-block"}}>▼</span>
                 </button>
                 {open && (
@@ -445,7 +430,7 @@ function ResultCard({ result, isLast, onGetMore, activeRecipe, setActiveRecipe, 
           <span style={{fontSize:16,marginTop:1,flexShrink:0}}>💡</span>
           <div>
             <div style={{color:"#3a6644",fontSize:".59rem",letterSpacing:".12em",textTransform:"uppercase",marginBottom:4}}>Tip for you</div>
-            <div style={{color:"#a8d8b4",fontSize:".83rem",lineHeight:1.62}}>{result.tip}</div>
+            <div className="np-tip-text" style={{color:"#a8d8b4",fontSize:"clamp(.83rem,1.4vw,.97rem)",lineHeight:1.65}}>{result.tip}</div>
           </div>
         </div>
       )}
@@ -535,14 +520,14 @@ function PricingPage({ onBack }) {
 function SearchBar({ value, onChange, onSubmit, loading, hasConvo, placeholder }) {
   return (
     <div className="search-ring"
-      style={{background:"rgba(255,255,255,.055)",border:"1.5px solid rgba(80,180,100,.28)",borderRadius:22,padding:"6px 6px 6px 18px",display:"flex",alignItems:"center",gap:10,transition:"border-color .2s, box-shadow .2s",boxShadow:"0 2px 24px rgba(34,163,90,.07)"}}>
+      style={{background:"rgba(255,255,255,.055)",border:"1.5px solid rgba(80,180,100,.28)",borderRadius:28,padding:"clamp(6px,1vw,10px) clamp(6px,1vw,10px) clamp(6px,1vw,10px) clamp(18px,2vw,26px)",display:"flex",alignItems:"center",gap:10,transition:"border-color .2s, box-shadow .2s",boxShadow:"0 2px 24px rgba(34,163,90,.07)"}}>
       <span style={{fontSize:16,opacity:.4,flexShrink:0}}>🔍</span>
       <input value={value} onChange={e=>onChange(e.target.value)}
         onKeyDown={e=>e.key==="Enter"&&!loading&&onSubmit(value)}
         placeholder={placeholder||"Describe how you're feeling..."}
-        style={{flex:1,background:"transparent",border:"none",outline:"none",color:"#c8e8ce",fontSize:".92rem",padding:"12px 0",caretColor:"#4ec97a",minWidth:0}}/>
+        className="np-search-input" style={{flex:1,background:"transparent",border:"none",outline:"none",color:"#c8e8ce",fontSize:"clamp(.92rem,1.6vw,1.1rem)",padding:"clamp(12px,1.5vw,17px) 0",caretColor:"#4ec97a",minWidth:0}}/>
       <button onClick={()=>onSubmit(value)} disabled={!value.trim()||loading}
-        style={{background:value.trim()&&!loading?"linear-gradient(135deg,#22a35a,#1a7a44)":"rgba(34,163,90,.13)",border:"none",borderRadius:16,padding:"10px 20px",color:"#e8f5eb",fontSize:".84rem",cursor:value.trim()&&!loading?"pointer":"default",fontWeight:600,whiteSpace:"nowrap",transition:"background .18s",flexShrink:0}}>
+        className="np-search-btn" style={{background:value.trim()&&!loading?"linear-gradient(135deg,#22a35a,#1a7a44)":"rgba(34,163,90,.13)",border:"none",borderRadius:"clamp(14px,1.5vw,20px)",padding:"clamp(10px,1.2vw,15px) clamp(18px,2.5vw,32px)",color:"#e8f5eb",fontSize:"clamp(.84rem,1.4vw,1rem)",cursor:value.trim()&&!loading?"pointer":"default",fontWeight:600,whiteSpace:"nowrap",transition:"background .18s",flexShrink:0}}>
         {loading ? <span style={{display:"inline-block",animation:"spin 1s linear infinite"}}>🌿</span> : <><span className="np-search-btn-text">{hasConvo?"Ask →":"Search"}</span><span className="np-search-btn-icon" style={{display:"none"}}>→</span></>}
       </button>
     </div>
@@ -719,16 +704,16 @@ export default function App() {
       {/* Ambient background */}
       <div style={{position:"fixed",inset:0,background:"radial-gradient(ellipse 110% 55% at 50% 0%,#152e18 0%,#0b1a0d 65%)",zIndex:0,pointerEvents:"none"}}/>
 
-      <div style={{position:"relative",zIndex:1,maxWidth:720,margin:"0 auto",padding:"0 0 80px",overflowX:"hidden"}}>
+      <div style={{position:"relative",zIndex:1,maxWidth:1100,margin:"0 auto",padding:"0 0 80px",overflowX:"hidden"}}>
 
         {/* ── NAV ── */}
-        <nav style={{padding:"14px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",borderBottom:"1px solid rgba(80,180,100,.07)"}}>
+        <nav className="np-nav" style={{padding:"14px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",borderBottom:"1px solid rgba(80,180,100,.07)"}}>
           <button onClick={reset} style={{background:"none",border:"none",cursor:"pointer",display:"flex",alignItems:"center",gap:7}}>
             <span style={{fontSize:19,display:"inline-block",animation:hasConvo?"none":"float 4s ease-in-out infinite"}}>🌿</span>
-            <span className="np-nav-name" style={{color:"#5a9a6a",fontSize:".8rem",letterSpacing:".05em"}}>Nature's Pantry</span>
+            <span className="np-nav-name" style={{color:"#5a9a6a",fontSize:"clamp(.8rem,1.3vw,.95rem)",letterSpacing:".05em"}}>Nature's Pantry</span>
           </button>
           <div style={{display:"flex",gap:7,alignItems:"center"}}>
-            <button onClick={()=>setPage("pricing")} style={{background:"none",border:"1px solid rgba(80,180,100,.17)",borderRadius:20,padding:"4px 13px",color:"#2e5535",fontSize:".71rem",cursor:"pointer"}}>Pricing</button>
+            <button onClick={()=>setPage("pricing")} style={{background:"none",border:"1px solid rgba(80,180,100,.17)",borderRadius:20,padding:"clamp(4px,.6vw,8px) clamp(13px,1.5vw,20px)",color:"#2e5535",fontSize:"clamp(.71rem,1.1vw,.85rem)",cursor:"pointer"}}>Pricing</button>
             {user
               ? <button onClick={()=>setShowProfile(true)}
                   style={{background:"rgba(34,163,90,.1)",border:"1px solid rgba(34,163,90,.24)",borderRadius:20,padding:"4px 12px",color:"#4ec97a",fontSize:".71rem",cursor:"pointer",display:"flex",alignItems:"center",gap:6}}>
@@ -745,11 +730,11 @@ export default function App() {
         {!hasConvo && (
           <div style={{animation:"fadeUp .45s ease"}}>
             {/* Hero */}
-            <div className="np-hero-pad" style={{textAlign:"center",padding:"48px 24px 28px"}}>
+            <div className="np-hero-pad" style={{textAlign:"center",padding:"clamp(40px,6vw,80px) clamp(24px,8vw,120px) clamp(24px,3vw,40px)"}}>
               <div style={{fontSize:52,marginBottom:14,display:"inline-block",animation:"float 5s ease-in-out infinite"}}>🌿</div>
-              <h1 className="home-title" style={{fontSize:"2.2rem",fontWeight:400,color:"#a8ddb5",margin:"0 0 10px",letterSpacing:"-.02em"}}>How are you feeling today?</h1>
-              <p className="home-sub" style={{color:"#3a6644",fontSize:".9rem",fontStyle:"italic",margin:"0 0 6px"}}>Describe what you're going through</p>
-              <p style={{color:"#2a4a30",fontSize:".74rem",lineHeight:1.75,margin:"0 0 10px"}}>We'll suggest personalised foods, recipes, a wellness tip &amp; a 7-day plan</p>
+              <h1 className="home-title" style={{fontSize:"clamp(2.2rem,5vw,4.2rem)",fontWeight:400,color:"#a8ddb5",margin:"0 0 14px",letterSpacing:"-.02em"}}>How are you feeling today?</h1>
+              <p className="home-sub" style={{color:"#3a6644",fontSize:"clamp(.9rem,1.8vw,1.15rem)",fontStyle:"italic",margin:"0 0 8px"}}>Describe what you're going through</p>
+              <p className="np-home-desc" style={{color:"#2a4a30",fontSize:"clamp(.74rem,1.4vw,.96rem)",lineHeight:1.75,margin:"0 0 14px"}}>We'll suggest personalised foods, recipes, a wellness tip &amp; a 7-day plan</p>
               {user?.allergies?.length>0 && (
                 <div style={{display:"inline-flex",alignItems:"center",gap:5,background:"rgba(200,70,70,.07)",border:"1px solid rgba(200,70,70,.17)",borderRadius:20,padding:"3px 12px",marginBottom:4}}>
                   <span style={{color:"#8a5050",fontSize:".68rem"}}>🚫 Avoiding: {user.allergies.join(", ")}</span>
@@ -758,15 +743,15 @@ export default function App() {
             </div>
 
             {/* ── CENTRED SEARCH BAR ── */}
-            <div style={{padding:"0 20px 20px"}}>
+            <div style={{padding:"0 clamp(20px,5vw,80px) 24px"}}>
               <SearchBar value={input} onChange={setInput} onSubmit={handleQuery} loading={loading} hasConvo={false}
                 placeholder="e.g. I've been exhausted after lunch every day this week..."/>
             </div>
 
             {/* Disclaimer */}
-            <div className="np-disclaimer" style={{margin:"0 20px 18px",background:"rgba(255,200,70,.04)",border:"1px solid rgba(255,200,70,.12)",borderRadius:12,padding:"10px 14px",display:"flex",gap:9,alignItems:"flex-start"}}>
+            <div className="np-disclaimer" style={{margin:"0 clamp(20px,5vw,80px) 20px",background:"rgba(255,200,70,.04)",border:"1px solid rgba(255,200,70,.12)",borderRadius:12,padding:"10px 14px",display:"flex",gap:9,alignItems:"flex-start"}}>
               <span style={{fontSize:13,flexShrink:0,marginTop:1,opacity:.7}}>⚠️</span>
-              <p style={{margin:0,color:"#6a5e2a",fontSize:".67rem",lineHeight:1.65}}>
+              <p style={{margin:0,color:"#6a5e2a",fontSize:"clamp(.67rem,1.1vw,.82rem)",lineHeight:1.65}}>
                 <strong style={{color:"#8a7a30"}}>Disclaimer:</strong> Nature's Pantry provides general wellness suggestions only and cannot be held responsible for allergic reactions or adverse effects. Always consult a healthcare professional before making dietary changes.
               </p>
             </div>
@@ -774,13 +759,13 @@ export default function App() {
             {/* Divider + chips */}
             <div style={{padding:"0 20px 10px",display:"flex",alignItems:"center",gap:11}}>
               <div style={{flex:1,height:1,background:"rgba(80,180,100,.09)"}}/>
-              <span style={{color:"#1e3d25",fontSize:".68rem",letterSpacing:".1em",whiteSpace:"nowrap"}}>or pick a symptom</span>
+              <span style={{color:"#1e3d25",fontSize:"clamp(.68rem,1.1vw,.8rem)",letterSpacing:".1em",whiteSpace:"nowrap"}}>or pick a symptom</span>
               <div style={{flex:1,height:1,background:"rgba(80,180,100,.09)"}}/>
             </div>
-            <div className="np-chips-pad" style={{padding:"0 20px 16px",display:"flex",flexWrap:"wrap",gap:8,justifyContent:"center"}}>
+            <div className="np-chips-pad" style={{padding:"0 clamp(20px,4vw,60px) 16px",display:"flex",flexWrap:"wrap",gap:"clamp(8px,1vw,12px)",justifyContent:"center"}}>
               {SUGGESTIONS.map(s=>(
                 <button key={s.label} className="chip" onClick={()=>handleQuery(s.query)}
-                  style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(80,180,100,.18)",borderRadius:40,padding:"7px 14px",display:"flex",alignItems:"center",gap:6,color:"#6aaa80",fontSize:".79rem",cursor:"pointer",transition:"all .14s"}}>
+                  className="np-chip" style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(80,180,100,.18)",borderRadius:40,padding:"clamp(7px,1vw,11px) clamp(14px,1.8vw,22px)",display:"flex",alignItems:"center",gap:7,color:"#6aaa80",fontSize:"clamp(.79rem,1.3vw,.95rem)",cursor:"pointer",transition:"all .14s"}}>
                   <span style={{fontSize:13}}>{s.emoji}</span><span>{s.label}</span>
                 </button>
               ))}
@@ -807,7 +792,7 @@ export default function App() {
                 <button onClick={reset} style={{background:"none",border:"none",color:"#1e3d25",fontSize:".7rem",cursor:"pointer"}}>← Start over</button>
                 <span style={{color:"#1a3020",fontSize:".66rem"}}>
                   {messages.filter(m=>m.role==="user").length} search{messages.filter(m=>m.role==="user").length!==1?"es":""} this session
-                  {user && <span style={{marginLeft:7}}>· {user.credits??0} cr left</span>}
+                  {user && <span className="np-credits-left" style={{marginLeft:7,color:"#1a3020"}}>· {user.credits??0} cr left</span>}
                 </span>
               </div>
               <SearchBar value={input} onChange={setInput} onSubmit={handleQuery} loading={loading} hasConvo={true}
