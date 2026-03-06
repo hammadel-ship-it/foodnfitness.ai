@@ -105,9 +105,36 @@ const CSS = `
   .modal-wrap    {animation:fadeIn .2s ease;}
   .modal-box     {animation:slideUp .25s ease;}
   .search-ring:focus-within{border-color:rgba(80,180,100,.6)!important;box-shadow:0 0 0 3px rgba(34,163,90,.12)!important;}
+  /* ── Mobile-first responsive ── */
+  .np-nav-name { display:inline; }
+  .np-credits-label { display:inline; }
+
+  @media(max-width:400px){
+    .np-nav-name { display:none; }
+    .np-tier-grid { grid-template-columns:1fr!important; }
+    .np-food-grid { grid-template-columns:repeat(2,1fr)!important; }
+    .np-week-grid { grid-template-columns:repeat(4,1fr)!important; gap:4px!important; }
+    .np-search-btn-text { display:none; }
+    .np-search-btn-icon { display:inline!important; }
+    .np-modal-pad { padding:22px 18px!important; }
+    .np-hero-pad { padding:32px 16px 20px!important; }
+    .np-chat-pad { padding:0 12px!important; }
+    .np-bar-pad  { padding:10px 12px 6px!important; }
+    .np-disclaimer { margin:0 12px 14px!important; }
+    .np-chips-pad { padding:0 12px 14px!important; }
+  }
+  @media(min-width:401px) and (max-width:540px){
+    .np-food-grid { grid-template-columns:repeat(3,1fr)!important; }
+    .np-week-grid { grid-template-columns:repeat(4,1fr)!important; }
+    .np-tier-grid { grid-template-columns:1fr!important; }
+  }
+  @media(min-width:541px){
+    .home-title { font-size:2.5rem!important; }
+    .home-sub   { font-size:1rem!important; }
+    .np-food-grid { grid-template-columns:repeat(auto-fill,minmax(120px,1fr))!important; }
+  }
   @media(min-width:640px){
-    .home-title {font-size:2.6rem!important;}
-    .home-sub   {font-size:1rem!important;}
+    .home-title { font-size:2.7rem!important; }
   }
 `;
 
@@ -143,7 +170,7 @@ function Modal({ onClose, children, maxWidth=420 }) {
     <div className="modal-wrap" onClick={onClose}
       style={{position:"fixed",inset:0,background:"rgba(0,0,0,.8)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
       <div className="modal-box" onClick={e=>e.stopPropagation()}
-        style={{background:"#111e13",border:"1px solid rgba(34,163,90,.3)",borderRadius:22,padding:"32px 28px",maxWidth,width:"100%"}}>
+        className="np-modal-pad" style={{background:"#111e13",border:"1px solid rgba(34,163,90,.3)",borderRadius:22,padding:"32px 28px",maxWidth,width:"100%"}}>
         {children}
       </div>
     </div>
@@ -291,7 +318,7 @@ function SignUpPrompt({ onClose, onSignUp }) {
     <Modal onClose={onClose} maxWidth={360}>
       <div style={{textAlign:"center"}}>
         <div style={{fontSize:42,marginBottom:12,display:"inline-block",animation:"float 3s ease-in-out infinite"}}>🌿</div>
-        <div style={{color:"#a8ddb5",fontSize:"1rem",marginBottom:8}}>You've used your free search</div>
+        <div style={{color:"#a8ddb5",fontSize:"1rem",marginBottom:8}}>You've used your 3 free searches</div>
         <div style={{color:"#3a6644",fontSize:".82rem",lineHeight:1.7,marginBottom:16}}>Sign up free to keep going. No card needed.</div>
         <div style={{display:"flex",justifyContent:"center",gap:20,marginBottom:20,padding:"12px 16px",background:"rgba(34,163,90,.06)",border:"1px solid rgba(34,163,90,.15)",borderRadius:12}}>
           {[["3","Free credits"],["0.5","Per follow-up"],["Free","To join"]].map(([val,lbl],i)=>(
@@ -320,7 +347,7 @@ function WeekPlan({ plan }) {
     <div style={{marginTop:24}}>
       <div style={{color:"#4a9960",fontSize:".65rem",letterSpacing:".14em",textTransform:"uppercase",marginBottom:5}}>🗓️ 7-day preventive food plan</div>
       <div style={{color:"#2a4030",fontSize:".7rem",marginBottom:12,fontStyle:"italic"}}>Tap any day to expand</div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:5}}>
+      <div className="np-week-grid" style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:5}}>
         {plan.map((d,i)=>(
           <div key={i} className="day-card" onClick={()=>setActive(active===i?null:i)}
             style={{background:active===i?"rgba(34,163,90,.16)":"rgba(34,163,90,.06)",border:`1px solid ${active===i?"rgba(34,163,90,.42)":"rgba(34,163,90,.14)"}`,borderRadius:10,padding:"9px 5px",textAlign:"center"}}>
@@ -363,7 +390,7 @@ function ResultCard({ result, isLast, onGetMore, activeRecipe, setActiveRecipe, 
       {result.foods?.length > 0 && (
         <div style={{marginBottom:16}}>
           <div style={{color:"#4a9960",fontSize:".62rem",letterSpacing:".14em",textTransform:"uppercase",marginBottom:10}}>🌱 Foods that help</div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(110px,1fr))",gap:7}}>
+          <div className="np-food-grid" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(110px,1fr))",gap:7}}>
             {result.foods.map((f,i)=>(
               <div key={i} className="food-card" style={{background:"rgba(34,163,90,.07)",border:"1px solid rgba(34,163,90,.16)",borderRadius:12,padding:"13px 9px",textAlign:"center",transition:"transform .18s"}}>
                 <div style={{fontSize:22,marginBottom:5}}>{f.emoji||"🌿"}</div>
@@ -456,7 +483,7 @@ function PricingPage({ onBack }) {
           <h1 style={{fontSize:"clamp(2.2rem,5.5vw,3.6rem)",fontWeight:400,color:"#c8ecd4",lineHeight:1.15,letterSpacing:"-.02em",marginBottom:14}}>Food is your medicine.<br/><em style={{color:"#4ec97a"}}>Start for $5.</em></h1>
           <p style={{color:"#3a6644",fontSize:"clamp(.88rem,2vw,.98rem)",maxWidth:440,margin:"0 auto",lineHeight:1.8}}>The more you commit, the less per search. No hidden fees, no feature walls.</p>
         </div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(270px,1fr))",gap:18,animation:"fadeUp .6s ease .1s both"}}>
+        <div className="np-tier-grid" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(270px,1fr))",gap:18,animation:"fadeUp .6s ease .1s both"}}>
           {TIERS.map((t,i)=>(
             <div key={t.name} className="tier-card"
               style={{position:"relative",background:t.highlight?"linear-gradient(155deg,rgba(34,163,90,.13),rgba(15,55,28,.18))":"rgba(255,255,255,.03)",border:t.highlight?"1px solid rgba(34,163,90,.38)":"1px solid rgba(255,255,255,.07)",borderRadius:22,padding:"34px 28px",display:"flex",flexDirection:"column",animation:`fadeUp .5s ease ${.1+i*.09}s both`}}>
@@ -516,7 +543,7 @@ function SearchBar({ value, onChange, onSubmit, loading, hasConvo, placeholder }
         style={{flex:1,background:"transparent",border:"none",outline:"none",color:"#c8e8ce",fontSize:".92rem",padding:"12px 0",caretColor:"#4ec97a",minWidth:0}}/>
       <button onClick={()=>onSubmit(value)} disabled={!value.trim()||loading}
         style={{background:value.trim()&&!loading?"linear-gradient(135deg,#22a35a,#1a7a44)":"rgba(34,163,90,.13)",border:"none",borderRadius:16,padding:"10px 20px",color:"#e8f5eb",fontSize:".84rem",cursor:value.trim()&&!loading?"pointer":"default",fontWeight:600,whiteSpace:"nowrap",transition:"background .18s",flexShrink:0}}>
-        {loading ? <span style={{display:"inline-block",animation:"spin 1s linear infinite"}}>🌿</span> : hasConvo ? "Ask →" : "Search"}
+        {loading ? <span style={{display:"inline-block",animation:"spin 1s linear infinite"}}>🌿</span> : <><span className="np-search-btn-text">{hasConvo?"Ask →":"Search"}</span><span className="np-search-btn-icon" style={{display:"none"}}>→</span></>}
       </button>
     </div>
   );
@@ -618,7 +645,7 @@ export default function App() {
 
     // gate: guest
     if (!user) {
-      if (guestSearches >= 1) { setShowSignUp(true); return; }
+      if (guestSearches >= 3) { setShowSignUp(true); return; }
       const n = guestSearches + 1;
       setGuestSearches(n); localStorage.setItem("np_guest_searches", String(n));
     }
@@ -692,13 +719,13 @@ export default function App() {
       {/* Ambient background */}
       <div style={{position:"fixed",inset:0,background:"radial-gradient(ellipse 110% 55% at 50% 0%,#152e18 0%,#0b1a0d 65%)",zIndex:0,pointerEvents:"none"}}/>
 
-      <div style={{position:"relative",zIndex:1,maxWidth:720,margin:"0 auto",padding:"0 0 80px"}}>
+      <div style={{position:"relative",zIndex:1,maxWidth:720,margin:"0 auto",padding:"0 0 80px",overflowX:"hidden"}}>
 
         {/* ── NAV ── */}
         <nav style={{padding:"14px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",borderBottom:"1px solid rgba(80,180,100,.07)"}}>
           <button onClick={reset} style={{background:"none",border:"none",cursor:"pointer",display:"flex",alignItems:"center",gap:7}}>
             <span style={{fontSize:19,display:"inline-block",animation:hasConvo?"none":"float 4s ease-in-out infinite"}}>🌿</span>
-            <span style={{color:"#5a9a6a",fontSize:".8rem",letterSpacing:".05em"}}>Nature's Pantry</span>
+            <span className="np-nav-name" style={{color:"#5a9a6a",fontSize:".8rem",letterSpacing:".05em"}}>Nature's Pantry</span>
           </button>
           <div style={{display:"flex",gap:7,alignItems:"center"}}>
             <button onClick={()=>setPage("pricing")} style={{background:"none",border:"1px solid rgba(80,180,100,.17)",borderRadius:20,padding:"4px 13px",color:"#2e5535",fontSize:".71rem",cursor:"pointer"}}>Pricing</button>
@@ -718,7 +745,7 @@ export default function App() {
         {!hasConvo && (
           <div style={{animation:"fadeUp .45s ease"}}>
             {/* Hero */}
-            <div style={{textAlign:"center",padding:"48px 24px 28px"}}>
+            <div className="np-hero-pad" style={{textAlign:"center",padding:"48px 24px 28px"}}>
               <div style={{fontSize:52,marginBottom:14,display:"inline-block",animation:"float 5s ease-in-out infinite"}}>🌿</div>
               <h1 className="home-title" style={{fontSize:"2.2rem",fontWeight:400,color:"#a8ddb5",margin:"0 0 10px",letterSpacing:"-.02em"}}>How are you feeling today?</h1>
               <p className="home-sub" style={{color:"#3a6644",fontSize:".9rem",fontStyle:"italic",margin:"0 0 6px"}}>Describe what you're going through</p>
@@ -737,7 +764,7 @@ export default function App() {
             </div>
 
             {/* Disclaimer */}
-            <div style={{margin:"0 20px 18px",background:"rgba(255,200,70,.04)",border:"1px solid rgba(255,200,70,.12)",borderRadius:12,padding:"10px 14px",display:"flex",gap:9,alignItems:"flex-start"}}>
+            <div className="np-disclaimer" style={{margin:"0 20px 18px",background:"rgba(255,200,70,.04)",border:"1px solid rgba(255,200,70,.12)",borderRadius:12,padding:"10px 14px",display:"flex",gap:9,alignItems:"flex-start"}}>
               <span style={{fontSize:13,flexShrink:0,marginTop:1,opacity:.7}}>⚠️</span>
               <p style={{margin:0,color:"#6a5e2a",fontSize:".67rem",lineHeight:1.65}}>
                 <strong style={{color:"#8a7a30"}}>Disclaimer:</strong> Nature's Pantry provides general wellness suggestions only and cannot be held responsible for allergic reactions or adverse effects. Always consult a healthcare professional before making dietary changes.
@@ -750,7 +777,7 @@ export default function App() {
               <span style={{color:"#1e3d25",fontSize:".68rem",letterSpacing:".1em",whiteSpace:"nowrap"}}>or pick a symptom</span>
               <div style={{flex:1,height:1,background:"rgba(80,180,100,.09)"}}/>
             </div>
-            <div style={{padding:"0 20px 16px",display:"flex",flexWrap:"wrap",gap:8,justifyContent:"center"}}>
+            <div className="np-chips-pad" style={{padding:"0 20px 16px",display:"flex",flexWrap:"wrap",gap:8,justifyContent:"center"}}>
               {SUGGESTIONS.map(s=>(
                 <button key={s.label} className="chip" onClick={()=>handleQuery(s.query)}
                   style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(80,180,100,.18)",borderRadius:40,padding:"7px 14px",display:"flex",alignItems:"center",gap:6,color:"#6aaa80",fontSize:".79rem",cursor:"pointer",transition:"all .14s"}}>
@@ -764,7 +791,7 @@ export default function App() {
               <div style={{textAlign:"center",padding:"4px 0 8px"}}>
                 <button onClick={()=>{setAuthMode("signup");setShowAuth(true);}}
                   style={{background:"none",border:"none",color:"#1e3d25",fontSize:".7rem",cursor:"pointer",fontStyle:"italic"}}>
-                  {guestSearches===0?"✦ 1 free search — no account needed":"Sign up free for 3 credits & full history →"}
+                  {guestSearches===0?"✦ 3 free searches — no account needed":`✦ ${3-guestSearches} free search${3-guestSearches===1?"":"es"} remaining — sign up to save history`}
                 </button>
               </div>
             )}
@@ -775,7 +802,7 @@ export default function App() {
         {hasConvo && (
           <div>
             {/* Search bar at top of chat */}
-            <div style={{padding:"12px 20px 8px"}}>
+            <div className="np-bar-pad" style={{padding:"12px 20px 8px"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:7}}>
                 <button onClick={reset} style={{background:"none",border:"none",color:"#1e3d25",fontSize:".7rem",cursor:"pointer"}}>← Start over</button>
                 <span style={{color:"#1a3020",fontSize:".66rem"}}>
@@ -791,7 +818,7 @@ export default function App() {
             <div style={{height:1,background:"rgba(80,180,100,.07)",margin:"4px 20px 16px"}}/>
 
             {/* Messages */}
-            <div style={{padding:"0 20px"}}>
+            <div className="np-chat-pad" style={{padding:"0 20px"}}>
               {messages.map((msg,idx)=>(
                 <div key={idx} style={{marginBottom:msg.role==="user"?8:24}}>
                   {msg.role==="user" && (
