@@ -524,33 +524,38 @@ export default function App() {
   const [activeRecipe, setActiveRecipe] = useState(null);
 
   const bottomRef = useRef(null);
+  const userRef   = useRef(user);
   const hasConvo  = messages.length > 0;
 
+  useEffect(() => { userRef.current = user; }, [user]);
   useEffect(()=>{ bottomRef.current?.scrollIntoView({behavior:"smooth"}); },[messages,loading]);
 
-  // ── auth helpers ──
+  // auth helpers
   const handleAuth = (u) => {
-    setUser(u); setShowAuth(false); setShowSignUp(false);
+    setUser(u); userRef.current = u;
+    setShowAuth(false); setShowSignUp(false);
     setGuestSearches(0); localStorage.removeItem("np_guest_searches");
   };
-  const handleLogout = () => { setUser(null); setMessages([]); setShowProfile(false); };
+  const handleLogout = () => { setUser(null); userRef.current = null; setMessages([]); setShowProfile(false); };
 
-  // ── credit deduction — only called on success ──
-  const deductCredit = (isFollowUp) => {
-    if (!user) return;
-    const cost  = isFollowUp ? 0.5 : 1;
-    const updated = {...user, credits: Math.max(0, parseFloat(((user.credits??0)-cost).toFixed(1)))};
-    saveUser(updated); setUser(updated);
-    const acc = JSON.parse(localStorage.getItem("np_accounts")||"{}");
-    if (acc[user.email]) { acc[user.email]={...acc[user.email],credits:updated.credits}; localStorage.setItem("np_accounts",JSON.stringify(acc)); }
-  };
-
-  const updateHistory = (q) => {
-    if (!user) return;
-    const updated = {...user, history:[...(user.history||[]),{query:q,date:Date.now()}].slice(-50)};
-    saveUser(updated); setUser(updated);
-    const acc = JSON.parse(localStorage.getItem("np_accounts")||"{}");
-    if (acc[user.email]) { acc[user.email]={...acc[user.email],history:updated.history}; localStorage.setItem("np_accounts",JSON.stringify(acc)); }
+  // atomic update via ref — always reads fresh user even after async fetch
+  const recordSuccess = (isFollowUp, q) => {
+    const cu = userRef.current;
+    if (!cu) return;
+    const cost = isFollowUp ? 0.5 : 1;
+    const updated = {
+      ...cu,
+      credits: Math.max(0, parseFloat(((cu.credits ?? 0) - cost).toFixed(1))),
+      history: [...(cu.history || []), { query: q, date: Date.now() }].slice(-50),
+    };
+    saveUser(updated);
+    setUser(updated);
+    userRef.current = updated;
+    const acc = JSON.parse(localStorage.getItem("np_accounts") || "{}");
+    if (acc[cu.email]) {
+      acc[cu.email] = { ...acc[cu.email], credits: updated.credits, history: updated.history };
+      localStorage.setItem("np_accounts", JSON.stringify(acc));
+    }
   };
 
   // ── main query ──
@@ -606,8 +611,7 @@ export default function App() {
       if (!result.acknowledgment) throw new Error("Unexpected response shape.");
 
       setMessages(p=>[...p,{role:"assistant",content:result.acknowledgment,result}]);
-      deductCredit(isFollowUp);   // only deduct on success
-      updateHistory(q);
+      recordSuccess(isFollowUp, q);  // atomic: deduct credit + save history
     } catch(e) {
       setError(e.message);
     } finally {
