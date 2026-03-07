@@ -30,11 +30,15 @@ const buildPrompt = (user, isFollowUp) => {
   const history = user?.history?.length
     ? `Prior concerns: ${user.history.slice(-4).map(h=>h.query).join("; ")}.`
     : "";
+  const sexNote = user?.sex
+    ? `User is ${user.sex === "male" ? "male" : "female"}. Tailor food, hormone, and nutrient recommendations accordingly — for females: iron, oestrogen support, cycle nutrition; for males: testosterone support, muscle recovery, zinc and magnesium focus.`
+    : "";
 
   if (!isFollowUp) {
     return `You are a warm, expert nutritionist drawing from Ayurveda, TCM, Mediterranean, African herbalism, adaptogens, medicinal mushrooms and modern science.
 ${allergy}
 ${history}
+${sexNote}
 
 Respond with ONLY a valid JSON object. No markdown. No text outside JSON. No trailing commas. Double quotes only. No newlines inside string values.
 
@@ -51,6 +55,7 @@ Rules:
   } else {
     return `You are a warm, expert nutritionist continuing a wellness conversation. The user is refining or following up on their original concern.
 ${allergy}
+${sexNote}
 
 Respond with ONLY a valid JSON object. No markdown. No text outside JSON. No trailing commas. Double quotes only. No newlines inside string values.
 
@@ -210,12 +215,19 @@ function AuthModal({ onClose, onAuth, defaultMode="login" }) {
       const u = { name:name.trim(), email, allergies, history:[], credits:3, createdAt:Date.now() };
       accounts[email] = { ...u, pass };
       localStorage.setItem("np_accounts", JSON.stringify(accounts));
-      saveUser(u); onAuth(u);
+      saveUser(u);
+      // send welcome email (fire and forget — don't block auth on failure)
+      fetch("/.netlify/functions/welcome", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ name: name.trim(), email }),
+      }).catch(()=>{});
+      onAuth(u);
     } else {
       const a = accounts[email];
       if (!a) return setErr("No account found. Sign up first.");
       if (a.pass !== pass) return setErr("Incorrect password.");
-      const u = { name:a.name, email, allergies:a.allergies||[], history:a.history||[], credits:a.credits??3 };
+      const u = { name:a.name, email, allergies:a.allergies||[], history:a.history||[], credits:a.credits??3, sex:a.sex||"" };
       saveUser(u); onAuth(u);
     }
   };
@@ -264,14 +276,21 @@ function AuthModal({ onClose, onAuth, defaultMode="login" }) {
 
 function ProfileModal({ user, onClose, onUpdate, onLogout }) {
   const [allergies, setAllergies] = useState(user.allergies||[]);
+  const [sex, setSex]             = useState(user.sex||"");
   const toggle = (a) => setAllergies(p=>p.includes(a)?p.filter(x=>x!==a):[...p,a]);
   const save = () => {
-    const u = {...user,allergies};
+    const u = {...user, allergies, sex};
     saveUser(u);
     const acc = JSON.parse(localStorage.getItem("np_accounts")||"{}");
-    if (acc[user.email]) { acc[user.email]={...acc[user.email],allergies}; localStorage.setItem("np_accounts",JSON.stringify(acc)); }
+    if (acc[user.email]) { acc[user.email]={...acc[user.email], allergies, sex}; localStorage.setItem("np_accounts",JSON.stringify(acc)); }
     onUpdate(u);
   };
+
+  const SEX_OPTIONS = [
+    { value:"female", label:"Female", icon:"♀️" },
+    { value:"male",   label:"Male",   icon:"♂️" },
+  ];
+
   return (
     <Modal onClose={onClose}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
@@ -279,7 +298,28 @@ function ProfileModal({ user, onClose, onUpdate, onLogout }) {
         <button onClick={onClose} style={{background:"none",border:"none",color:"#3a6644",cursor:"pointer",fontSize:"1.1rem"}}>✕</button>
       </div>
       <div style={{color:"#2e5535",fontSize:".85rem",marginBottom:20}}>{user.email} · {user.history?.length||0} total searches · <span style={{color:(user.credits??0)<=1?"#f09090":(user.credits??0)<=2?"#ffc85a":"#5ed880"}}>{user.credits??0} credits</span></div>
-      <div style={{marginBottom:18}}>
+
+      {/* Sex selector */}
+      <div style={{marginBottom:20}}>
+        <div style={{color:"#4a7a56",fontSize:".78rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:10}}>Biological sex <span style={{color:"#2a4a30",fontStyle:"italic",letterSpacing:0,textTransform:"none",fontSize:".74rem"}}>(personalises your results)</span></div>
+        <div style={{display:"flex",gap:8}}>
+          {SEX_OPTIONS.map(opt=>{
+            const active = sex === opt.value;
+            return (
+              <button key={opt.value} onClick={()=>setSex(active?"":opt.value)}
+                style={{flex:1,background:active?"rgba(34,163,90,.18)":"rgba(255,255,255,.04)",border:`1.5px solid ${active?"rgba(34,163,90,.55)":"rgba(255,255,255,.1)"}`,borderRadius:14,padding:"12px 8px",cursor:"pointer",transition:"all .16s",display:"flex",flexDirection:"column",alignItems:"center",gap:5}}>
+                <span style={{fontSize:20}}>{opt.icon}</span>
+                <span style={{color:active?"#5ed880":"#4a7a56",fontSize:".84rem",fontFamily:"'Georgia',serif"}}>{opt.label}</span>
+              </button>
+            );
+          })}
+        </div>
+        {!sex && <div style={{color:"#1e3d25",fontSize:".74rem",marginTop:7,fontStyle:"italic"}}>Optional — helps tailor hormone, iron & nutrient advice.</div>}
+        {sex && <div style={{color:"#3a6644",fontSize:".74rem",marginTop:7,fontStyle:"italic"}}>✓ Results will be personalised for {sex === "female" ? "female" : "male"} biology.</div>}
+      </div>
+
+      {/* Allergies */}
+      <div style={{marginBottom:20}}>
         <div style={{color:"#4a7a56",fontSize:".78rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>Food allergies</div>
         <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
           {ALLERGIES.map(a=>(
@@ -290,6 +330,7 @@ function ProfileModal({ user, onClose, onUpdate, onLogout }) {
           ))}
         </div>
       </div>
+
       <div style={{display:"flex",gap:9}}>
         <button onClick={save} className="cta-btn" style={{flex:1,background:"linear-gradient(135deg,#22a35a,#1a7a44)",border:"none",borderRadius:10,padding:"11px",color:"#e8f5eb",fontSize:".85rem",cursor:"pointer",fontWeight:600}}>Save</button>
         <button onClick={()=>{clearUser();onLogout();}} style={{background:"rgba(220,80,80,.08)",border:"1px solid rgba(220,80,80,.22)",borderRadius:10,padding:"11px 16px",color:"#f09090",fontSize:".85rem",cursor:"pointer"}}>Sign out</button>
@@ -849,11 +890,23 @@ export default function App() {
               <h1 className="home-title" style={{fontSize:"clamp(2.2rem,5vw,4.2rem)",fontWeight:400,color:"#a8ddb5",margin:"0 0 14px",letterSpacing:"-.02em"}}>How are you feeling today?</h1>
               <p className="home-sub" style={{color:"#3a6644",fontSize:"clamp(1rem,1.9vw,1.2rem)",fontStyle:"italic",margin:"0 0 8px"}}>Describe what you're going through</p>
               <p className="np-home-desc" style={{color:"#2a4a30",fontSize:"clamp(.88rem,1.5vw,1.02rem)",lineHeight:1.75,margin:"0 0 14px"}}>We'll suggest personalised foods, recipes, a wellness tip &amp; a 7-day plan</p>
-              {user?.allergies?.length>0 && (
-                <div style={{display:"inline-flex",alignItems:"center",gap:5,background:"rgba(200,70,70,.07)",border:"1px solid rgba(200,70,70,.17)",borderRadius:20,padding:"3px 12px",marginBottom:4}}>
-                  <span style={{color:"#8a5050",fontSize:".82rem"}}>🚫 Avoiding: {user.allergies.join(", ")}</span>
-                </div>
-              )}
+              <div style={{display:"flex",flexWrap:"wrap",justifyContent:"center",gap:8,marginTop:6,marginBottom:4}}>
+                {user?.allergies?.length>0 && (
+                  <div style={{display:"inline-flex",alignItems:"center",gap:5,background:"rgba(200,70,70,.07)",border:"1px solid rgba(200,70,70,.17)",borderRadius:20,padding:"3px 12px"}}>
+                    <span style={{color:"#8a5050",fontSize:".82rem"}}>🚫 Avoiding: {user.allergies.join(", ")}</span>
+                  </div>
+                )}
+                {user?.sex && (
+                  <div style={{display:"inline-flex",alignItems:"center",gap:5,background:"rgba(34,163,90,.07)",border:"1px solid rgba(34,163,90,.18)",borderRadius:20,padding:"3px 12px"}}>
+                    <span style={{color:"#4a7a56",fontSize:".82rem"}}>{user.sex==="female"?"♀️ Female profile":"♂️ Male profile"}</span>
+                  </div>
+                )}
+                {user && !user.sex && (
+                  <button onClick={()=>setShowProfile(true)} style={{background:"none",border:"1px dashed rgba(34,163,90,.25)",borderRadius:20,padding:"3px 12px",color:"#2a4a30",fontSize:".78rem",cursor:"pointer",fontFamily:"'Georgia',serif",fontStyle:"italic"}}>
+                    + Add your sex for personalised results
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* ── CENTRED SEARCH BAR ── */}
