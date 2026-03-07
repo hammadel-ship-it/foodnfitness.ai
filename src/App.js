@@ -63,19 +63,18 @@ Analyze what the follow-up is asking and respond with the most relevant shape:
 
 If they want MORE foods/alternatives: {"responseType":"foods","acknowledgment":"string","foods":[{"name":"string","emoji":"string","benefit":"string"}],"tip":"string"}
 If they want recipe help: {"responseType":"recipe","acknowledgment":"string","recipes":[{"name":"string","emoji":"string","ingredients":["string"],"steps":["string"]}],"tip":"string"}
-If they want lifestyle/habit advice: {"responseType":"insight","acknowledgment":"string","insight":"string","bullets":["string"],"tip":"string"}
-If they want a comparison or specific question answered: {"responseType":"answer","acknowledgment":"string","answer":"string","tip":"string"}
+If they want lifestyle/habit advice: {"responseType":"insight","acknowledgment":"string","cards":[{"emoji":"string","title":"string","body":"string"}],"tip":"string"}
+If they want a comparison or specific question answered: {"responseType":"answer","acknowledgment":"string","cards":[{"emoji":"string","title":"string","body":"string"}],"tip":"string"}
 If unclear, default to foods shape.
 
 Rules:
 - responseType: one of "foods","recipe","insight","answer"
-- acknowledgment: 1-2 sentences, warm, referencing their exact follow-up words
-- insight: 2-3 paragraphs of expert explanation (for insight type)
-- bullets: 3-5 actionable points (for insight type)
-- answer: direct thorough answer to their specific question (for answer type)
+- acknowledgment: 1-2 warm sentences referencing their exact follow-up words
+- cards: 3-5 visual cards each with a relevant emoji, a short bold title (3-5 words), and a body (1-2 sentences). Make cards scan at a glance — titles should be punchy and informative
 - tip: always include, hyper-specific to their follow-up
 - ${allergy}
-- Use full conversation context`;
+- Use full conversation context
+- Every response must feel visually rich — use emojis, specific names, concrete detail`;
   }
 };
 
@@ -193,35 +192,51 @@ function Modal({ onClose, children, maxWidth=420 }) {
 
 // ─── AUTH MODAL ───────────────────────────────────────────────────────────────
 
+const EyeIcon = ({open}) => open
+  ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+  : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>;
+
+const SECURITY_QUESTIONS = [
+  "What was the name of your first pet?",
+  "What is your mother's maiden name?",
+];
+
 function AuthModal({ onClose, onAuth, defaultMode="login" }) {
-  const [mode, setMode]         = useState(defaultMode);
-  const [name, setName]         = useState("");
-  const [email, setEmail]       = useState("");
-  const [pass, setPass]         = useState("");
+  const [mode, setMode]           = useState(defaultMode); // login | signup | forgot
+  const [name, setName]           = useState("");
+  const [email, setEmail]         = useState("");
+  const [pass, setPass]           = useState("");
+  const [showPass, setShowPass]   = useState(false);
   const [allergies, setAllergies] = useState([]);
-  const [err, setErr]           = useState("");
+  const [secQ, setSecQ]           = useState(SECURITY_QUESTIONS[0]);
+  const [secA, setSecA]           = useState("");
+  const [err, setErr]             = useState("");
+  // forgot flow
+  const [forgotStep, setForgotStep] = useState(1); // 1=enter email, 2=answer question, 3=new password
+  const [forgotEmail, setForgotEmail]   = useState("");
+  const [forgotAnswer, setForgotAnswer] = useState("");
+  const [newPass, setNewPass]           = useState("");
+  const [showNewPass, setShowNewPass]   = useState(false);
+  const [forgotAccount, setForgotAccount] = useState(null);
+
   const emailRef = useRef(null);
   useEffect(() => { emailRef.current?.focus(); }, []);
 
-  const toggle = (a) => setAllergies(p => p.includes(a) ? p.filter(x=>x!==a) : [...p,a]);
+  const toggleAllergy = (a) => setAllergies(p => p.includes(a) ? p.filter(x=>x!==a) : [...p,a]);
 
   const submit = () => {
     setErr("");
     if (!email.trim() || !pass.trim()) return setErr("Email and password required.");
     if (mode==="signup" && !name.trim()) return setErr("Name required.");
+    if (mode==="signup" && !secA.trim()) return setErr("Security answer required.");
     const accounts = JSON.parse(localStorage.getItem("np_accounts")||"{}");
     if (mode==="signup") {
       if (accounts[email]) return setErr("Account exists. Please sign in.");
       const u = { name:name.trim(), email, allergies, history:[], credits:3, createdAt:Date.now() };
-      accounts[email] = { ...u, pass };
+      accounts[email] = { ...u, pass, secQ, secA: secA.trim().toLowerCase() };
       localStorage.setItem("np_accounts", JSON.stringify(accounts));
       saveUser(u);
-      // send welcome email (fire and forget — don't block auth on failure)
-      fetch("/.netlify/functions/welcome", {
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ name: name.trim(), email }),
-      }).catch(()=>{});
+      fetch("/.netlify/functions/welcome", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({name:name.trim(),email}) }).catch(()=>{});
       onAuth(u);
     } else {
       const a = accounts[email];
@@ -232,25 +247,145 @@ function AuthModal({ onClose, onAuth, defaultMode="login" }) {
     }
   };
 
-  const inp = {background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.12)",borderRadius:10,padding:"11px 14px",color:"#c8e8ce",outline:"none",fontSize:".9rem",width:"100%"};
+  // ── forgot password steps ──
+  const forgotStep1 = () => {
+    setErr("");
+    const accounts = JSON.parse(localStorage.getItem("np_accounts")||"{}");
+    const a = accounts[forgotEmail.trim()];
+    if (!a) return setErr("No account found with that email.");
+    if (!a.secQ || !a.secA) return setErr("This account has no security question set. Please contact support.");
+    setForgotAccount(a);
+    setForgotStep(2);
+  };
+
+  const forgotStep2 = () => {
+    setErr("");
+    if (forgotAnswer.trim().toLowerCase() !== forgotAccount.secA) return setErr("Incorrect answer. Please try again.");
+    setForgotStep(3);
+  };
+
+  const forgotStep3 = () => {
+    setErr("");
+    if (newPass.trim().length < 6) return setErr("Password must be at least 6 characters.");
+    const accounts = JSON.parse(localStorage.getItem("np_accounts")||"{}");
+    accounts[forgotAccount.email] = { ...accounts[forgotAccount.email], pass: newPass.trim() };
+    localStorage.setItem("np_accounts", JSON.stringify(accounts));
+    setMode("login"); setForgotStep(1); setForgotEmail(""); setForgotAnswer(""); setNewPass(""); setForgotAccount(null);
+    setErr(""); setEmail(forgotAccount.email);
+  };
+
+  const inp = {background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.12)",borderRadius:10,padding:"11px 14px",color:"#c8e8ce",outline:"none",fontSize:".9rem",width:"100%",boxSizing:"border-box"};
+  const passWrap = {position:"relative",display:"flex",alignItems:"center"};
+  const eyeBtn = {position:"absolute",right:12,background:"none",border:"none",color:"#3a6644",cursor:"pointer",padding:2,display:"flex",alignItems:"center"};
+
+  if (mode==="forgot") return (
+    <Modal onClose={onClose}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+        <span style={{color:"#a8ddb5",fontSize:"1.05rem"}}>🔑 Reset password</span>
+        <button onClick={onClose} style={{background:"none",border:"none",color:"#3a6644",cursor:"pointer",fontSize:"1.1rem"}}>✕</button>
+      </div>
+      {err && <div style={{color:"#f09090",fontSize:".82rem",marginBottom:12,padding:"9px 13px",background:"rgba(200,60,60,.1)",borderRadius:9,border:"1px solid rgba(200,60,60,.2)"}}>{err}</div>}
+
+      {/* Step indicator */}
+      <div style={{display:"flex",gap:6,marginBottom:20}}>
+        {[1,2,3].map(s=>(
+          <div key={s} style={{flex:1,height:3,borderRadius:4,background:forgotStep>=s?"rgba(34,163,90,.6)":"rgba(255,255,255,.08)",transition:"background .3s"}}/>
+        ))}
+      </div>
+
+      {forgotStep===1 && (
+        <div style={{display:"flex",flexDirection:"column",gap:10}}>
+          <div style={{color:"#4a7a56",fontSize:".82rem",marginBottom:4}}>Enter the email address for your account.</div>
+          <input value={forgotEmail} onChange={e=>setForgotEmail(e.target.value)} placeholder="Email address" type="email"
+            onKeyDown={e=>e.key==="Enter"&&forgotStep1()} style={inp}/>
+          <button onClick={forgotStep1} className="cta-btn"
+            style={{background:"linear-gradient(135deg,#22a35a,#1a7a44)",border:"none",borderRadius:11,padding:"13px",color:"#e8f5eb",fontSize:".9rem",cursor:"pointer",fontWeight:600}}>
+            Continue →
+          </button>
+        </div>
+      )}
+
+      {forgotStep===2 && forgotAccount && (
+        <div style={{display:"flex",flexDirection:"column",gap:10}}>
+          <div style={{color:"#4a7a56",fontSize:".82rem",marginBottom:4}}>Answer your security question:</div>
+          <div style={{background:"rgba(34,163,90,.07)",border:"1px solid rgba(34,163,90,.18)",borderRadius:10,padding:"12px 14px",color:"#a8ddb5",fontSize:".88rem",fontStyle:"italic"}}>
+            {forgotAccount.secQ}
+          </div>
+          <input value={forgotAnswer} onChange={e=>setForgotAnswer(e.target.value)} placeholder="Your answer"
+            onKeyDown={e=>e.key==="Enter"&&forgotStep2()} style={inp}/>
+          <button onClick={forgotStep2} className="cta-btn"
+            style={{background:"linear-gradient(135deg,#22a35a,#1a7a44)",border:"none",borderRadius:11,padding:"13px",color:"#e8f5eb",fontSize:".9rem",cursor:"pointer",fontWeight:600}}>
+            Verify →
+          </button>
+        </div>
+      )}
+
+      {forgotStep===3 && (
+        <div style={{display:"flex",flexDirection:"column",gap:10}}>
+          <div style={{color:"#4a7a56",fontSize:".82rem",marginBottom:4}}>Choose a new password (min. 6 characters).</div>
+          <div style={passWrap}>
+            <input value={newPass} onChange={e=>setNewPass(e.target.value)} placeholder="New password"
+              type={showNewPass?"text":"password"} onKeyDown={e=>e.key==="Enter"&&forgotStep3()} style={{...inp,paddingRight:40}}/>
+            <button onClick={()=>setShowNewPass(p=>!p)} style={eyeBtn}><EyeIcon open={showNewPass}/></button>
+          </div>
+          <button onClick={forgotStep3} className="cta-btn"
+            style={{background:"linear-gradient(135deg,#22a35a,#1a7a44)",border:"none",borderRadius:11,padding:"13px",color:"#e8f5eb",fontSize:".9rem",cursor:"pointer",fontWeight:600}}>
+            Save new password →
+          </button>
+        </div>
+      )}
+
+      <button onClick={()=>{setMode("login");setErr("");setForgotStep(1);}}
+        style={{background:"none",border:"none",color:"#3a6644",fontSize:".82rem",cursor:"pointer",textAlign:"center",paddingTop:10,width:"100%"}}>
+        ← Back to sign in
+      </button>
+    </Modal>
+  );
+
   return (
     <Modal onClose={onClose}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:22}}>
         <span style={{color:"#a8ddb5",fontSize:"1.05rem"}}>{mode==="login"?"Welcome back 🌿":"Join Nature's Pantry 🌱"}</span>
         <button onClick={onClose} style={{background:"none",border:"none",color:"#3a6644",cursor:"pointer",fontSize:"1.1rem",lineHeight:1}}>✕</button>
       </div>
-      {err && <div style={{color:"#f09090",fontSize:".78rem",marginBottom:12,padding:"9px 13px",background:"rgba(200,60,60,.1)",borderRadius:9,border:"1px solid rgba(200,60,60,.2)"}}>{err}</div>}
+      {err && <div style={{color:"#f09090",fontSize:".82rem",marginBottom:12,padding:"9px 13px",background:"rgba(200,60,60,.1)",borderRadius:9,border:"1px solid rgba(200,60,60,.2)"}}>{err}</div>}
       <div style={{display:"flex",flexDirection:"column",gap:10}}>
-        {mode==="signup" && <input ref={null} value={name} onChange={e=>setName(e.target.value)} placeholder="Your name" style={inp}/>}
+        {mode==="signup" && <input value={name} onChange={e=>setName(e.target.value)} placeholder="Your name" style={inp}/>}
         <input ref={emailRef} value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email address" type="email" style={inp}/>
-        <input value={pass} onChange={e=>setPass(e.target.value)} placeholder="Password" type="password"
-          onKeyDown={e=>e.key==="Enter"&&submit()} style={inp}/>
+
+        {/* Password with eye toggle */}
+        <div style={passWrap}>
+          <input value={pass} onChange={e=>setPass(e.target.value)} placeholder="Password"
+            type={showPass?"text":"password"} onKeyDown={e=>e.key==="Enter"&&!mode==="signup"&&submit()}
+            style={{...inp,paddingRight:40}}/>
+          <button onClick={()=>setShowPass(p=>!p)} style={eyeBtn}><EyeIcon open={showPass}/></button>
+        </div>
+
+        {/* Security question — signup only */}
+        {mode==="signup" && (
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            <div style={{color:"#4a7a56",fontSize:".78rem",letterSpacing:".08em",textTransform:"uppercase",marginTop:4}}>Security question <span style={{color:"#2a4a30",fontStyle:"italic",letterSpacing:0,textTransform:"none",fontSize:".74rem"}}>(for password recovery)</span></div>
+            <div style={{display:"flex",flexDirection:"column",gap:6}}>
+              {SECURITY_QUESTIONS.map(q=>(
+                <button key={q} onClick={()=>setSecQ(q)}
+                  style={{textAlign:"left",background:secQ===q?"rgba(34,163,90,.14)":"rgba(255,255,255,.04)",border:`1px solid ${secQ===q?"rgba(34,163,90,.45)":"rgba(255,255,255,.1)"}`,borderRadius:10,padding:"10px 13px",color:secQ===q?"#a8ddb5":"#4a7a56",fontSize:".84rem",cursor:"pointer",transition:"all .15s",fontFamily:"'Georgia',serif"}}>
+                  {secQ===q && <span style={{color:"#22a35a",marginRight:7}}>✓</span>}{q}
+                </button>
+              ))}
+            </div>
+            <input value={secA} onChange={e=>setSecA(e.target.value)} placeholder="Your answer"
+              style={{...inp,marginTop:2}}/>
+            <div style={{color:"#1e3d25",fontSize:".74rem",fontStyle:"italic"}}>Answer is case-insensitive. Used only to recover your password.</div>
+          </div>
+        )}
+
+        {/* Allergies — signup only */}
         {mode==="signup" && (
           <div>
             <div style={{color:"#4a7a56",fontSize:".78rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>Food allergies</div>
             <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
               {ALLERGIES.map(a=>(
-                <button key={a} onClick={()=>toggle(a)}
+                <button key={a} onClick={()=>toggleAllergy(a)}
                   style={{background:allergies.includes(a)?"rgba(34,163,90,.22)":"rgba(255,255,255,.04)",border:`1px solid ${allergies.includes(a)?"rgba(34,163,90,.55)":"rgba(255,255,255,.1)"}`,borderRadius:20,padding:"4px 11px",color:allergies.includes(a)?"#5ed880":"#4a7a56",fontSize:".84rem",cursor:"pointer",transition:"all .14s"}}>
                   {a}
                 </button>
@@ -259,14 +394,23 @@ function AuthModal({ onClose, onAuth, defaultMode="login" }) {
             <div style={{color:"#2a4a30",fontSize:".78rem",marginTop:6,fontStyle:"italic"}}>Editable anytime in your profile.</div>
           </div>
         )}
+
         <button onClick={submit} className="cta-btn"
           style={{background:"linear-gradient(135deg,#22a35a,#1a7a44)",border:"none",borderRadius:11,padding:"13px",color:"#e8f5eb",fontSize:".9rem",cursor:"pointer",fontWeight:600,marginTop:2}}>
           {mode==="login"?"Sign In →":"Create Free Account →"}
         </button>
-        <button onClick={()=>{setMode(m=>m==="login"?"signup":"login");setErr("");}}
-          style={{background:"none",border:"none",color:"#3a6644",fontSize:".88rem",cursor:"pointer",textAlign:"center",paddingTop:2}}>
-          {mode==="login"?"No account? Sign up free — get 3 credits":"Already have an account? Sign in"}
-        </button>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",paddingTop:2}}>
+          <button onClick={()=>{setMode(m=>m==="login"?"signup":"login");setErr("");}}
+            style={{background:"none",border:"none",color:"#3a6644",fontSize:".82rem",cursor:"pointer",fontFamily:"'Georgia',serif"}}>
+            {mode==="login"?"No account? Sign up free":"Already have an account?"}
+          </button>
+          {mode==="login" && (
+            <button onClick={()=>{setMode("forgot");setErr("");}}
+              style={{background:"none",border:"none",color:"#2a4a30",fontSize:".78rem",cursor:"pointer",fontFamily:"'Georgia',serif",fontStyle:"italic"}}>
+              Forgot password?
+            </button>
+          )}
+        </div>
       </div>
     </Modal>
   );
@@ -368,10 +512,10 @@ function SignUpPrompt({ onClose, onSignUp }) {
     <Modal onClose={onClose} maxWidth={360}>
       <div style={{textAlign:"center"}}>
         <div style={{fontSize:42,marginBottom:12,display:"inline-block",animation:"float 3s ease-in-out infinite"}}>🌿</div>
-        <div style={{color:"#a8ddb5",fontSize:"1rem",marginBottom:8}}>You've used your 3 free searches</div>
+        <div style={{color:"#a8ddb5",fontSize:"1rem",marginBottom:8}}>You've used your free search</div>
         <div style={{color:"#3a6644",fontSize:".92rem",lineHeight:1.7,marginBottom:16}}>Sign up free to keep going. No card needed.</div>
         <div style={{display:"flex",justifyContent:"center",gap:20,marginBottom:20,padding:"12px 16px",background:"rgba(34,163,90,.06)",border:"1px solid rgba(34,163,90,.15)",borderRadius:12}}>
-          {[["3","Free searches"],["1","Credit per search"],["Free","To join"]].map(([val,lbl],i)=>(
+          {[["1","Free search"],["1","Credit per search"],["Free","To join"]].map(([val,lbl],i)=>(
             <div key={i} style={{textAlign:"center"}}>
               <div style={{color:"#4ec97a",fontSize:"1.1rem",fontWeight:600}}>{val}</div>
               <div style={{color:"#2e5535",fontSize:".74rem",letterSpacing:".06em",textTransform:"uppercase"}}>{lbl}</div>
@@ -544,40 +688,23 @@ function ResultCard({ result, isLast, onGetMore, activeRecipe, setActiveRecipe, 
     );
   }
 
-  // ── INSIGHT follow-up: prose + bullet points ──
-  if (type === "insight") {
+  // ── INSIGHT + ANSWER: visual emoji cards ──
+  if (type === "insight" || type === "answer") {
+    const label = type === "insight" ? "Here\'s the deeper picture" : "To answer your question";
     return (
       <div style={{animation:"slideUp .3s ease"}}>
-        <AckBubble text={result.acknowledgment} label="Here's the deeper picture" />
-        {result.insight && (
-          <div style={{background:"rgba(255,255,255,.025)",border:"1px solid rgba(34,163,90,.14)",borderRadius:14,padding:"18px 20px",marginBottom:14}}>
-            <p style={{color:"#9ecfae",fontSize:"clamp(.97rem,1.5vw,1.08rem)",lineHeight:1.85,margin:0}}>{result.insight}</p>
-          </div>
-        )}
-        {result.bullets?.length > 0 && (
-          <div style={{marginBottom:14}}>
-            {result.bullets.map((b,i)=>(
-              <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:10,padding:"10px 14px",background:"rgba(34,163,90,.05)",borderRadius:10,border:"1px solid rgba(34,163,90,.12)"}}>
-                <span style={{color:"#22a35a",fontWeight:700,fontSize:".85rem",marginTop:1,flexShrink:0}}>→</span>
-                <span style={{color:"#8dc89e",fontSize:"clamp(.93rem,1.4vw,1.04rem)",lineHeight:1.6}}>{b}</span>
+        <AckBubble text={result.acknowledgment} label={label} />
+        {result.cards?.length > 0 && (
+          <div style={{display:"flex",flexDirection:"column",gap:9,marginBottom:14}}>
+            {result.cards.map((card,i)=>(
+              <div key={i} style={{display:"flex",gap:14,alignItems:"flex-start",background:"rgba(34,163,90,.06)",border:"1px solid rgba(34,163,90,.16)",borderRadius:14,padding:"14px 16px",animation:`fadeUp .25s ease ${i*.07}s both`}}>
+                <div style={{fontSize:"clamp(24px,2.8vw,30px)",lineHeight:1,flexShrink:0,marginTop:2}}>{card.emoji||"🌿"}</div>
+                <div>
+                  <div style={{color:"#a8ddb5",fontSize:"clamp(.88rem,1.4vw,1rem)",fontWeight:600,marginBottom:4}}>{card.title}</div>
+                  <div style={{color:"#6aaa80",fontSize:"clamp(.82rem,1.3vw,.95rem)",lineHeight:1.65}}>{card.body}</div>
+                </div>
               </div>
             ))}
-          </div>
-        )}
-        <TipRow tip={result.tip} />
-        {isLast && <div style={{textAlign:"right",marginTop:6}}><button onClick={onGetMore} style={{background:"none",border:"none",color:"#3a6644",fontSize:".8rem",cursor:"pointer",fontStyle:"italic"}}>Get more searches →</button></div>}
-      </div>
-    );
-  }
-
-  // ── ANSWER follow-up: direct prose answer ──
-  if (type === "answer") {
-    return (
-      <div style={{animation:"slideUp .3s ease"}}>
-        <AckBubble text={result.acknowledgment} label="To answer your question" />
-        {result.answer && (
-          <div style={{background:"rgba(255,255,255,.025)",border:"1px solid rgba(34,163,90,.14)",borderRadius:14,padding:"18px 20px",marginBottom:14}}>
-            <p style={{color:"#9ecfae",fontSize:"clamp(.97rem,1.5vw,1.08rem)",lineHeight:1.85,margin:0}}>{result.answer}</p>
           </div>
         )}
         <TipRow tip={result.tip} />
@@ -784,7 +911,7 @@ export default function App() {
     // gate: guest — always read fresh from localStorage
     if (!user) {
       const currentCount = getGuestCount();
-      if (currentCount >= 3) { setShowSignUp(true); return; }
+      if (currentCount >= 1) { setShowSignUp(true); return; }
       const n = currentCount + 1;
       localStorage.setItem("np_guest_searches", String(n));
       setGuestSearches(n);
@@ -943,7 +1070,7 @@ export default function App() {
               <div style={{textAlign:"center",padding:"4px 0 8px"}}>
                 <button onClick={()=>{setAuthMode("signup");setShowAuth(true);}}
                   style={{background:"none",border:"none",color:"#1e3d25",fontSize:".7rem",cursor:"pointer",fontStyle:"italic"}}>
-                  {(()=>{const g=getGuestCount();return g===0?"✦ 3 free searches — no account needed":`✦ ${3-g} free search${(3-g)===1?"":"es"} remaining — sign up to save history`;})()}
+                  {(()=>{const g=getGuestCount();return g===0?"✦ 1 free search — no account needed":"Sign up free for 3 credits →";})()}
                 </button>
               </div>
             )}
@@ -1004,8 +1131,8 @@ export default function App() {
                   {(()=>{
                     if (user) return `${messages.filter(m=>m.role==="user").length} search${messages.filter(m=>m.role==="user").length!==1?"es":""} · ${user.credits??0} cr left`;
                     const g = getGuestCount();
-                    if (g >= 3) return <span style={{color:"#f09090",fontWeight:500}}>No free searches left — <button onClick={()=>setShowSignUp(true)} style={{background:"none",border:"none",color:"#4ec97a",cursor:"pointer",fontFamily:"'Georgia',serif",fontSize:"inherit",padding:0,textDecoration:"underline"}}>sign up free</button></span>;
-                    return `${3-g} free search${(3-g)===1?"":"es"} remaining`;
+                    if (g >= 1) return <span style={{color:"#f09090",fontWeight:500}}>No free searches left — <button onClick={()=>setShowSignUp(true)} style={{background:"none",border:"none",color:"#4ec97a",cursor:"pointer",fontFamily:"'Georgia',serif",fontSize:"inherit",padding:0,textDecoration:"underline"}}>sign up free</button></span>;
+                    return "1 free search — sign up for 3 credits";
                   })()}
                 </span>
               </div>
