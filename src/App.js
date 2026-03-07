@@ -911,7 +911,7 @@ export default function App() {
     // gate: guest — always read fresh from localStorage
     if (!user) {
       const currentCount = getGuestCount();
-      if (currentCount >= 1) { setShowSignUp(true); return; }
+      if (currentCount >= 1) { setShowSignUp(true); return; }  // already used their 1 free search
       const n = currentCount + 1;
       localStorage.setItem("np_guest_searches", String(n));
       setGuestSearches(n);
@@ -1144,7 +1144,7 @@ export default function App() {
 
         {/* Footer */}
         {!hasConvo && (
-          <div style={{textAlign:"center",padding:"24px 0 8px",color:"#142018",fontSize:".78rem",letterSpacing:".06em"}}>
+          <div style={{textAlign:"center",padding:"24px 0 8px",color:"#3a6644",fontSize:".82rem",letterSpacing:".06em"}}>
             Nature's Pantry · Food-first wellness · Not medical advice
           </div>
         )}
