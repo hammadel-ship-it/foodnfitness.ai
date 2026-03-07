@@ -31,9 +31,9 @@ const PILLAR_META = {
 const ALLERGIES = ["Gluten","Dairy","Nuts","Soy","Eggs","Shellfish","Fish","Sesame"];
 
 const TIERS = [
-  { name:"Starter",  price:"$5",  per:"one-time",  searches:"10 searches", rate:"$0.50 / search", desc:"Try it out. No commitment.", cta:"Get Started", highlight:false, paddleId:"pri_starter", features:["10 AI wellness searches","Food, fitness & breathwork","Personalised to your body","Never expires"] },
-  { name:"Thrive",   price:"$15", per:"per month", searches:"50 searches", rate:"$0.30 / search", desc:"For those committed to feeling their best.", cta:"Start Thriving", highlight:true, paddleId:"pri_thrive", badge:"Most Popular", features:["50 searches / month","All 4 wellness pillars","Personalised responses","40% cheaper per search"] },
-  { name:"Optimise", price:"$29", per:"per month", searches:"Unlimited",   rate:"No limits ever", desc:"For those who make wellness a daily practice.", cta:"Start Optimising", highlight:false, paddleId:"pri_optimise", features:["Unlimited searches","All 4 wellness pillars","Full personalisation","Best value for daily use"] },
+  { name:"Starter",  price:"$3",  per:"one-time",  searches:"10 searches", rate:"$0.30 / search", desc:"Try it out. No commitment.", cta:"Get Started", highlight:false, paddleId:"pri_starter", features:["10 AI wellness searches","Food, fitness & breathwork","Personalised to your body","Never expires"] },
+  { name:"Thrive",   price:"$9",  per:"per month", searches:"40 searches", rate:"$0.23 / search", desc:"For those committed to feeling their best.", cta:"Start Thriving", highlight:true, paddleId:"pri_thrive", badge:"Most Popular", features:["40 searches / month","All 4 wellness pillars","Personalised responses","Best value monthly"] },
+  { name:"Optimise", price:"$19", per:"per month", searches:"Unlimited",   rate:"No limits ever", desc:"For those who make wellness a daily practice.", cta:"Start Optimising", highlight:false, paddleId:"pri_optimise", features:["Unlimited searches","All 4 wellness pillars","Full personalisation","Best value for daily use"] },
 ];
 
 // ─── SYSTEM PROMPT ────────────────────────────────────────────────────────────
@@ -118,6 +118,30 @@ Shape: [{"day":"Monday","focus":"word","food":"meal","move":"exercise with durat
 const getUser   = () => { try { return JSON.parse(localStorage.getItem("np_user")||"null"); } catch { return null; } };
 const saveUser  = (u) => localStorage.setItem("np_user", JSON.stringify(u));
 const clearUser = () => localStorage.removeItem("np_user");
+
+// ─── CONVERSATION HISTORY ─────────────────────────────────────────────────────
+
+const CONV_KEY = "np_conversations";
+const MAX_CONVS = 20;
+
+const loadConversations = () => { try { return JSON.parse(localStorage.getItem(CONV_KEY)||"[]"); } catch { return []; } };
+const saveConversations = (convs) => localStorage.setItem(CONV_KEY, JSON.stringify(convs));
+
+const saveConversation = (messages) => {
+  if (!messages.length) return;
+  const convs = loadConversations();
+  const firstUserMsg = messages.find(m=>m.role==="user");
+  const title = firstUserMsg ? firstUserMsg.content.slice(0,60) + (firstUserMsg.content.length>60?"…":"") : "Conversation";
+  const conv = { id: Date.now(), title, date: Date.now(), messages: messages.map(m=>({role:m.role,content:m.content,result:m.result||null})) };
+  const updated = [conv, ...convs].slice(0, MAX_CONVS);
+  saveConversations(updated);
+  return conv.id;
+};
+
+const deleteConversation = (id) => {
+  const convs = loadConversations().filter(c=>c.id!==id);
+  saveConversations(convs);
+};
 
 // ─── STYLES ───────────────────────────────────────────────────────────────────
 
@@ -521,7 +545,7 @@ function PricingPage({ onBack }) {
         </div>
         <div style={{textAlign:"center",padding:"52px 0 60px",animation:"fadeUp .6s ease"}}>
           <div style={{display:"inline-block",background:"rgba(34,163,90,.1)",border:"1px solid rgba(34,163,90,.22)",borderRadius:40,padding:"5px 17px",fontSize:".7rem",letterSpacing:".18em",textTransform:"uppercase",color:"#4ec97a",marginBottom:22}}>Simple, honest pricing</div>
-          <h1 style={{fontSize:"clamp(2.2rem,5.5vw,3.6rem)",fontWeight:400,color:"#c8ecd4",lineHeight:1.15,letterSpacing:"-.02em",marginBottom:14}}>Eat well. Move well.<br/><em style={{color:"#4ec97a"}}>Start for $5.</em></h1>
+          <h1 style={{fontSize:"clamp(2.2rem,5.5vw,3.6rem)",fontWeight:400,color:"#c8ecd4",lineHeight:1.15,letterSpacing:"-.02em",marginBottom:14}}>Eat well. Move well.<br/><em style={{color:"#4ec97a"}}>Start for $3.</em></h1>
           <p style={{color:"#3a6644",fontSize:"clamp(.88rem,2vw,.98rem)",maxWidth:440,margin:"0 auto",lineHeight:1.8}}>Food, fitness, breathwork and sleep — all in one place.</p>
         </div>
         <div className="np-tier-grid" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(270px,1fr))",gap:18,animation:"fadeUp .6s ease .1s both"}}>
@@ -593,6 +617,50 @@ function ChipSection({ onQuery }) {
   );
 }
 
+// ─── HISTORY MODAL ────────────────────────────────────────────────────────────
+
+function HistoryModal({ onClose, onLoad }) {
+  const [convs, setConvs] = useState(loadConversations);
+  const fmt = (ts) => {
+    const d = new Date(ts), now = new Date();
+    const diff = now - d;
+    if (diff < 60000) return "Just now";
+    if (diff < 3600000) return Math.floor(diff/60000)+"m ago";
+    if (diff < 86400000) return Math.floor(diff/3600000)+"h ago";
+    if (diff < 604800000) return Math.floor(diff/86400000)+"d ago";
+    return d.toLocaleDateString();
+  };
+  const del = (id, e) => { e.stopPropagation(); deleteConversation(id); setConvs(loadConversations()); };
+  return (
+    <Modal onClose={onClose} maxWidth={480}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+        <span style={{color:"#a8ddb5",fontSize:"1.05rem"}}>🕐 Conversation history</span>
+        <button onClick={onClose} style={{background:"none",border:"none",color:"#3a6644",cursor:"pointer",fontSize:"1.1rem"}}>✕</button>
+      </div>
+      {convs.length===0
+        ? <div style={{color:"#2e5535",fontSize:".9rem",textAlign:"center",padding:"30px 0",fontStyle:"italic"}}>No saved conversations yet.<br/>Complete a search and it will appear here.</div>
+        : <div style={{display:"flex",flexDirection:"column",gap:7,maxHeight:400,overflowY:"auto"}}>
+            {convs.map(c=>(
+              <div key={c.id} onClick={()=>{onLoad(c.messages);onClose();}}
+                style={{background:"rgba(34,163,90,.06)",border:"1px solid rgba(34,163,90,.16)",borderRadius:12,padding:"12px 14px",cursor:"pointer",transition:"all .15s",display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}}
+                onMouseEnter={e=>e.currentTarget.style.background="rgba(34,163,90,.12)"}
+                onMouseLeave={e=>e.currentTarget.style.background="rgba(34,163,90,.06)"}>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{color:"#c8e8ce",fontSize:".88rem",lineHeight:1.5,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.title}</div>
+                  <div style={{color:"#2e5535",fontSize:".74rem",marginTop:3}}>{fmt(c.date)} · {c.messages.filter(m=>m.role==="user").length} search{c.messages.filter(m=>m.role==="user").length!==1?"es":""}</div>
+                </div>
+                <button onClick={(e)=>del(c.id,e)} style={{background:"none",border:"none",color:"#2a4a30",cursor:"pointer",fontSize:".82rem",padding:"2px 4px",flexShrink:0,borderRadius:6,transition:"color .15s"}}
+                  onMouseEnter={e=>e.currentTarget.style.color="#f09090"}
+                  onMouseLeave={e=>e.currentTarget.style.color="#2a4a30"}>✕</button>
+              </div>
+            ))}
+          </div>
+      }
+      {convs.length>0&&<div style={{color:"#1e3d25",fontSize:".74rem",textAlign:"center",marginTop:14,fontStyle:"italic"}}>Click any conversation to restore it</div>}
+    </Modal>
+  );
+}
+
 // ─── LOGO SVG ─────────────────────────────────────────────────────────────────
 
 function FnfLogo({ size = 40, animated = false }) {
@@ -653,7 +721,7 @@ export default function App() {
   const [input,setInput]=useState("");
   const [loading,setLoading]=useState(false);
   const [error,setError]=useState(null);
-  const [activeRecipe,setActiveRecipe]=useState(null);
+  const [showHistory, setShowHistory] = useState(false);
   const bottomRef=useRef(null);
   const userRef=useRef(user);
   const hasConvo=messages.length>0;
@@ -702,7 +770,11 @@ export default function App() {
       if(!raw)throw new Error("Empty response from AI.");
       const result=safeParseJSON(raw,false);
       if(!result.acknowledgment)throw new Error("Unexpected response shape.");
-      setMessages(p=>[...p,{role:"assistant",content:result.acknowledgment,result}]);
+      setMessages(p=>{
+        const updated=[...p,{role:"assistant",content:result.acknowledgment,result}];
+        if (user) saveConversation(updated);
+        return updated;
+      });
       recordSuccess(isFollowUp,q);
       fetchWeekPlan(q);
     }catch(e){setError(e.message);}finally{setLoading(false);}
@@ -717,7 +789,7 @@ export default function App() {
       {showAuth&&<AuthModal onClose={()=>setShowAuth(false)} onAuth={handleAuth} defaultMode={authMode}/>}
       {showProfile&&user&&<ProfileModal user={user} onClose={()=>setShowProfile(false)} onUpdate={u=>{setUser(u);setShowProfile(false);}} onLogout={handleLogout}/>}
       {showNoCredits&&<NoCreditsModal onClose={()=>setShowNoCredits(false)} onViewPlans={()=>{setShowNoCredits(false);setPage("pricing");}}/>}
-      {showSignUp&&<SignUpPrompt onClose={()=>setShowSignUp(false)} onSignUp={()=>{setShowSignUp(false);setAuthMode("signup");setShowAuth(true);}}/>}
+      {showHistory && <HistoryModal onClose={()=>setShowHistory(false)} onLoad={(msgs)=>{setMessages(msgs);setInput("");setError(null);}}/>}
       <div style={{position:"fixed",inset:0,background:"radial-gradient(ellipse 110% 55% at 50% 0%,#152e18 0%,#0b1a0d 65%)",zIndex:0,pointerEvents:"none"}}/>
       <div style={{position:"relative",zIndex:1,maxWidth:1100,margin:"0 auto",padding:"0 0 80px",overflowX:"hidden"}}>
 
@@ -730,6 +802,7 @@ export default function App() {
           <div style={{display:"flex",gap:7,alignItems:"center"}}>
 
             <button onClick={()=>setPage("pricing")} style={{background:"none",border:"1px solid rgba(80,180,100,.17)",borderRadius:20,padding:"clamp(6px,.7vw,9px) clamp(14px,1.6vw,22px)",color:"#2e5535",fontSize:"clamp(.82rem,1.2vw,.95rem)",cursor:"pointer"}}>Pricing</button>
+            {user && <button onClick={()=>setShowHistory(true)} style={{background:"none",border:"1px solid rgba(80,180,100,.17)",borderRadius:20,padding:"clamp(6px,.7vw,9px) clamp(14px,1.6vw,22px)",color:"#2e5535",fontSize:"clamp(.82rem,1.2vw,.95rem)",cursor:"pointer"}}>History</button>}
             {user
               ?<button onClick={()=>setShowProfile(true)} style={{background:"rgba(34,163,90,.1)",border:"1px solid rgba(34,163,90,.24)",borderRadius:20,padding:"4px 12px",color:"#4ec97a",fontSize:".78rem",cursor:"pointer",display:"flex",alignItems:"center",gap:6}}>
                 <span>👤 {user.name.split(" ")[0]}</span>
