@@ -877,7 +877,7 @@ export default function App() {
       {showNoCredits&&<NoCreditsModal onClose={()=>setShowNoCredits(false)} onViewPlans={()=>{setShowNoCredits(false);setPage("pricing");}}/>}
       {showHistory && <HistoryModal onClose={()=>setShowHistory(false)} onLoad={(msgs)=>{setMessages(msgs);setInput("");setError(null);}}/>}
       <div style={{position:"fixed",inset:0,background:"radial-gradient(ellipse 110% 55% at 50% 0%,#152e18 0%,#0b1a0d 65%)",zIndex:0,pointerEvents:"none"}}/>
-      <div style={{position:"relative",zIndex:1,maxWidth:1100,margin:"0 auto",padding:"0 0 80px",overflowX:"hidden"}}>
+      <div style={{position:"relative",zIndex:1,maxWidth:1100,margin:"0 auto",padding:"0 0 80px",overflowX:"hidden",minHeight:"100vh"}}>
 
         {/* NAV */}
         <nav style={{padding:"14px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",borderBottom:"1px solid rgba(80,180,100,.07)"}}>
@@ -936,7 +936,7 @@ export default function App() {
 
         {/* CHAT */}
         {hasConvo&&(
-          <div>
+          <div style={{minHeight:"80vh",display:"flex",flexDirection:"column"}}>
             <div style={{padding:"16px 20px 0"}}>
               {messages.map((msg,idx)=>(
                 <div key={idx} style={{marginBottom:msg.role==="user"?8:24,minHeight:0}}>
@@ -944,7 +944,7 @@ export default function App() {
                   {msg.role==="assistant"&&<ResultCard result={msg.result} isLast={idx===messages.length-1} onGetMore={()=>setPage("pricing")} activeRecipe={activeRecipe} setActiveRecipe={setActiveRecipe} msgIdx={idx}/>}
                 </div>
               ))}
-              {loading&&<div style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0",animation:"fadeIn .3s ease"}}><span style={{fontSize:18,display:"inline-block",animation:"spin 1.8s linear infinite"}}>🌿</span><span style={{color:"#3a6644",fontSize:".92rem",fontStyle:"italic",animation:"pulse 2s ease infinite"}}>Building your wellness plan...</span></div>}
+              {loading&&<div style={{display:"flex",alignItems:"center",gap:10,padding:"24px 0",animation:"fadeIn .15s ease"}}><span style={{fontSize:22,display:"inline-block",animation:"spin 1.8s linear infinite"}}>🌿</span><span style={{color:"#4a9960",fontSize:"1rem",fontStyle:"italic",animation:"pulse 2s ease infinite"}}>Building your wellness plan...</span></div>}
               {error&&<div style={{background:"rgba(200,60,60,.08)",border:"1px solid rgba(200,60,60,.18)",borderRadius:10,padding:"11px 15px",color:"#f09090",fontSize:".82rem",marginBottom:12,lineHeight:1.6}}>⚠️ {error}<button onClick={()=>setError(null)} style={{background:"none",border:"none",color:"#f09090",cursor:"pointer",float:"right",fontSize:".82rem"}}>✕</button></div>}
               <div ref={bottomRef}/>
             </div>
