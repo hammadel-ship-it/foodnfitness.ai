@@ -18,6 +18,9 @@ exports.handler = async (event) => {
   try {
     const body = JSON.parse(event.body);
 
+    // Use max_tokens from request body, with sensible bounds (500 min, 4000 max)
+    const max_tokens = Math.min(Math.max(body.max_tokens || 1500, 500), 4000);
+
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -26,8 +29,8 @@ exports.handler = async (event) => {
         "x-api-key": process.env.ANTHROPIC_API_KEY,
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1000,
+        model: body.model || "claude-sonnet-4-20250514",
+        max_tokens: max_tokens,
         system: body.system,
         messages: body.messages,
       }),
