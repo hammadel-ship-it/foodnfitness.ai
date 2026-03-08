@@ -144,22 +144,43 @@ const CONV_KEY = "np_conversations";
 const MAX_CONVS = 20;
 
 const loadConversations = () => { try { return JSON.parse(localStorage.getItem(CONV_KEY)||"[]"); } catch { return []; } };
-const saveConversations = (convs) => localStorage.setItem(CONV_KEY, JSON.stringify(convs));
+const saveConversationsLocal = (convs) => localStorage.setItem(CONV_KEY, JSON.stringify(convs));
 
-const saveConversation = (messages) => {
+// Save conversations to Supabase for the logged-in user
+const saveConversationsRemote = async (userId, convs) => {
+  try {
+    await supabase.from("profiles").update({ conversations: convs, updated_at: new Date().toISOString() }).eq("id", userId);
+  } catch(e) { console.error("Remote conv save failed:", e); }
+};
+
+// Load conversations from Supabase and merge with local
+const loadConversationsRemote = async (userId) => {
+  try {
+    const { data } = await supabase.from("profiles").select("conversations").eq("id", userId).single();
+    if (data?.conversations?.length) {
+      saveConversationsLocal(data.conversations);
+      return data.conversations;
+    }
+  } catch(e) { console.error("Remote conv load failed:", e); }
+  return loadConversations();
+};
+
+const saveConversation = (messages, userId) => {
   if (!messages.length) return;
   const convs = loadConversations();
   const firstUserMsg = messages.find(m=>m.role==="user");
   const title = firstUserMsg ? firstUserMsg.content.slice(0,60) + (firstUserMsg.content.length>60?"…":"") : "Conversation";
   const conv = { id: Date.now(), title, date: Date.now(), messages: messages.map(m=>({role:m.role,content:m.content,result:m.result||null})) };
   const updated = [conv, ...convs].slice(0, MAX_CONVS);
-  saveConversations(updated);
+  saveConversationsLocal(updated);
+  if (userId) saveConversationsRemote(userId, updated);
   return conv.id;
 };
 
-const deleteConversation = (id) => {
+const deleteConversation = (id, userId) => {
   const convs = loadConversations().filter(c=>c.id!==id);
-  saveConversations(convs);
+  saveConversationsLocal(convs);
+  if (userId) saveConversationsRemote(userId, convs);
 };
 
 // ─── STYLES ───────────────────────────────────────────────────────────────────
@@ -847,7 +868,7 @@ function HistoryModal({ onClose, onLoad }) {
     if (diff < 604800000) return Math.floor(diff/86400000)+"d ago";
     return d.toLocaleDateString();
   };
-  const del = (id, e) => { e.stopPropagation(); deleteConversation(id); setConvs(loadConversations()); };
+  const del = (id, e) => { e.stopPropagation(); deleteConversation(id, currentUser?.id); setConvs(loadConversations()); };
   return (
     <Modal onClose={onClose} maxWidth={480}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
@@ -955,6 +976,7 @@ export default function App() {
         if(profile){
           const u={id:session.user.id,name:profile.name,email:profile.email,allergies:profile.allergies||[],credits:profile.credits??3,tier:profile.tier||"free",sex:profile.sex||"",history:profile.history||[]};
           saveUser(u);setUser(u);userRef.current=u;
+          loadConversationsRemote(session.user.id).then(convs=>saveConversationsLocal(convs));
         }
       }
     });
@@ -974,6 +996,7 @@ export default function App() {
             if(profile.credits !== prevCredits || profile.tier !== "free" || attempts >= 8){
               const u={id:session.user.id,name:profile.name,email:profile.email,allergies:profile.allergies||[],credits:profile.credits??3,tier:profile.tier||"free",sex:profile.sex||"",history:profile.history||[]};
               saveUser(u);setUser(u);userRef.current=u;
+              loadConversationsRemote(session.user.id).then(convs=>saveConversationsLocal(convs));
               alert("✅ Payment successful! Your credits have been updated.");
               return;
             }
@@ -1052,7 +1075,7 @@ export default function App() {
       const result = await attemptQuery();
       setMessages(p=>{
         const updated=[...p,{role:"assistant",content:result.acknowledgment,result}];
-        if (user) saveConversation(updated);
+        if (user) saveConversation(updated, user.id);
         return updated;
       });
       recordSuccess(isFollowUp,q);
