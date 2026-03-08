@@ -1,4 +1,10 @@
 import { useState, useEffect, useRef } from "react";
+import { createClient } from "@supabase/supabase-js";
+
+// ─── SUPABASE ─────────────────────────────────────────────────────────────────
+const SUPA_URL  = process.env.REACT_APP_SUPABASE_URL;
+const SUPA_KEY  = process.env.REACT_APP_SUPABASE_ANON_KEY;
+const supabase  = createClient(SUPA_URL, SUPA_KEY);
 
 // ─── DATA ─────────────────────────────────────────────────────────────────────
 
@@ -31,9 +37,9 @@ const PILLAR_META = {
 const ALLERGIES = ["Gluten","Dairy","Nuts","Soy","Eggs","Shellfish","Fish","Sesame"];
 
 const TIERS = [
-  { name:"Starter",  price:"$3",  per:"one-time",  searches:"10 searches", rate:"$0.30 / search", desc:"Try it out. No commitment.", cta:"Get Started", highlight:false, paddleId:"pri_starter", features:["10 AI wellness searches","Food, fitness & breathwork","Personalised to your body","Never expires"] },
-  { name:"Thrive",   price:"$9",  per:"per month", searches:"40 searches", rate:"$0.23 / search", desc:"For those committed to feeling their best.", cta:"Start Thriving", highlight:true, paddleId:"pri_thrive", badge:"Most Popular", features:["40 searches / month","All 4 wellness pillars","Personalised responses","Best value monthly"] },
-  { name:"Optimise", price:"$19", per:"per month", searches:"Unlimited",   rate:"No limits ever", desc:"For those who make wellness a daily practice.", cta:"Start Optimising", highlight:false, paddleId:"pri_optimise", features:["Unlimited searches","All 4 wellness pillars","Full personalisation","Best value for daily use"] },
+  { name:"Starter",  price:"$3",  per:"one-time",  searches:"10 searches", rate:"$0.30 / search", desc:"Try it out. No commitment.", cta:"Get Started", highlight:false, paddleId:"pri_01kk5jxb04fcqhwgbj1t67wex2", features:["10 AI wellness searches","Food, fitness & breathwork","Personalised to your body","Never expires"] },
+  { name:"Thrive",   price:"$9",  per:"per month", searches:"40 searches", rate:"$0.23 / search", desc:"For those committed to feeling their best.", cta:"Start Thriving", highlight:true, paddleId:"pri_01kk5jzhbwje0qmgjwk76xkq9w", badge:"Most Popular", features:["40 searches / month","All 4 wellness pillars","Personalised responses","Best value monthly"] },
+  { name:"Optimise", price:"$19", per:"per month", searches:"Unlimited",   rate:"No limits ever", desc:"For those who make wellness a daily practice.", cta:"Start Optimising", highlight:false, paddleId:"pri_01kk5k0qn95abpkvd2nvww5he2", features:["Unlimited searches","All 4 wellness pillars","Full personalisation","Best value for daily use"] },
 ];
 
 // ─── SYSTEM PROMPT ────────────────────────────────────────────────────────────
@@ -114,11 +120,23 @@ Shape: [{"day":"Monday","focus":"word","food":"meal","move":"exercise with durat
 - ${allergy}`;
 };
 
-// ─── STORAGE ──────────────────────────────────────────────────────────────────
+// ─── SUPABASE PROFILE HELPERS ─────────────────────────────────────────────────
 
+// Cache session in localStorage just for instant UI restore on reload
 const getUser   = () => { try { return JSON.parse(localStorage.getItem("np_user")||"null"); } catch { return null; } };
 const saveUser  = (u) => localStorage.setItem("np_user", JSON.stringify(u));
 const clearUser = () => localStorage.removeItem("np_user");
+
+// Fetch full profile from Supabase (credits, allergies, sex, history)
+const fetchProfile = async (supaId) => {
+  const { data } = await supabase.from("profiles").select("*").eq("id", supaId).single();
+  return data;
+};
+
+// Upsert profile fields to Supabase
+const upsertProfile = async (supaId, fields) => {
+  await supabase.from("profiles").update({ ...fields, updated_at: new Date().toISOString() }).eq("id", supaId);
+};
 
 // ─── CONVERSATION HISTORY ─────────────────────────────────────────────────────
 
@@ -252,8 +270,6 @@ const EyeIcon = ({open}) => open
   ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
   : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>;
 
-const SECURITY_QUESTIONS = ["What was the name of your first pet?","What is your mother's maiden name?"];
-
 function AuthModal({ onClose, onAuth, defaultMode="login" }) {
   const [mode,setMode]=useState(defaultMode);
   const [name,setName]=useState("");
@@ -261,46 +277,75 @@ function AuthModal({ onClose, onAuth, defaultMode="login" }) {
   const [pass,setPass]=useState("");
   const [showPass,setShowPass]=useState(false);
   const [allergies,setAllergies]=useState([]);
-  const [secQ,setSecQ]=useState(SECURITY_QUESTIONS[0]);
-  const [secA,setSecA]=useState("");
   const [err,setErr]=useState("");
-  const [forgotStep,setForgotStep]=useState(1);
-  const [forgotEmail,setForgotEmail]=useState("");
-  const [forgotAnswer,setForgotAnswer]=useState("");
-  const [newPass,setNewPass]=useState("");
-  const [showNewPass,setShowNewPass]=useState(false);
-  const [forgotAccount,setForgotAccount]=useState(null);
+  const [loading,setLoading]=useState(false);
+  const [resetSent,setResetSent]=useState(false);
   const emailRef=useRef(null);
   useEffect(()=>{emailRef.current?.focus();},[]);
   const toggleAllergy=(a)=>setAllergies(p=>p.includes(a)?p.filter(x=>x!==a):[...p,a]);
-  const submit=()=>{
-    setErr("");
-    if(!email.trim()||!pass.trim())return setErr("Email and password required.");
-    if(mode==="signup"&&!name.trim())return setErr("Name required.");
-    if(mode==="signup"&&!secA.trim())return setErr("Security answer required.");
-    const accounts=JSON.parse(localStorage.getItem("np_accounts")||"{}");
-    if(mode==="signup"){
-      if(accounts[email])return setErr("Account exists. Please sign in.");
-      const u={name:name.trim(),email,allergies,history:[],credits:3,createdAt:Date.now()};
-      accounts[email]={...u,pass,secQ,secA:secA.trim().toLowerCase()};
-      localStorage.setItem("np_accounts",JSON.stringify(accounts));
-      saveUser(u);
-      fetch("/.netlify/functions/welcome",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:name.trim(),email})}).catch(()=>{});
-      onAuth(u);
-    } else {
-      const a=accounts[email];
-      if(!a)return setErr("No account found. Sign up first.");
-      if(a.pass!==pass)return setErr("Incorrect password.");
-      const u={name:a.name,email,allergies:a.allergies||[],history:a.history||[],credits:a.credits??3,sex:a.sex||""};
-      saveUser(u);onAuth(u);
-    }
+
+  const submit=async()=>{
+    setErr("");setLoading(true);
+    try{
+      if(mode==="signup"){
+        if(!name.trim())return setErr("Name required.");
+        if(!email.trim()||!pass.trim())return setErr("Email and password required.");
+        if(pass.length<6)return setErr("Password must be at least 6 characters.");
+        // Create Supabase auth user
+        const {data,error}=await supabase.auth.signUp({
+          email:email.trim(),
+          password:pass,
+          options:{ data:{ name:name.trim() } }
+        });
+        if(error)return setErr(error.message);
+        // Set initial profile fields (trigger auto-creates row, we update extras)
+        if(data.user){
+          await supabase.from("profiles").upsert({
+            id:data.user.id,
+            email:email.trim(),
+            name:name.trim(),
+            allergies,
+            credits:3,
+            tier:"free"
+          });
+          const u={id:data.user.id,name:name.trim(),email:email.trim(),allergies,credits:3,sex:"",history:[]};
+          saveUser(u);onAuth(u);
+        }
+      } else {
+        if(!email.trim()||!pass.trim())return setErr("Email and password required.");
+        const {data,error}=await supabase.auth.signInWithPassword({email:email.trim(),password:pass});
+        if(error)return setErr(error.message);
+        // Fetch full profile
+        const profile=await fetchProfile(data.user.id);
+        const u={
+          id:data.user.id,
+          name:profile?.name||data.user.user_metadata?.name||email.split("@")[0],
+          email:email.trim(),
+          allergies:profile?.allergies||[],
+          credits:profile?.credits??3,
+          sex:profile?.sex||"",
+          history:profile?.history||[]
+        };
+        saveUser(u);onAuth(u);
+      }
+    }catch(e){setErr(e.message);}finally{setLoading(false);}
   };
-  const f1=()=>{setErr("");const acc=JSON.parse(localStorage.getItem("np_accounts")||"{}");const a=acc[forgotEmail.trim()];if(!a)return setErr("No account found.");if(!a.secQ||!a.secA)return setErr("No security question set.");setForgotAccount(a);setForgotStep(2);};
-  const f2=()=>{setErr("");if(forgotAnswer.trim().toLowerCase()!==forgotAccount.secA)return setErr("Incorrect answer.");setForgotStep(3);};
-  const f3=()=>{setErr("");if(newPass.trim().length<6)return setErr("Min 6 characters.");const acc=JSON.parse(localStorage.getItem("np_accounts")||"{}");acc[forgotAccount.email]={...acc[forgotAccount.email],pass:newPass.trim()};localStorage.setItem("np_accounts",JSON.stringify(acc));setMode("login");setForgotStep(1);setForgotEmail("");setForgotAnswer("");setNewPass("");setForgotAccount(null);setErr("");setEmail(forgotAccount.email);};
+
+  const sendReset=async()=>{
+    setErr("");setLoading(true);
+    try{
+      const {error}=await supabase.auth.resetPasswordForEmail(email.trim(),{
+        redirectTo:"https://foodnfitness.ai/reset"
+      });
+      if(error)return setErr(error.message);
+      setResetSent(true);
+    }catch(e){setErr(e.message);}finally{setLoading(false);}
+  };
+
   const inp={background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.12)",borderRadius:10,padding:"11px 14px",color:"#c8e8ce",outline:"none",fontSize:".9rem",width:"100%",boxSizing:"border-box"};
   const pw={position:"relative",display:"flex",alignItems:"center"};
   const eb={position:"absolute",right:12,background:"none",border:"none",color:"#3a6644",cursor:"pointer",padding:2,display:"flex",alignItems:"center"};
+
   if(mode==="forgot")return(
     <Modal onClose={onClose}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
@@ -308,13 +353,23 @@ function AuthModal({ onClose, onAuth, defaultMode="login" }) {
         <button onClick={onClose} style={{background:"none",border:"none",color:"#3a6644",cursor:"pointer",fontSize:"1.1rem"}}>✕</button>
       </div>
       {err&&<div style={{color:"#f09090",fontSize:".82rem",marginBottom:12,padding:"9px 13px",background:"rgba(200,60,60,.1)",borderRadius:9,border:"1px solid rgba(200,60,60,.2)"}}>{err}</div>}
-      <div style={{display:"flex",gap:6,marginBottom:20}}>{[1,2,3].map(s=><div key={s} style={{flex:1,height:3,borderRadius:4,background:forgotStep>=s?"rgba(34,163,90,.6)":"rgba(255,255,255,.08)",transition:"background .3s"}}/>)}</div>
-      {forgotStep===1&&<div style={{display:"flex",flexDirection:"column",gap:10}}><div style={{color:"#4a7a56",fontSize:".82rem"}}>Enter your account email.</div><input value={forgotEmail} onChange={e=>setForgotEmail(e.target.value)} placeholder="Email" type="email" onKeyDown={e=>e.key==="Enter"&&f1()} style={inp}/><button onClick={f1} className="cta-btn" style={{background:"linear-gradient(135deg,#22a35a,#1a7a44)",border:"none",borderRadius:11,padding:"13px",color:"#e8f5eb",fontSize:".9rem",cursor:"pointer",fontWeight:600}}>Continue →</button></div>}
-      {forgotStep===2&&forgotAccount&&<div style={{display:"flex",flexDirection:"column",gap:10}}><div style={{color:"#4a7a56",fontSize:".82rem"}}>Answer your security question:</div><div style={{background:"rgba(34,163,90,.07)",border:"1px solid rgba(34,163,90,.18)",borderRadius:10,padding:"12px 14px",color:"#a8ddb5",fontSize:".88rem",fontStyle:"italic"}}>{forgotAccount.secQ}</div><input value={forgotAnswer} onChange={e=>setForgotAnswer(e.target.value)} placeholder="Your answer" onKeyDown={e=>e.key==="Enter"&&f2()} style={inp}/><button onClick={f2} className="cta-btn" style={{background:"linear-gradient(135deg,#22a35a,#1a7a44)",border:"none",borderRadius:11,padding:"13px",color:"#e8f5eb",fontSize:".9rem",cursor:"pointer",fontWeight:600}}>Verify →</button></div>}
-      {forgotStep===3&&<div style={{display:"flex",flexDirection:"column",gap:10}}><div style={{color:"#4a7a56",fontSize:".82rem"}}>Choose a new password (min 6 chars).</div><div style={pw}><input value={newPass} onChange={e=>setNewPass(e.target.value)} placeholder="New password" type={showNewPass?"text":"password"} onKeyDown={e=>e.key==="Enter"&&f3()} style={{...inp,paddingRight:40}}/><button onClick={()=>setShowNewPass(p=>!p)} style={eb}><EyeIcon open={showNewPass}/></button></div><button onClick={f3} className="cta-btn" style={{background:"linear-gradient(135deg,#22a35a,#1a7a44)",border:"none",borderRadius:11,padding:"13px",color:"#e8f5eb",fontSize:".9rem",cursor:"pointer",fontWeight:600}}>Save password →</button></div>}
-      <button onClick={()=>{setMode("login");setErr("");setForgotStep(1);}} style={{background:"none",border:"none",color:"#3a6644",fontSize:".82rem",cursor:"pointer",textAlign:"center",paddingTop:10,width:"100%"}}>← Back to sign in</button>
+      {resetSent
+        ?<div style={{textAlign:"center",padding:"16px 0"}}>
+          <div style={{fontSize:32,marginBottom:12}}>📬</div>
+          <div style={{color:"#a8ddb5",fontSize:".95rem",marginBottom:8}}>Check your email</div>
+          <div style={{color:"#3a6644",fontSize:".88rem",lineHeight:1.7}}>A password reset link has been sent to <strong style={{color:"#5ed880"}}>{email}</strong>. Check your inbox.</div>
+          <button onClick={()=>{setMode("login");setResetSent(false);}} style={{marginTop:16,background:"none",border:"none",color:"#3a6644",fontSize:".82rem",cursor:"pointer"}}>← Back to sign in</button>
+        </div>
+        :<div style={{display:"flex",flexDirection:"column",gap:10}}>
+          <div style={{color:"#4a7a56",fontSize:".82rem"}}>Enter your account email and we will send a reset link.</div>
+          <input ref={emailRef} value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email address" type="email" onKeyDown={e=>e.key==="Enter"&&sendReset()} style={inp}/>
+          <button onClick={sendReset} disabled={loading} className="cta-btn" style={{background:"linear-gradient(135deg,#22a35a,#1a7a44)",border:"none",borderRadius:11,padding:"13px",color:"#e8f5eb",fontSize:".9rem",cursor:"pointer",fontWeight:600}}>{loading?"Sending…":"Send reset link →"}</button>
+          <button onClick={()=>{setMode("login");setErr("");}} style={{background:"none",border:"none",color:"#3a6644",fontSize:".82rem",cursor:"pointer",textAlign:"center",paddingTop:4}}>← Back to sign in</button>
+        </div>
+      }
     </Modal>
   );
+
   return(
     <Modal onClose={onClose}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:22}}>
@@ -325,19 +380,13 @@ function AuthModal({ onClose, onAuth, defaultMode="login" }) {
       <div style={{display:"flex",flexDirection:"column",gap:10}}>
         {mode==="signup"&&<input value={name} onChange={e=>setName(e.target.value)} placeholder="Your name" style={inp}/>}
         <input ref={emailRef} value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email address" type="email" style={inp}/>
-        <div style={pw}><input value={pass} onChange={e=>setPass(e.target.value)} placeholder="Password" type={showPass?"text":"password"} onKeyDown={e=>e.key==="Enter"&&mode==="login"&&submit()} style={{...inp,paddingRight:40}}/><button onClick={()=>setShowPass(p=>!p)} style={eb}><EyeIcon open={showPass}/></button></div>
-        {mode==="signup"&&<div style={{display:"flex",flexDirection:"column",gap:8}}>
-          <div style={{color:"#4a7a56",fontSize:".78rem",letterSpacing:".08em",textTransform:"uppercase",marginTop:4}}>Security question <span style={{color:"#2a4a30",fontStyle:"italic",letterSpacing:0,textTransform:"none",fontSize:".74rem"}}>(password recovery)</span></div>
-          {SECURITY_QUESTIONS.map(q=><button key={q} onClick={()=>setSecQ(q)} style={{textAlign:"left",background:secQ===q?"rgba(34,163,90,.14)":"rgba(255,255,255,.04)",border:"1px solid "+(secQ===q?"rgba(34,163,90,.45)":"rgba(255,255,255,.1)"),borderRadius:10,padding:"10px 13px",color:secQ===q?"#a8ddb5":"#4a7a56",fontSize:".84rem",cursor:"pointer",transition:"all .15s",fontFamily:"'Georgia',serif"}}>{secQ===q&&<span style={{color:"#22a35a",marginRight:7}}>✓</span>}{q}</button>)}
-          <input value={secA} onChange={e=>setSecA(e.target.value)} placeholder="Your answer" style={{...inp,marginTop:2}}/>
-          <div style={{color:"#1e3d25",fontSize:".74rem",fontStyle:"italic"}}>Case-insensitive. Only used to recover your password.</div>
-        </div>}
+        <div style={pw}><input value={pass} onChange={e=>setPass(e.target.value)} placeholder="Password" type={showPass?"text":"password"} onKeyDown={e=>e.key==="Enter"&&submit()} style={{...inp,paddingRight:40}}/><button onClick={()=>setShowPass(p=>!p)} style={eb}><EyeIcon open={showPass}/></button></div>
         {mode==="signup"&&<div>
           <div style={{color:"#4a7a56",fontSize:".78rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>Food allergies</div>
           <div style={{display:"flex",flexWrap:"wrap",gap:6}}>{ALLERGIES.map(a=><button key={a} onClick={()=>toggleAllergy(a)} style={{background:allergies.includes(a)?"rgba(34,163,90,.22)":"rgba(255,255,255,.04)",border:"1px solid "+(allergies.includes(a)?"rgba(34,163,90,.55)":"rgba(255,255,255,.1)"),borderRadius:20,padding:"4px 11px",color:allergies.includes(a)?"#5ed880":"#4a7a56",fontSize:".84rem",cursor:"pointer",transition:"all .14s"}}>{a}</button>)}</div>
           <div style={{color:"#2a4a30",fontSize:".78rem",marginTop:6,fontStyle:"italic"}}>Editable anytime in your profile.</div>
         </div>}
-        <button onClick={submit} className="cta-btn" style={{background:"linear-gradient(135deg,#22a35a,#1a7a44)",border:"none",borderRadius:11,padding:"13px",color:"#e8f5eb",fontSize:".9rem",cursor:"pointer",fontWeight:600,marginTop:2}}>{mode==="login"?"Sign In →":"Create Free Account →"}</button>
+        <button onClick={submit} disabled={loading} className="cta-btn" style={{background:"linear-gradient(135deg,#22a35a,#1a7a44)",border:"none",borderRadius:11,padding:"13px",color:"#e8f5eb",fontSize:".9rem",cursor:"pointer",fontWeight:600,marginTop:2}}>{loading?"Please wait…":(mode==="login"?"Sign In →":"Create Free Account →")}</button>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",paddingTop:2}}>
           <button onClick={()=>{setMode(m=>m==="login"?"signup":"login");setErr("");}} style={{background:"none",border:"none",color:"#3a6644",fontSize:".82rem",cursor:"pointer",fontFamily:"'Georgia',serif"}}>{mode==="login"?"No account? Sign up free":"Already have an account?"}</button>
           {mode==="login"&&<button onClick={()=>{setMode("forgot");setErr("");}} style={{background:"none",border:"none",color:"#2a4a30",fontSize:".78rem",cursor:"pointer",fontFamily:"'Georgia',serif",fontStyle:"italic"}}>Forgot password?</button>}
@@ -350,8 +399,22 @@ function AuthModal({ onClose, onAuth, defaultMode="login" }) {
 function ProfileModal({ user, onClose, onUpdate, onLogout }) {
   const [allergies,setAllergies]=useState(user.allergies||[]);
   const [sex,setSex]=useState(user.sex||"");
+  const [saving,setSaving]=useState(false);
   const toggle=(a)=>setAllergies(p=>p.includes(a)?p.filter(x=>x!==a):[...p,a]);
-  const save=()=>{const u={...user,allergies,sex};saveUser(u);const acc=JSON.parse(localStorage.getItem("np_accounts")||"{}");if(acc[user.email]){acc[user.email]={...acc[user.email],allergies,sex};localStorage.setItem("np_accounts",JSON.stringify(acc));}onUpdate(u);};
+  const save=async()=>{
+    setSaving(true);
+    const u={...user,allergies,sex};
+    saveUser(u);
+    // Persist to Supabase
+    if(user.id) await upsertProfile(user.id,{allergies,sex});
+    onUpdate(u);
+    setSaving(false);
+  };
+  const logout=async()=>{
+    await supabase.auth.signOut();
+    clearUser();
+    onLogout();
+  };
   const SEX=[{value:"female",label:"Female",icon:"♀️"},{value:"male",label:"Male",icon:"♂️"}];
   return(
     <Modal onClose={onClose}>
@@ -367,7 +430,7 @@ function ProfileModal({ user, onClose, onUpdate, onLogout }) {
         <div style={{color:"#4a7a56",fontSize:".78rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>Food allergies</div>
         <div style={{display:"flex",flexWrap:"wrap",gap:6}}>{ALLERGIES.map(a=><button key={a} onClick={()=>toggle(a)} style={{background:allergies.includes(a)?"rgba(34,163,90,.22)":"rgba(255,255,255,.04)",border:"1px solid "+(allergies.includes(a)?"rgba(34,163,90,.55)":"rgba(255,255,255,.1)"),borderRadius:20,padding:"4px 11px",color:allergies.includes(a)?"#5ed880":"#4a7a56",fontSize:".84rem",cursor:"pointer",transition:"all .14s"}}>{a}</button>)}</div>
       </div>
-      <div style={{display:"flex",gap:9}}><button onClick={save} className="cta-btn" style={{flex:1,background:"linear-gradient(135deg,#22a35a,#1a7a44)",border:"none",borderRadius:10,padding:"11px",color:"#e8f5eb",fontSize:".85rem",cursor:"pointer",fontWeight:600}}>Save</button><button onClick={()=>{clearUser();onLogout();}} style={{background:"rgba(220,80,80,.08)",border:"1px solid rgba(220,80,80,.22)",borderRadius:10,padding:"11px 16px",color:"#f09090",fontSize:".85rem",cursor:"pointer"}}>Sign out</button></div>
+      <div style={{display:"flex",gap:9}}><button onClick={save} disabled={saving} className="cta-btn" style={{flex:1,background:"linear-gradient(135deg,#22a35a,#1a7a44)",border:"none",borderRadius:10,padding:"11px",color:"#e8f5eb",fontSize:".85rem",cursor:"pointer",fontWeight:600}}>{saving?"Saving…":"Save"}</button><button onClick={logout} style={{background:"rgba(220,80,80,.08)",border:"1px solid rgba(220,80,80,.22)",borderRadius:10,padding:"11px 16px",color:"#f09090",fontSize:".85rem",cursor:"pointer"}}>Sign out</button></div>
     </Modal>
   );
 }
@@ -616,8 +679,38 @@ function ResultCard({ result, isLast, onGetMore, activeRecipe, setActiveRecipe, 
   );
 }
 
-function PricingPage({ onBack }) {
-  const sub=(t)=>alert("Paddle: open checkout for "+t.name+" priceId "+t.paddleId);
+function PricingPage({ onBack, user, onCreditsAdded }) {
+  const [processing, setProcessing] = useState(null);
+
+  const CREDITS_MAP = {
+    "pri_01kk5jxb04fcqhwgbj1t67wex2": 10,   // Starter
+    "pri_01kk5jzhbwje0qmgjwk76xkq9w": 40,   // Thrive
+    "pri_01kk5k0qn95abpkvd2nvww5he2": 9999, // Optimise
+  };
+
+  const openCheckout = (t) => {
+    if (!window.Paddle) { alert("Payment system loading, please try again in a moment."); return; }
+    setProcessing(t.paddleId);
+    window.Paddle.Checkout.open({
+      items: [{ priceId: t.paddleId, quantity: 1 }],
+      customer: user ? { email: user.email } : undefined,
+      customData: { userId: user?.email || "guest", tier: t.name },
+      settings: {
+        displayMode: "overlay",
+        theme: "dark",
+        locale: "en",
+      },
+      successCallback: (data) => {
+        setProcessing(null);
+        const credits = CREDITS_MAP[t.paddleId] || 10;
+        if (onCreditsAdded) onCreditsAdded(credits, t.name);
+        alert("✅ Payment successful! " + credits + " credits added to your account.");
+        onBack();
+      },
+      closeCallback: () => setProcessing(null),
+      errorCallback: (err) => { setProcessing(null); console.error("Paddle error:", err); },
+    });
+  };
   return(
     <div style={{minHeight:"100vh",background:"#0b1a0d",color:"#e0ede2",fontFamily:"'Georgia',serif"}}>
       <div style={{position:"relative",zIndex:1,maxWidth:1060,margin:"0 auto",padding:"0 22px 90px"}}>
@@ -640,7 +733,7 @@ function PricingPage({ onBack }) {
               <div style={{display:"inline-block",background:"rgba(34,163,90,.07)",border:"1px solid rgba(34,163,90,.14)",borderRadius:20,padding:"3px 12px",fontSize:".8rem",color:"#3a6644",marginBottom:20,alignSelf:"flex-start"}}>{t.rate}</div>
               <p style={{color:"#2e5535",fontSize:".9rem",lineHeight:1.7,marginBottom:22,fontStyle:"italic"}}>{t.desc}</p>
               <div style={{display:"flex",flexDirection:"column",gap:9,marginBottom:28,flex:1}}>{t.features.map((f,j)=><div key={j} style={{display:"flex",gap:8,alignItems:"flex-start"}}><span style={{color:"#22a35a",fontSize:".82rem",marginTop:1,flexShrink:0}}>✓</span><span style={{color:"#5a8a6a",fontSize:".9rem",lineHeight:1.55}}>{f}</span></div>)}</div>
-              <button className="cta-btn" onClick={()=>sub(t)} style={{background:t.highlight?"linear-gradient(135deg,#22a35a,#1a7a44)":"rgba(255,255,255,.05)",border:t.highlight?"none":"1px solid rgba(80,180,100,.22)",borderRadius:12,padding:"13px 20px",color:t.highlight?"#e8f5eb":"#6aaa80",fontSize:".86rem",cursor:"pointer",fontWeight:t.highlight?600:400,width:"100%",boxShadow:t.highlight?"0 4px 20px rgba(34,163,90,.22)":"none"}}>{t.cta} →</button>
+              <button className="cta-btn" onClick={()=>openCheckout(t)} disabled={processing===t.paddleId} style={{background:t.highlight?"linear-gradient(135deg,#22a35a,#1a7a44)":"rgba(255,255,255,.05)",border:t.highlight?"none":"1px solid rgba(80,180,100,.22)",borderRadius:12,padding:"13px 20px",color:t.highlight?"#e8f5eb":"#6aaa80",fontSize:".86rem",cursor:processing===t.paddleId?"wait":"pointer",fontWeight:t.highlight?600:400,width:"100%",boxShadow:t.highlight?"0 4px 20px rgba(34,163,90,.22)":"none",opacity:processing&&processing!==t.paddleId?.6:1}}>{processing===t.paddleId?"Processing…":t.cta+" →"}</button>
             </div>
           ))}
         </div>
@@ -812,14 +905,39 @@ export default function App() {
   useEffect(()=>{userRef.current=user;},[user]);
   useEffect(()=>{bottomRef.current?.scrollIntoView({behavior:"smooth"});},[messages,loading]);
 
-  const handleAuth=(u)=>{setUser(u);userRef.current=u;setShowAuth(false);setShowSignUp(false);localStorage.removeItem("np_guest_searches");setGuestSearches(0);};
+  // Restore Supabase session on load (handles cross-device login)
+  useEffect(()=>{
+    supabase.auth.getSession().then(async({data:{session}})=>{
+      if(session?.user){
+        const profile=await fetchProfile(session.user.id);
+        if(profile){
+          const u={id:session.user.id,name:profile.name,email:profile.email,allergies:profile.allergies||[],credits:profile.credits??3,sex:profile.sex||"",history:profile.history||[]};
+          saveUser(u);setUser(u);userRef.current=u;
+        }
+      }
+    });
+    // Listen for auth changes (e.g. password reset redirect)
+    const {data:{subscription}}=supabase.auth.onAuthStateChange(async(event,session)=>{
+      if(event==="SIGNED_OUT"){clearUser();setUser(null);userRef.current=null;}
+    });
+    return()=>subscription.unsubscribe();
+  },[]);
+
+  const handleAuth=(u)=>{
+    setUser(u);userRef.current=u;setShowAuth(false);setShowSignUp(false);
+    localStorage.removeItem("np_guest_searches");setGuestSearches(0);
+    if(window.posthog){window.posthog.identify(u.email,{name:u.name,email:u.email});window.posthog.capture("signed_up");}
+  };
   const handleLogout=()=>{setUser(null);userRef.current=null;setMessages([]);setShowProfile(false);};
-  const recordSuccess=(isFollowUp,q)=>{
+
+  const recordSuccess=async(isFollowUp,q)=>{
     const cu=userRef.current; if(!cu)return;
-    const updated={...cu,credits:Math.max(0,parseFloat(((cu.credits??0)-1).toFixed(1))),history:[...(cu.history||[]),{query:q,date:Date.now()}].slice(-50)};
+    const newCredits=Math.max(0,parseFloat(((cu.credits??0)-1).toFixed(1)));
+    const newHistory=[...(cu.history||[]),{query:q,date:Date.now()}].slice(-50);
+    const updated={...cu,credits:newCredits,history:newHistory};
     saveUser(updated);setUser(updated);userRef.current=updated;
-    const acc=JSON.parse(localStorage.getItem("np_accounts")||"{}");
-    if(acc[cu.email]){acc[cu.email]={...acc[cu.email],credits:updated.credits,history:updated.history};localStorage.setItem("np_accounts",JSON.stringify(acc));}
+    // Persist credit deduction and history to Supabase
+    if(cu.id) await upsertProfile(cu.id,{credits:newCredits,history:newHistory});
   };
 
   const fetchWeekPlan=async(concern)=>{
@@ -859,12 +977,23 @@ export default function App() {
         return updated;
       });
       recordSuccess(isFollowUp,q);
+      if(window.posthog)window.posthog.capture("search_completed",{query:q,is_follow_up:isFollowUp,pillar_count:(result.pillars||[]).length});
       fetchWeekPlan(q);
     }catch(e){setError(e.message);}finally{setLoading(false);}
   };
 
   const reset=()=>{setMessages([]);setError(null);setInput("");};
-  if(page==="pricing")return(<><style>{CSS}</style><PricingPage onBack={()=>setPage("home")}/></>);
+  const handleCreditsAdded = async (credits, tierName) => {
+    if (!user) return;
+    const newCredits = (user.credits ?? 0) + credits;
+    const updated = { ...user, credits: newCredits, tier: tierName };
+    saveUser(updated); setUser(updated); userRef.current = updated;
+    // Persist to Supabase
+    if(user.id) await upsertProfile(user.id, { credits: newCredits, tier: tierName });
+    if(window.posthog)window.posthog.capture("payment_completed",{tier:tierName,credits_added:credits});
+  };
+
+  if(page==="pricing")return(<><style>{CSS}</style><PricingPage onBack={()=>setPage("home")} user={user} onCreditsAdded={handleCreditsAdded}/></>);
 
   return(
     <div style={{minHeight:"100vh",background:"#0b1a0d",color:"#e0ede2"}}>
