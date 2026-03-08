@@ -19,6 +19,28 @@ const TIER_MAP = {
   'price_1T8hPUCJF4DF72el0FctAFJv': 'optimise',
 };
 
+async function creditUser(email, priceId) {
+  const credits = CREDITS_MAP[priceId] || 10;
+  const tier = TIER_MAP[priceId] || 'starter';
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('id, credits')
+    .eq('email', email)
+    .single();
+
+  if (!profile) { console.error('No profile for:', email); return; }
+
+  // For renewals: reset to plan credits. For upgrades: set new tier credits.
+  const newCredits = tier === 'optimise' ? 9999 : credits;
+  await supabase
+    .from('profiles')
+    .update({ credits: newCredits, tier })
+    .eq('id', profile.id);
+
+  console.log(`Credited ${newCredits} to ${email}, tier: ${tier}`);
+}
+
 exports.handler = async (event) => {
   const sig = event.headers['stripe-signature'];
   let stripeEvent;
@@ -34,41 +56,48 @@ exports.handler = async (event) => {
     return { statusCode: 400, body: `Webhook Error: ${err.message}` };
   }
 
+  // ── Initial purchase ──────────────────────────────────────────
   if (stripeEvent.type === 'checkout.session.completed') {
     const session = stripeEvent.data.object;
     const email = session.customer_email || session.metadata?.email;
-    const priceId = session.metadata?.priceId;
 
-    // Get price ID from line items if not in metadata
-    let resolvedPriceId = priceId;
-    if (!resolvedPriceId) {
-      try {
-        const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
-        resolvedPriceId = lineItems.data[0]?.price?.id;
-      } catch(e) {
-        console.error('Could not get line items:', e);
-      }
+    let priceId;
+    try {
+      const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
+      priceId = lineItems.data[0]?.price?.id;
+    } catch(e) { console.error('Line items error:', e); }
+
+    if (email && priceId) await creditUser(email, priceId);
+  }
+
+  // ── Monthly renewal ───────────────────────────────────────────
+  if (stripeEvent.type === 'invoice.payment_succeeded') {
+    const invoice = stripeEvent.data.object;
+    // Only process subscription renewals, not the first invoice (handled above)
+    if (invoice.billing_reason === 'subscription_cycle') {
+      const email = invoice.customer_email;
+      const priceId = invoice.lines?.data[0]?.price?.id;
+      if (email && priceId) await creditUser(email, priceId);
     }
+  }
 
-    const credits = CREDITS_MAP[resolvedPriceId] || 10;
-    const tier = TIER_MAP[resolvedPriceId] || 'starter';
-
+  // ── Subscription cancelled ────────────────────────────────────
+  if (stripeEvent.type === 'customer.subscription.deleted') {
+    const subscription = stripeEvent.data.object;
+    const customer = await stripe.customers.retrieve(subscription.customer);
+    const email = customer.email;
     if (email) {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('id, credits')
+        .select('id')
         .eq('email', email)
         .single();
-
       if (profile) {
-        const newCredits = tier === 'optimise' ? 9999 : (profile.credits || 0) + credits;
         await supabase
           .from('profiles')
-          .update({ credits: newCredits, tier })
+          .update({ tier: 'free' })
           .eq('id', profile.id);
-        console.log(`Credited ${credits} to ${email}, tier: ${tier}`);
-      } else {
-        console.error('No profile found for email:', email);
+        console.log(`Subscription cancelled for ${email}, tier set to free`);
       }
     }
   }
