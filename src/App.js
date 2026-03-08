@@ -620,10 +620,6 @@ function PricingPage({ onBack }) {
   const sub=(t)=>alert("Paddle: open checkout for "+t.name+" priceId "+t.paddleId);
   return(
     <div style={{minHeight:"100vh",background:"#0b1a0d",color:"#e0ede2",fontFamily:"'Georgia',serif"}}>
-      <div style={{position:"fixed",inset:0,zIndex:0,pointerEvents:"none"}}>
-        <div style={{position:"absolute",top:"-15%",left:"-10%",width:550,height:550,borderRadius:"50%",background:"radial-gradient(circle,rgba(34,163,90,.07) 0%,transparent 70%)"}}/>
-        <div style={{position:"absolute",bottom:"-15%",right:"-10%",width:480,height:480,borderRadius:"50%",background:"radial-gradient(circle,rgba(20,100,55,.09) 0%,transparent 70%)"}}/>
-      </div>
       <div style={{position:"relative",zIndex:1,maxWidth:1060,margin:"0 auto",padding:"0 22px 90px"}}>
         <div style={{padding:"24px 0",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <button onClick={onBack} style={{background:"none",border:"none",color:"#4a7a56",fontSize:".82rem",cursor:"pointer"}}>← Back</button>
@@ -808,6 +804,7 @@ export default function App() {
   const [loading,setLoading]=useState(false);
   const [error,setError]=useState(null);
   const [showHistory, setShowHistory] = useState(false);
+  const [activeRecipe, setActiveRecipe] = useState(null);
   const bottomRef=useRef(null);
   const userRef=useRef(user);
   const hasConvo=messages.length>0;
@@ -876,7 +873,7 @@ export default function App() {
       {showProfile&&user&&<ProfileModal user={user} onClose={()=>setShowProfile(false)} onUpdate={u=>{setUser(u);setShowProfile(false);}} onLogout={handleLogout}/>}
       {showNoCredits&&<NoCreditsModal onClose={()=>setShowNoCredits(false)} onViewPlans={()=>{setShowNoCredits(false);setPage("pricing");}}/>}
       {showHistory && <HistoryModal onClose={()=>setShowHistory(false)} onLoad={(msgs)=>{setMessages(msgs);setInput("");setError(null);}}/>}
-      <div style={{position:"fixed",inset:0,background:"radial-gradient(ellipse 110% 55% at 50% 0%,#152e18 0%,#0b1a0d 65%)",zIndex:0,pointerEvents:"none"}}/>
+      <div style={{position:"fixed",inset:0,background:"#0b1a0d",zIndex:0,pointerEvents:"none"}}/>
       <div style={{position:"relative",zIndex:1,maxWidth:1100,margin:"0 auto",padding:"0 0 80px",overflowX:"hidden",minHeight:"100vh"}}>
 
         {/* NAV */}
