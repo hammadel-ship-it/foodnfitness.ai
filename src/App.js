@@ -396,16 +396,16 @@ function AuthModal({ onClose, onAuth, defaultMode="login" }) {
   );
 }
 
-function ProfileModal({ user, onClose, onUpdate, onLogout }) {
+function ProfileModal({ user, onClose, onUpdate, onLogout, onUpgrade }) {
   const [allergies,setAllergies]=useState(user.allergies||[]);
   const [sex,setSex]=useState(user.sex||"");
   const [saving,setSaving]=useState(false);
+  const [portalLoading,setPortalLoading]=useState(false);
   const toggle=(a)=>setAllergies(p=>p.includes(a)?p.filter(x=>x!==a):[...p,a]);
   const save=async()=>{
     setSaving(true);
     const u={...user,allergies,sex};
     saveUser(u);
-    // Persist to Supabase
     if(user.id) await upsertProfile(user.id,{allergies,sex});
     onUpdate(u);
     setSaving(false);
@@ -414,6 +414,16 @@ function ProfileModal({ user, onClose, onUpdate, onLogout }) {
     await supabase.auth.signOut();
     clearUser();
     onLogout();
+  };
+  const manageSubscription=async()=>{
+    setPortalLoading(true);
+    try{
+      const resp=await fetch("/.netlify/functions/customer-portal",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:user.email})});
+      const data=await resp.json();
+      if(data.url){window.location.href=data.url;}
+      else{alert(data.error||"Could not open subscription portal.");}
+    }catch(e){alert("Error: "+e.message);}
+    setPortalLoading(false);
   };
   const SEX=[{value:"female",label:"Female",icon:"♀️"},{value:"male",label:"Male",icon:"♂️"}];
   return(
@@ -430,7 +440,9 @@ function ProfileModal({ user, onClose, onUpdate, onLogout }) {
         <div style={{color:"#4a7a56",fontSize:".78rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>Food allergies</div>
         <div style={{display:"flex",flexWrap:"wrap",gap:6}}>{ALLERGIES.map(a=><button key={a} onClick={()=>toggle(a)} style={{background:allergies.includes(a)?"rgba(34,163,90,.22)":"rgba(255,255,255,.04)",border:"1px solid "+(allergies.includes(a)?"rgba(34,163,90,.55)":"rgba(255,255,255,.1)"),borderRadius:20,padding:"4px 11px",color:allergies.includes(a)?"#5ed880":"#4a7a56",fontSize:".84rem",cursor:"pointer",transition:"all .14s"}}>{a}</button>)}</div>
       </div>
-      <div style={{display:"flex",gap:9}}><button onClick={save} disabled={saving} className="cta-btn" style={{flex:1,background:"linear-gradient(135deg,#22a35a,#1a7a44)",border:"none",borderRadius:10,padding:"11px",color:"#e8f5eb",fontSize:".85rem",cursor:"pointer",fontWeight:600}}>{saving?"Saving…":"Save"}</button><button onClick={logout} style={{background:"rgba(220,80,80,.08)",border:"1px solid rgba(220,80,80,.22)",borderRadius:10,padding:"11px 16px",color:"#f09090",fontSize:".85rem",cursor:"pointer"}}>Sign out</button></div>
+      <div style={{display:"flex",gap:9,marginBottom:9}}><button onClick={save} disabled={saving} className="cta-btn" style={{flex:1,background:"linear-gradient(135deg,#22a35a,#1a7a44)",border:"none",borderRadius:10,padding:"11px",color:"#e8f5eb",fontSize:".85rem",cursor:"pointer",fontWeight:600}}>{saving?"Saving…":"Save"}</button><button onClick={logout} style={{background:"rgba(220,80,80,.08)",border:"1px solid rgba(220,80,80,.22)",borderRadius:10,padding:"11px 16px",color:"#f09090",fontSize:".85rem",cursor:"pointer"}}>Sign out</button></div>
+      {user.tier&&user.tier!=="free"&&<button onClick={manageSubscription} disabled={portalLoading} style={{width:"100%",background:"rgba(255,255,255,.03)",border:"1px solid rgba(80,180,100,.18)",borderRadius:10,padding:"10px",color:"#4a7a56",fontSize:".82rem",cursor:"pointer"}}>{portalLoading?"Loading…":"⚙️ Manage / cancel subscription"}</button>}
+      {(!user.tier||user.tier==="free"||user.tier==="starter")&&<button onClick={onUpgrade} style={{width:"100%",background:"rgba(34,163,90,.07)",border:"1px solid rgba(34,163,90,.22)",borderRadius:10,padding:"10px",color:"#4ec97a",fontSize:".82rem",cursor:"pointer",marginTop:user.tier&&user.tier!=="free"?6:0}}>⬆️ Upgrade plan</button>}
     </Modal>
   );
 }
@@ -1015,7 +1027,7 @@ export default function App() {
     <div style={{minHeight:"100vh",background:"#0b1a0d",color:"#e0ede2"}}>
       <style>{CSS}</style>
       {showAuth&&<AuthModal onClose={()=>setShowAuth(false)} onAuth={handleAuth} defaultMode={authMode}/>}
-      {showProfile&&user&&<ProfileModal user={user} onClose={()=>setShowProfile(false)} onUpdate={u=>{setUser(u);setShowProfile(false);}} onLogout={handleLogout}/>}
+      {showProfile&&user&&<ProfileModal user={user} onClose={()=>setShowProfile(false)} onUpdate={u=>{setUser(u);setShowProfile(false);}} onLogout={handleLogout} onUpgrade={()=>{setShowProfile(false);setPage("pricing");}}/>}
       {showNoCredits&&<NoCreditsModal onClose={()=>setShowNoCredits(false)} onViewPlans={()=>{setShowNoCredits(false);setPage("pricing");}}/>}
       {showSignUp&&<SignUpPrompt onClose={()=>setShowSignUp(false)} onSignUp={()=>{setShowSignUp(false);setAuthMode("signup");setShowAuth(true);}}/>}
       {showHistory && <HistoryModal onClose={()=>setShowHistory(false)} onLoad={(msgs)=>{setMessages(msgs);setInput("");setError(null);}}/>}
