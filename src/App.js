@@ -97,7 +97,7 @@ const buildPrompt = (user, isFollowUp) => {
       seed + " " + timeCtx + " " + seasonCtx + " " + sexNote + " " + history + "\n\n" +
       baseRules + "\n" +
       "JSON format:\n" +
-      '{"responseType":"initial","acknowledgment":"2 warm empathetic sentences referencing their exact words and situation","pillars":[{"type":"food","label":"Food and Nutrition","items":[{"emoji":"🫐","name":"Specific food or supplement name","benefit":"Precise mechanism and how to use it — be specific about quantity, timing or preparation"}]},{"type":"exercise","label":"Exercise and Movement","items":[{"emoji":"🏃","name":"Specific exercise name","benefit":"Exact technique, sets, reps or duration — actionable detail"}]}],"recipes":[{"name":"Recipe name","emoji":"🥣","ingredients":["specific amount + ingredient"],"steps":["Precise step"]}],"tip":"One hyper-specific, surprising, actionable tip they likely have not heard before"}' + "\n\n" +
+      '{"responseType":"initial","acknowledgment":"2 warm empathetic sentences referencing their exact words and situation","pillars":[{"type":"food","label":"Food and Nutrition","items":[{"emoji":"🫐","name":"Specific food or supplement name","image":"2-3 word Unsplash search term that will return a perfect photo of this exact item e.g. fresh ginger root, tart cherries, wild salmon fillet","benefit":"Precise mechanism and how to use it — be specific about quantity, timing or preparation"}]},{"type":"exercise","label":"Exercise and Movement","items":[{"emoji":"🏃","name":"Specific exercise name","image":"2-3 word Unsplash search term for a photo of someone doing this exercise e.g. yoga stretch pose, foam roller back, tai chi park","benefit":"Exact technique, sets, reps or duration — actionable detail"}]}],"recipes":[{"name":"Recipe name","emoji":"🥣","ingredients":["specific amount + ingredient"],"steps":["Precise step"]}],"tip":"One hyper-specific, surprising, actionable tip they likely have not heard before"}' + "\n\n" +
       "CONTENT RULES:\n" +
       "- acknowledgment: warm, specific, never generic\n" +
       "- pillars: always include ALL 4 types (food, exercise, breath, sleep) — vary the order\n" +
@@ -105,6 +105,7 @@ const buildPrompt = (user, isFollowUp) => {
       "- recipes: 2 recipes directly addressing the concern. Include exact quantities in ingredients\n" +
       "- tip: must be surprising and hyper-specific. Not 'drink more water' — something genuinely useful\n" +
       "- VARIETY: draw from different cultures, traditions and science. Avoid the most obvious recommendations\n" +
+      "- image: pick the most visually recognisable 2-3 word search term for that exact item. Examples: 'fresh turmeric root', 'black garlic bulb', 'wall calf stretch', 'box breathing meditation', 'cool bedroom sleep'\n" +
       allergy;
   } else {
     return "You are a world-class holistic wellness coach continuing a conversation. " +
@@ -562,78 +563,81 @@ const IMG = (id) => `https://images.unsplash.com/${id}?w=500&h=320&q=80&fit=crop
 
 // Keyword → Unsplash photo ID. Ordered from most specific to most general.
 const IMAGE_MAP = [
-  // ── Specific foods ────────────────────────────────────────────────────────
-  [["tart cherry","cherry juice","cherry"],              IMG("photo-1528821128474-27f963b062bf")],
-  [["black garlic","garlic"],                            IMG("photo-1615485290382-441e4d049cb5")],
+  // ── Most specific multi-word food names first ──────────────────────────────
+  [["black garlic"],                                     IMG("photo-1615485290382-441e4d049cb5")],
+  [["tart cherry","cherry juice"],                       IMG("photo-1528821128474-27f963b062bf")],
+  [["white willow","willow bark"],                       IMG("photo-1556679343-c7306c1976bc")],
+  [["bone broth"],                                       IMG("photo-1547592180-85f173990554")],
+  [["golden milk","turmeric latte","turmeric tea"],      IMG("photo-1615485500704-8e990f9900f7")],
   [["wild sardine","sardine","anchovy"],                 IMG("photo-1519708227418-c8fd9a32b7a2")],
-  [["white willow","willow bark"],                       IMG("photo-1544787219-7f47ccb76574")],
-  [["bone broth","broth"],                               IMG("photo-1547592180-85f173990554")],
-  [["turmeric latte","golden milk"],                     IMG("photo-1615485500704-8e990f9900f7")],
+  [["lion mane","reishi","chaga","medicinal mushroom"],  IMG("photo-1506905925346-21bda4d32df4")],
+  [["sweet potato","yam"],                               IMG("photo-1596097635121-14b38c5d7f29")],
+  [["tart cherry"],                                      IMG("photo-1528821128474-27f963b062bf")],
+  [["ginger shot","ginger tea","ginger root","ginger"],  IMG("photo-1573506254977-9a6e4f14e7d9")],
   [["turmeric"],                                         IMG("photo-1615485500704-8e990f9900f7")],
-  [["ginger","ginger tea"],                              IMG("photo-1573506254977-9a6e4f14e7d9")],
-  [["matcha"],                                           IMG("photo-1515823662972-da6a2e4d3002")],
-  [["chamomile","herbal tea","tea"],                     IMG("photo-1544787219-7f47ccb76574")],
-  [["salmon","omega-3","fish oil","sardine","mackerel"], IMG("photo-1519708227418-c8fd9a32b7a2")],
+  [["matcha","green tea"],                               IMG("photo-1515823662972-da6a2e4d3002")],
+  [["chamomile tea","herbal tea","peppermint tea"],       IMG("photo-1544787219-7f47ccb76574")],
+  [["salmon","mackerel","omega-3 fish","fish oil"],      IMG("photo-1519708227418-c8fd9a32b7a2")],
   [["blueberr","acai","berry","berries"],                IMG("photo-1457296898342-cdd24585d095")],
   [["avocado"],                                          IMG("photo-1523049673857-eb18f1d7b578")],
-  [["spinach","kale","leafy","greens","watercress"],     IMG("photo-1576045057995-568f588f82fb")],
-  [["broccoli","crucifer"],                              IMG("photo-1584270354949-c26b0d5b4a0c")],
+  [["spinach","kale","leafy green","watercress","arugula"],IMG("photo-1576045057995-568f588f82fb")],
+  [["broccoli","crucifer","cauliflower","brussels"],     IMG("photo-1584270354949-c26b0d5b4a0c")],
+  [["garlic"],                                           IMG("photo-1615485290382-441e4d049cb5")],
   [["egg","eggs"],                                       IMG("photo-1482049016688-2d3e1b311543")],
   [["oat","porridge","granola"],                         IMG("photo-1517673132405-a56a62b18caf")],
-  [["lemon","citrus"],                                   IMG("photo-1587486913049-53fc88980cfc")],
-  [["mushroom","reishi","lion's mane","chaga"],          IMG("photo-1506905925346-21bda4d32df4")],
-  [["walnut","almond","nut","cashew","pistachio"],       IMG("photo-1508061253366-f7da158b6d46")],
-  [["quinoa","grain","rice"],                            IMG("photo-1586201375761-83865001e31c")],
+  [["lemon","lime","citrus"],                            IMG("photo-1587486913049-53fc88980cfc")],
+  [["mushroom"],                                         IMG("photo-1506905925346-21bda4d32df4")],
+  [["walnut","almond","cashew","pistachio","pecan"],     IMG("photo-1508061253366-f7da158b6d46")],
+  [["quinoa","millet","buckwheat"],                      IMG("photo-1586201375761-83865001e31c")],
   [["lentil","chickpea","legume","bean"],                IMG("photo-1515543904379-3d757dda9578")],
-  [["sweet potato","yam"],                               IMG("photo-1596097635121-14b38c5d7f29")],
   [["beetroot","beet"],                                  IMG("photo-1593789382576-fca9e7bafcd6")],
-  [["kimchi","ferment","sauerkraut","probiotic"],        IMG("photo-1569050467447-ce54b3bbc37d")],
+  [["kimchi","sauerkraut","fermented","probiotic"],      IMG("photo-1569050467447-ce54b3bbc37d")],
   [["kefir","yogurt","dairy"],                           IMG("photo-1488477181946-6428a0291777")],
   [["pomegranate"],                                      IMG("photo-1615485736208-84e11f6f7d42")],
-  [["pineapple","bromelain"],                            IMG("photo-1490474418585-ba9bad8fd0ea")],
-  [["smoothie","juice","drink"],                         IMG("photo-1553530666-ba11a90a3332")],
+  [["pineapple","bromelain","papaya"],                   IMG("photo-1490474418585-ba9bad8fd0ea")],
+  [["smoothie","protein shake"],                         IMG("photo-1553530666-ba11a90a3332")],
   [["collagen","gelatin"],                               IMG("photo-1571019613454-1cb2f99b2d8b")],
-  [["ashwagandha","adaptogen","herb","supplement"],      IMG("photo-1532187863486-abf9dbad1b69")],
-  [["magnesium","zinc","vitamin","mineral"],             IMG("photo-1532187863486-abf9dbad1b69")],
-  [["celery","cucumber","vegetable"],                    IMG("photo-1452195100486-9cc805987862")],
+  [["ashwagandha","rhodiola","adaptogen"],               IMG("photo-1532187863486-abf9dbad1b69")],
+  [["magnesium","zinc","vitamin d","mineral"],           IMG("photo-1532187863486-abf9dbad1b69")],
+  [["celery","cucumber"],                                IMG("photo-1452195100486-9cc805987862")],
   [["lavender","aromatherapy","essential oil"],          IMG("photo-1611909023032-2d6b3134ecba")],
+  [["cherry"],                                           IMG("photo-1528821128474-27f963b062bf")],
   // ── Exercise & movement ───────────────────────────────────────────────────
-  [["yoga","yin yoga","restorative yoga"],               IMG("photo-1506126613408-eca07ce68773")],
-  [["pilates","mat work"],                               IMG("photo-1518611012118-696072aa579a")],
-  [["stretch","hip flexor","hamstring","mobility"],      IMG("photo-1544367567-0f2fcb009e0b")],
-  [["foam roll","roller","self-massage","massage"],      IMG("photo-1544367567-0f2fcb009e0b")],
-  [["joint circle","joint rotation","gentle movement"],  IMG("photo-1518611012118-696072aa579a")],
-  [["lymph","arm swing","lymphatic"],                    IMG("photo-1571019614242-c5c5dee9f50b")],
+  [["yin yoga","restorative yoga","yoga nidra"],         IMG("photo-1506126613408-eca07ce68773")],
+  [["yoga"],                                             IMG("photo-1506126613408-eca07ce68773")],
+  [["pilates"],                                          IMG("photo-1518611012118-696072aa579a")],
+  [["joint circle","joint rotation","gentle joint"],     IMG("photo-1544367567-0f2fcb009e0b")],
+  [["lymphatic","arm swing","lymph drainage"],           IMG("photo-1571019614242-c5c5dee9f50b")],
   [["wall calf","calf stretch","calf raise"],            IMG("photo-1544367567-0f2fcb009e0b")],
-  [["finger tendon","hand exercise","wrist"],            IMG("photo-1518611012118-696072aa579a")],
-  [["walk","stroll","hiking","nature walk"],             IMG("photo-1571019614242-c5c5dee9f50b")],
+  [["finger tendon","hand exercise","wrist circle"],     IMG("photo-1518611012118-696072aa579a")],
+  [["foam roll","self-massage","trigger point"],         IMG("photo-1544367567-0f2fcb009e0b")],
+  [["stretch","hip flexor","hamstring","mobility"],      IMG("photo-1544367567-0f2fcb009e0b")],
+  [["walk","stroll","hiking"],                           IMG("photo-1571019614242-c5c5dee9f50b")],
   [["run","jog","sprint"],                               IMG("photo-1483721310020-03333e577078")],
-  [["swim","pool","water"],                              IMG("photo-1530549387789-4c1017266635")],
+  [["swim","pool"],                                      IMG("photo-1530549387789-4c1017266635")],
   [["cycle","bike","cycling"],                           IMG("photo-1558618666-fcd25c85cd64")],
   [["hiit","interval","circuit"],                        IMG("photo-1534438327276-14e5300c3a48")],
-  [["strength","weight","resistance","deadlift","squat"],IMG("photo-1534438327276-14e5300c3a48")],
+  [["strength","weight lifting","resistance","deadlift","squat"],IMG("photo-1534438327276-14e5300c3a48")],
   [["plank","core","abdominal"],                         IMG("photo-1518611012118-696072aa579a")],
-  [["pushup","push-up","bodyweight"],                    IMG("photo-1571019614242-c5c5dee9f50b")],
-  [["tai chi","qigong","chi gong"],                      IMG("photo-1506126613408-eca07ce68773")],
-  [["dance","zumba"],                                    IMG("photo-1571019614242-c5c5dee9f50b")],
-  // ── Breathwork & stress ───────────────────────────────────────────────────
+  [["tai chi","qigong"],                                 IMG("photo-1506126613408-eca07ce68773")],
+  // ── Breathwork ────────────────────────────────────────────────────────────
   [["box breath","4-4-4","square breath"],               IMG("photo-1545389336-cf090694435e")],
-  [["4-7-8","478 breath"],                               IMG("photo-1545389336-cf090694435e")],
-  [["humming","bee breath","bhramari"],                  IMG("photo-1545389336-cf090694435e")],
+  [["4-7-8","478"],                                      IMG("photo-1545389336-cf090694435e")],
+  [["humming bee","bhramari"],                           IMG("photo-1545389336-cf090694435e")],
   [["alternate nostril","nadi shodhana"],                IMG("photo-1545389336-cf090694435e")],
-  [["breath","breathing","pranayama","inhale","exhale"], IMG("photo-1545389336-cf090694435e")],
-  [["meditat","mindful","awareness","present"],          IMG("photo-1545389336-cf090694435e")],
-  [["cold shower","cold water","ice bath","cold plunge"],IMG("photo-1571019613454-1cb2f99b2d8b")],
+  [["breath","breathing","pranayama"],                   IMG("photo-1545389336-cf090694435e")],
+  [["meditat","mindful"],                                IMG("photo-1545389336-cf090694435e")],
+  [["cold shower","ice bath","cold plunge"],             IMG("photo-1571019613454-1cb2f99b2d8b")],
   [["sauna","steam","heat therapy"],                     IMG("photo-1571019613454-1cb2f99b2d8b")],
-  [["journal","writing","gratitude","diary"],            IMG("photo-1455390582262-044cdead277a")],
+  [["journal","gratitude","diary"],                      IMG("photo-1455390582262-044cdead277a")],
   // ── Sleep & recovery ──────────────────────────────────────────────────────
-  [["red light","light therapy","photobiomodulation"],   IMG("photo-1512428559087-560fa5ceab42")],
-  [["binaural","sound therapy","frequency","40hz"],      IMG("photo-1512428559087-560fa5ceab42")],
-  [["blue light","screen","device"],                     IMG("photo-1512428559087-560fa5ceab42")],
-  [["cool room","bedroom temp","temperature","thermostat"],IMG("photo-1541781774459-bb2af2f05b55")],
-  [["elevation","pillow","sleep position","positioning"],IMG("photo-1541781774459-bb2af2f05b55")],
-  [["sleep hygiene","wind down","bedtime routine"],      IMG("photo-1541781774459-bb2af2f05b55")],
-  [["nap","rest","recovery","sleep"],                    IMG("photo-1541781774459-bb2af2f05b55")],
+  [["red light therapy","photobiomodulation","infrared"], IMG("photo-1512428559087-560fa5ceab42")],
+  [["binaural","sound therapy","40hz","gamma frequency"],IMG("photo-1512428559087-560fa5ceab42")],
+  [["blue light","screen time"],                         IMG("photo-1512428559087-560fa5ceab42")],
+  [["cool room","bedroom temperature","thermostat"],     IMG("photo-1541781774459-bb2af2f05b55")],
+  [["elevation positioning","sleep position","pillow placement"],IMG("photo-1541781774459-bb2af2f05b55")],
+  [["sleep hygiene","wind down","bedtime"],              IMG("photo-1541781774459-bb2af2f05b55")],
+  [["sleep","nap","rest","recovery"],                    IMG("photo-1541781774459-bb2af2f05b55")],
   [["earthing","grounding","barefoot"],                  IMG("photo-1571019614242-c5c5dee9f50b")],
 ];
 
@@ -645,10 +649,19 @@ const PILLAR_FALLBACKS = {
   sleep:    IMG("photo-1541781774459-bb2af2f05b55"),  // peaceful sleep
 };
 
-function getImageUrl(name, pillarType) {
-  const lower = (name || "").toLowerCase();
-  for (const [keywords, url] of IMAGE_MAP) {
-    if (keywords.some(k => lower.includes(k))) return url;
+// aiTerm: the "image" field generated by the AI — most specific, use first
+// name: fallback to keyword map
+// pillarType: last resort category fallback
+function getImageUrl(name, pillarType, aiTerm) {
+  const searchStr = (aiTerm || name || "").toLowerCase();
+  // Always try AI-provided term first against keyword map
+  const candidates = aiTerm
+    ? [aiTerm.toLowerCase(), name.toLowerCase()]
+    : [name.toLowerCase()];
+  for (const str of candidates) {
+    for (const [keywords, url] of IMAGE_MAP) {
+      if (keywords.some(k => str.includes(k))) return url;
+    }
   }
   // Use pillar-specific fallback
   return PILLAR_FALLBACKS[pillarType] || PILLAR_FALLBACKS.food;
@@ -709,25 +722,129 @@ function TipRow({ tip }) {
   );
 }
 
-function ItemCard({ item, meta, pillarType }) {
+// ─── ITEM DETAIL MODAL ───────────────────────────────────────────────────────
+function ItemDetailModal({ item, meta, pillarType, onClose, onDeepDive }) {
   const [imgErr, setImgErr] = useState(false);
-  const imgUrl = getImageUrl(item.name, pillarType);
+  const [loading, setLoading] = useState(false);
+  const [detail, setDetail] = useState(null);
+  const imgUrl = getImageUrl(item.name, pillarType, item.image);
+
+  const loadDetail = async () => {
+    if (detail || loading) return;
+    setLoading(true);
+    try {
+      const res = await fetch("/.netlify/functions/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          system: 'You are a wellness expert. Output ONLY a JSON object. No markdown, no backticks. Use double quotes. No apostrophes — write "do not" not "don't".
+
+Format: {"science":"2-3 sentences on the science/mechanism","howToUse":"Specific dosage, timing, preparation or technique","bestFor":["condition 1","condition 2","condition 3"],"combinations":["pairs well with X because Y","avoid combining with Z"],"quickTip":"One surprising specific tip"}',
+          messages: [{ role: "user", content: `Tell me everything about "${item.name}" for wellness. Benefit context: ${item.benefit}` }]
+        })
+      });
+      const data = await res.json();
+      const raw = (data.content || []).map(b => b.text || "").join("").trim();
+      const clean = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+      const j = JSON.parse(clean.slice(clean.indexOf("{"), clean.lastIndexOf("}") + 1));
+      setDetail(j);
+    } catch(e) { setDetail({ science: item.benefit, howToUse: "See recommendation above.", bestFor: [], combinations: [], quickTip: "" }); }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => { loadDetail(); }, []);
+
+  return (
+    <div className="modal-wrap" onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",zIndex:400,display:"flex",alignItems:"flex-end",justifyContent:"center",padding:"0"}}>
+      <div className="modal-box" onClick={e=>e.stopPropagation()} style={{background:"#0d1f10",borderRadius:"24px 24px 0 0",width:"100%",maxWidth:640,maxHeight:"90vh",overflowY:"auto",animation:"slideUp .3s ease"}}>
+        {/* Hero image */}
+        <div style={{width:"100%",height:220,position:"relative",overflow:"hidden",flexShrink:0}}>
+          {!imgErr
+            ? <img src={imgUrl} alt={item.name} onError={()=>setImgErr(true)} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+            : <div style={{width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:80,background:meta.bg}}>{item.emoji||"🌿"}</div>
+          }
+          <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,rgba(0,0,0,.2),rgba(13,31,16,.95))"}}/>
+          <button onClick={onClose} style={{position:"absolute",top:16,right:16,background:"rgba(0,0,0,.5)",border:"none",borderRadius:"50%",width:36,height:36,color:"#fff",fontSize:18,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
+          <div style={{position:"absolute",bottom:20,left:24}}>
+            <div style={{color:meta.color,fontSize:".75rem",letterSpacing:".12em",textTransform:"uppercase",marginBottom:4}}>{meta.label}</div>
+            <div style={{color:"#e8f5eb",fontSize:"1.5rem",fontWeight:700,lineHeight:1.2}}>{item.emoji} {item.name}</div>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div style={{padding:"24px 24px 40px"}}>
+          {loading && (
+            <div style={{textAlign:"center",padding:"40px 0"}}>
+              <div style={{width:32,height:32,border:"3px solid rgba(34,163,90,.2)",borderTop:"3px solid #22a35a",borderRadius:"50%",animation:"spin 1s linear infinite",margin:"0 auto 12px"}}/>
+              <div style={{color:"#3a6644",fontSize:".9rem"}}>Loading deep dive...</div>
+            </div>
+          )}
+          {detail && !loading && (
+            <div style={{display:"flex",flexDirection:"column",gap:20}}>
+              {/* Science */}
+              <div style={{background:"rgba(34,163,90,.07)",border:"1px solid rgba(34,163,90,.2)",borderRadius:14,padding:"18px 20px"}}>
+                <div style={{color:meta.color,fontSize:".75rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>🔬 The science</div>
+                <p style={{color:"#b8e8c4",fontSize:"1rem",lineHeight:1.8,margin:0}}>{detail.science}</p>
+              </div>
+              {/* How to use */}
+              <div style={{background:"rgba(34,163,90,.07)",border:"1px solid rgba(34,163,90,.2)",borderRadius:14,padding:"18px 20px"}}>
+                <div style={{color:meta.color,fontSize:".75rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>✅ How to use it</div>
+                <p style={{color:"#b8e8c4",fontSize:"1rem",lineHeight:1.8,margin:0}}>{detail.howToUse}</p>
+              </div>
+              {/* Best for */}
+              {detail.bestFor?.length > 0 && (
+                <div>
+                  <div style={{color:meta.color,fontSize:".75rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:10}}>💚 Best for</div>
+                  <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+                    {detail.bestFor.map((b,i) => (
+                      <span key={i} style={{background:meta.bg,border:"1px solid "+meta.border,borderRadius:20,padding:"6px 14px",color:"#a8ddb5",fontSize:".88rem"}}>{b}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {/* Combinations */}
+              {detail.combinations?.length > 0 && (
+                <div style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.08)",borderRadius:14,padding:"18px 20px"}}>
+                  <div style={{color:meta.color,fontSize:".75rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:10}}>🤝 Combinations</div>
+                  {detail.combinations.map((c,i) => (
+                    <div key={i} style={{color:"#6aaa80",fontSize:".92rem",lineHeight:1.6,marginBottom:i<detail.combinations.length-1?8:0}}>• {c}</div>
+                  ))}
+                </div>
+              )}
+              {/* Quick tip */}
+              {detail.quickTip && (
+                <div style={{background:"linear-gradient(135deg,rgba(34,163,90,.12),rgba(20,100,55,.06))",border:"1px solid rgba(34,163,90,.25)",borderRadius:14,padding:"16px 20px",display:"flex",gap:12}}>
+                  <span style={{fontSize:22,flexShrink:0}}>💡</span>
+                  <p style={{color:"#a8d8b4",fontSize:"1rem",lineHeight:1.7,margin:0}}>{detail.quickTip}</p>
+                </div>
+              )}
+              {/* Ask follow-up */}
+              <button onClick={()=>onDeepDive(item.name)} style={{background:"linear-gradient(135deg,#22a35a,#1a7a44)",border:"none",borderRadius:12,padding:"14px",color:"#e8f5eb",fontSize:"1rem",cursor:"pointer",fontWeight:600,width:"100%",marginTop:4}}>
+                Ask a follow-up about {item.name} →
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ItemCard({ item, meta, pillarType, onExpand }) {
+  const [imgErr, setImgErr] = useState(false);
+  const imgUrl = getImageUrl(item.name, pillarType, item.image);
   return(
-    <div className="item-card" style={{background:meta.bg,border:"1px solid "+meta.border,borderRadius:18,overflow:"hidden",transition:"transform .2s, box-shadow .2s",animation:"fadeUp .3s ease both",display:"flex",flexDirection:"column",minHeight:290}}>
+    <div className="item-card" onClick={()=>onExpand(item, pillarType)} style={{background:meta.bg,border:"1px solid "+meta.border,borderRadius:18,overflow:"hidden",transition:"transform .2s, box-shadow .2s",animation:"fadeUp .3s ease both",display:"flex",flexDirection:"column",minHeight:290,cursor:"pointer"}}>
       <div style={{width:"100%",height:170,overflow:"hidden",position:"relative",background:"rgba(0,0,0,.25)",flexShrink:0}}>
         {!imgErr ? (
-          <img
-            src={imgUrl}
-            alt={item.name}
-            onError={()=>setImgErr(true)}
-            style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}
-          />
+          <img src={imgUrl} alt={item.name} onError={()=>setImgErr(true)} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}/>
         ) : (
-          <div style={{width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:64,background:meta.bg}}>
-            {item.emoji||"🌿"}
-          </div>
+          <div style={{width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:64,background:meta.bg}}>{item.emoji||"🌿"}</div>
         )}
         <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,transparent 55%,rgba(0,0,0,.6))"}}/>
+        <div style={{position:"absolute",top:10,right:10,background:"rgba(0,0,0,.45)",borderRadius:20,padding:"3px 9px",fontSize:".72rem",color:"rgba(255,255,255,.7)"}}>Tap to learn more</div>
       </div>
       <div style={{padding:"14px 16px",flex:1,display:"flex",flexDirection:"column",gap:7}}>
         <div style={{color:"#c8ecd4",fontSize:"1.05rem",fontWeight:700,lineHeight:1.3}}>{item.name}</div>
@@ -737,7 +854,7 @@ function ItemCard({ item, meta, pillarType }) {
   );
 }
 
-function PillarGrid({ pillars }) {
+function PillarGrid({ pillars, onExpand }) {
   if(!pillars?.length)return null;
   return(
     <div style={{marginBottom:18}}>
@@ -751,7 +868,7 @@ function PillarGrid({ pillars }) {
             </div>
             <div className="np-item-grid" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10}}>
               {(pillar.items||[]).map((item,i)=>(
-                <ItemCard key={i} item={item} meta={meta} pillarType={pillar.type}/>
+                <ItemCard key={i} item={item} meta={meta} pillarType={pillar.type} onExpand={onExpand}/>
               ))}
             </div>
           </div>
@@ -794,17 +911,84 @@ function RecipeList({ recipes, activeRecipe, setActiveRecipe, msgIdx }) {
   );
 }
 
-function ResultCard({ result, isLast, onGetMore, activeRecipe, setActiveRecipe, msgIdx }) {
+// ─── VISUAL CARD GRID (for insight/answer follow-ups) ─────────────────────────
+function VisualCardCard({ card, onExpand }) {
+  const [imgErr, setImgErr] = useState(false);
+  const meta = PILLAR_META[card.pillar] || PILLAR_META.food;
+  const imgUrl = getImageUrl(card.title, card.pillar, card.image);
+  const fakeItem = { name: card.title, benefit: card.body, emoji: card.emoji, image: card.image };
+  return (
+    <div
+      onClick={() => onExpand && onExpand(fakeItem, card.pillar)}
+      style={{background:meta.bg,border:"1px solid "+meta.border,borderRadius:18,overflow:"hidden",
+              display:"flex",flexDirection:"column",minHeight:280,cursor:"pointer",
+              transition:"transform .2s, box-shadow .2s",animation:"fadeUp .3s ease both"}}
+      className="item-card"
+    >
+      <div style={{width:"100%",height:160,overflow:"hidden",position:"relative",background:"rgba(0,0,0,.25)",flexShrink:0}}>
+        {!imgErr
+          ? <img src={imgUrl} alt={card.title} onError={()=>setImgErr(true)} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}/>
+          : <div style={{width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:56,background:meta.bg}}>{card.emoji||"🌿"}</div>
+        }
+        <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,transparent 50%,rgba(0,0,0,.65))"}}/>
+        <div style={{position:"absolute",top:10,right:10,background:"rgba(0,0,0,.45)",borderRadius:20,padding:"3px 9px",fontSize:".72rem",color:"rgba(255,255,255,.7)"}}>Tap to learn more</div>
+        <div style={{position:"absolute",bottom:10,left:12,color:meta.color,fontSize:".7rem",letterSpacing:".08em",textTransform:"uppercase",fontWeight:600}}>{meta.label}</div>
+      </div>
+      <div style={{padding:"14px 16px",flex:1,display:"flex",flexDirection:"column",gap:7}}>
+        <div style={{color:"#c8ecd4",fontSize:"1.05rem",fontWeight:700,lineHeight:1.3}}>{card.emoji} {card.title}</div>
+        <div style={{color:"#5a9a70",fontSize:".92rem",lineHeight:1.65}}>{card.body}</div>
+      </div>
+    </div>
+  );
+}
+
+function VisualCardGrid({ cards, onExpand }) {
+  if (!cards?.length) return null;
+  return (
+    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10,marginBottom:18}}>
+      {cards.map((card, i) => <VisualCardCard key={i} card={card} onExpand={onExpand}/>)}
+    </div>
+  );
+}
+
+function ResultCard({ result, isLast, onGetMore, activeRecipe, setActiveRecipe, msgIdx, onAskFollowUp }) {
+  const [expandedItem, setExpandedItem] = useState(null);
+  const [expandedMeta, setExpandedMeta] = useState(null);
+  const [expandedPillar, setExpandedPillar] = useState(null);
+
   if(!result)return null;
   if(!result.acknowledgment && !result.pillars && !result.cards && !result.recipes) return null;
 
   const type = result.responseType || "initial";
   const ack = result.acknowledgment || "";
 
+  const handleExpand = (item, pillarType) => {
+    const meta = PILLAR_META[pillarType] || PILLAR_META.food;
+    setExpandedItem(item);
+    setExpandedMeta(meta);
+    setExpandedPillar(pillarType);
+  };
+
+  const handleDeepDive = (itemName) => {
+    setExpandedItem(null);
+    if(onAskFollowUp) onAskFollowUp(`Tell me more about ${itemName} — how to use it, when, how much, and what to combine it with`);
+  };
+
+  const modal = expandedItem && expandedMeta && (
+    <ItemDetailModal
+      item={expandedItem}
+      meta={expandedMeta}
+      pillarType={expandedPillar}
+      onClose={()=>setExpandedItem(null)}
+      onDeepDive={handleDeepDive}
+    />
+  );
+
   if(type==="initial") return(
     <div style={{animation:"slideUp .3s ease"}}>
+      {modal}
       {ack && <AckBubble text={ack}/>}
-      <PillarGrid pillars={result.pillars||[]}/>
+      <PillarGrid pillars={result.pillars||[]} onExpand={handleExpand}/>
       <RecipeList recipes={result.recipes||[]} activeRecipe={activeRecipe} setActiveRecipe={setActiveRecipe} msgIdx={msgIdx}/>
       <TipRow tip={result.tip}/>
       {isLast&&<WeekPlan plan={result.weekPlan}/>}
@@ -813,14 +997,16 @@ function ResultCard({ result, isLast, onGetMore, activeRecipe, setActiveRecipe, 
 
   if(type==="items") return(
     <div style={{animation:"slideUp .3s ease"}}>
+      {modal}
       {ack && <AckBubble text={ack} label="More for you"/>}
-      <PillarGrid pillars={result.pillars||[]}/>
+      <PillarGrid pillars={result.pillars||[]} onExpand={handleExpand}/>
       <TipRow tip={result.tip}/>
     </div>
   );
 
   if(type==="recipe") return(
     <div style={{animation:"slideUp .3s ease"}}>
+      {modal}
       {ack && <AckBubble text={ack} label="Here is how"/>}
       <RecipeList recipes={result.recipes||[]} activeRecipe={activeRecipe} setActiveRecipe={setActiveRecipe} msgIdx={msgIdx}/>
       <TipRow tip={result.tip}/>
@@ -831,23 +1017,9 @@ function ResultCard({ result, isLast, onGetMore, activeRecipe, setActiveRecipe, 
     const label = type==="insight" ? "Here is the deeper picture" : "To answer your question";
     return(
       <div style={{animation:"slideUp .3s ease"}}>
+        {modal}
         {ack && <AckBubble text={ack} label={label}/>}
-        {(result.cards||[]).length>0 && (
-          <div style={{display:"flex",flexDirection:"column",gap:12,marginBottom:18}}>
-            {result.cards.map((card,i)=>{
-              const meta=PILLAR_META[card.pillar]||PILLAR_META.food;
-              return(
-                <div key={i} style={{display:"flex",gap:16,alignItems:"flex-start",background:meta.bg,border:"1px solid "+meta.border,borderRadius:16,padding:"18px 20px",animation:"fadeUp .25s ease "+(i*.07)+"s both"}}>
-                  <div style={{fontSize:"clamp(28px,3vw,36px)",lineHeight:1,flexShrink:0,marginTop:2}}>{card.emoji||"🌿"}</div>
-                  <div>
-                    <div style={{color:meta.color,fontSize:"clamp(.95rem,1.5vw,1.08rem)",fontWeight:600,marginBottom:6}}>{card.title}</div>
-                    <div style={{color:"#6aaa80",fontSize:"clamp(.88rem,1.4vw,1rem)",lineHeight:1.75}}>{card.body}</div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+        <VisualCardGrid cards={result.cards||[]} onExpand={handleExpand}/>
         <TipRow tip={result.tip}/>
       </div>
     );
@@ -855,25 +1027,11 @@ function ResultCard({ result, isLast, onGetMore, activeRecipe, setActiveRecipe, 
 
   return(
     <div style={{animation:"slideUp .3s ease"}}>
+      {modal}
       {ack && <AckBubble text={ack} label="Here is what I found"/>}
-      {result.pillars?.length>0 && <PillarGrid pillars={result.pillars}/>}
+      {result.pillars?.length>0 && <PillarGrid pillars={result.pillars} onExpand={handleExpand}/>}
       {result.recipes?.length>0 && <RecipeList recipes={result.recipes} activeRecipe={activeRecipe} setActiveRecipe={setActiveRecipe} msgIdx={msgIdx}/>}
-      {result.cards?.length>0 && (
-        <div style={{display:"flex",flexDirection:"column",gap:12,marginBottom:18}}>
-          {result.cards.map((card,i)=>{
-            const meta=PILLAR_META[card.pillar]||PILLAR_META.food;
-            return(
-              <div key={i} style={{display:"flex",gap:16,alignItems:"flex-start",background:meta.bg,border:"1px solid "+meta.border,borderRadius:16,padding:"18px 20px"}}>
-                <div style={{fontSize:"clamp(28px,3vw,36px)",lineHeight:1,flexShrink:0,marginTop:2}}>{card.emoji||"🌿"}</div>
-                <div>
-                  <div style={{color:meta.color,fontSize:"clamp(.95rem,1.5vw,1.08rem)",fontWeight:600,marginBottom:6}}>{card.title}</div>
-                  <div style={{color:"#6aaa80",fontSize:"clamp(.88rem,1.4vw,1rem)",lineHeight:1.75}}>{card.body}</div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+      {result.cards?.length>0 && <VisualCardGrid cards={result.cards} onExpand={handleExpand}/>}
       <TipRow tip={result.tip}/>
     </div>
   );
@@ -1090,6 +1248,7 @@ export default function App() {
   const [showProfile,setShowProfile]=useState(false);
 
   const [showSignUp,setShowSignUp]=useState(false);
+  const [showSignupGate,setShowSignupGate]=useState(false);
   const [guestSearches,setGuestSearches]=useState(()=>{try{return parseInt(localStorage.getItem("np_guest_searches")||"0");}catch{return 0;}});
   const getGuestCount=()=>{try{return parseInt(localStorage.getItem("np_guest_searches")||"0");}catch{return 0;}};
   const [messages,setMessages]=useState([]);
@@ -1158,10 +1317,21 @@ export default function App() {
     }catch(_){}
   };
 
+  const GUEST_LIMIT = 3;
+
   const handleQuery=async(query)=>{
     const q=query.trim();if(!q||loading)return;
     const isFollowUp=messages.some(m=>m.role==="assistant");
-    if(!user){const c=getGuestCount();const n=c+1;localStorage.setItem("np_guest_searches",String(n));setGuestSearches(n);}
+    if(!user){
+      const c=getGuestCount();
+      if(c>=GUEST_LIMIT){setShowSignupGate(true);return;}
+      const n=c+1;
+      localStorage.setItem("np_guest_searches",String(n));
+      setGuestSearches(n);
+      if(n>=GUEST_LIMIT){
+        // allow this search but gate will show after result renders
+      }
+    }
 
     const apiMessages=[];
     messages.forEach(m=>{if(m.role==="user")apiMessages.push({role:"user",content:m.content});else if(m.result)apiMessages.push({role:"assistant",content:m.result.acknowledgment||""});});
@@ -1188,6 +1358,9 @@ export default function App() {
         if (user) saveConversation(updated, user.id);
         return updated;
       });
+      if(!user && getGuestCount()>=GUEST_LIMIT){
+        setTimeout(()=>setShowSignupGate(true), 1800);
+      }
       recordSuccess(isFollowUp,q);
       if(window.posthog)window.posthog.capture("search_completed",{query:q,is_follow_up:isFollowUp,pillar_count:(result.pillars||[]).length});if(window.tlTrack)window.tlTrack('feature_used',{feature:'search',is_follow_up:isFollowUp,pillar_count:(result.pillars||[]).length});
       fetchWeekPlan(q);
@@ -1203,6 +1376,11 @@ export default function App() {
     <div style={{minHeight:"100vh",background:"#0b1a0d",color:"#e0ede2"}}>
       <style>{CSS}</style>
       {showAuth&&<AuthModal key={authMode} onClose={()=>setShowAuth(false)} onAuth={handleAuth} defaultMode={authMode}/>}
+      {showSignupGate&&!user&&<SignupGateModal
+        onSignup={()=>{setShowSignupGate(false);setAuthMode("signup");setShowAuth(true);if(window.tlTrack)window.tlTrack("signup_started");}}
+        onLogin={()=>{setShowSignupGate(false);setAuthMode("login");setShowAuth(true);}}
+        onClose={()=>setShowSignupGate(false)}
+      />}
       {showProfile&&user&&<ProfileModal user={user} onClose={()=>setShowProfile(false)} onUpdate={u=>{setUser(u);setShowProfile(false);}} onLogout={handleLogout} onUpgrade={()=>{}}/>}
 
       {showSignUp&&<SignUpPrompt onClose={()=>setShowSignUp(false)} onSignUp={()=>{setShowSignUp(false);setAuthMode("signup");setShowAuth(true);if(window.tlTrack)window.tlTrack("signup_started");}}/>}
@@ -1274,7 +1452,7 @@ export default function App() {
               {messages.map((msg,idx)=>(
                 <div key={idx} style={{marginBottom:msg.role==="user"?8:24,minHeight:0}}>
                   {msg.role==="user"&&<div style={{display:"flex",justifyContent:"flex-end"}}><div style={{display:"inline-block",background:"rgba(34,163,90,.16)",border:"1px solid rgba(34,163,90,.28)",borderRadius:"20px 20px 5px 20px",padding:"14px 20px",maxWidth:"82%",color:"#d8f0de",fontSize:"1.05rem",lineHeight:1.7,fontWeight:500}}>{msg.content}</div></div>}
-                  {msg.role==="assistant"&&<ResultCard result={msg.result} isLast={idx===messages.length-1} onGetMore={()=>{}} activeRecipe={activeRecipe} setActiveRecipe={setActiveRecipe} msgIdx={idx}/>}
+                  {msg.role==="assistant"&&<ResultCard result={msg.result} isLast={idx===messages.length-1} onGetMore={()=>{}} activeRecipe={activeRecipe} setActiveRecipe={setActiveRecipe} msgIdx={idx} onAskFollowUp={(q)=>{setInput(q);setTimeout(()=>handleQuery(q),100);}}/>}
                 </div>
               ))}
               {loading&&<div style={{display:"flex",alignItems:"center",gap:10,padding:"24px 0",animation:"fadeIn .15s ease"}}><span style={{fontSize:22,display:"inline-block",animation:"spin 1.8s linear infinite"}}>🌿</span><span style={{color:"#4a9960",fontSize:"1rem",fontStyle:"italic",animation:"pulse 2s ease infinite"}}>Building your wellness plan...</span></div>}
@@ -1288,8 +1466,9 @@ export default function App() {
                   {(()=>{
                     if(user){const searches=messages.filter(m=>m.role==="user").length;const credDisplay=user.tier==="optimise"?"∞ unlimited":(user.credits??0)+" cr left";return searches+" search"+(searches!==1?"es":"")+" · "+credDisplay;}
                     const g=getGuestCount();
-                    if(g>=1)return <span style={{color:"#f09090",fontWeight:500,fontSize:".75rem"}}>No searches left — <button onClick={()=>{setAuthMode("signup");setShowAuth(true);if(window.tlTrack)window.tlTrack("signup_started");}} style={{background:"none",border:"none",color:"#4ec97a",cursor:"pointer",fontFamily:"'Georgia',serif",fontSize:"inherit",padding:0,textDecoration:"underline"}}>sign up</button></span>;
-                    return "1 free search · sign up for 3 credits";
+                    const rem=Math.max(0,3-g);
+                    if(rem===0)return <span style={{color:"#f09090",fontWeight:500,fontSize:".75rem"}}>Free searches used — <button onClick={()=>{setAuthMode("signup");setShowAuth(true);if(window.tlTrack)window.tlTrack("signup_started");}} style={{background:"none",border:"none",color:"#4ec97a",cursor:"pointer",fontFamily:"'Georgia',serif",fontSize:"inherit",padding:0,textDecoration:"underline"}}>sign up free</button></span>;
+                    return rem+" free search"+(rem!==1?"es":"")+" left · sign up to unlock all";
                   })()}
                 </span>
               </div>
