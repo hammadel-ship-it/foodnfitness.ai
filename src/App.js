@@ -418,13 +418,13 @@ function AuthModal({ onClose, onAuth, defaultMode="login" }) {
 
   const inp={background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.12)",borderRadius:10,padding:"11px 14px",color:"#c8e8ce",outline:"none",fontSize:".9rem",width:"100%",boxSizing:"border-box"};
   const pw={position:"relative",display:"flex",alignItems:"center"};
-  const eb={position:"absolute",right:12,background:"none",border:"none",color:"#3a6644",cursor:"pointer",padding:2,display:"flex",alignItems:"center"};
+  const eb={position:"absolute",right:12,background:"none",border:"none",color:"#6a9a78",cursor:"pointer",padding:2,display:"flex",alignItems:"center"};
 
   if(mode==="reset")return(
     <Modal onClose={onClose}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
         <span style={{color:"#a8ddb5",fontSize:"1.05rem"}}>🔑 Set new password</span>
-        <button onClick={onClose} style={{background:"none",border:"none",color:"#3a6644",cursor:"pointer",fontSize:"1.1rem"}}>✕</button>
+        <button onClick={onClose} style={{background:"none",border:"none",color:"#6a9a78",cursor:"pointer",fontSize:"1.1rem"}}>✕</button>
       </div>
       {err&&<div style={{color:"#f09090",fontSize:".82rem",marginBottom:12,padding:"9px 13px",background:"rgba(200,60,60,.1)",borderRadius:9,border:"1px solid rgba(200,60,60,.2)"}}>{err}</div>}
       <div style={{display:"flex",flexDirection:"column",gap:10}}>
@@ -439,21 +439,21 @@ function AuthModal({ onClose, onAuth, defaultMode="login" }) {
     <Modal onClose={onClose}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
         <span style={{color:"#a8ddb5",fontSize:"1.05rem"}}>🔑 Reset password</span>
-        <button onClick={onClose} style={{background:"none",border:"none",color:"#3a6644",cursor:"pointer",fontSize:"1.1rem"}}>✕</button>
+        <button onClick={onClose} style={{background:"none",border:"none",color:"#6a9a78",cursor:"pointer",fontSize:"1.1rem"}}>✕</button>
       </div>
       {err&&<div style={{color:"#f09090",fontSize:".82rem",marginBottom:12,padding:"9px 13px",background:"rgba(200,60,60,.1)",borderRadius:9,border:"1px solid rgba(200,60,60,.2)"}}>{err}</div>}
       {resetSent
         ?<div style={{textAlign:"center",padding:"16px 0"}}>
           <div style={{fontSize:32,marginBottom:12}}>📬</div>
           <div style={{color:"#a8ddb5",fontSize:".95rem",marginBottom:8}}>Check your email</div>
-          <div style={{color:"#3a6644",fontSize:".88rem",lineHeight:1.7}}>A password reset link has been sent to <strong style={{color:"#5ed880"}}>{email}</strong>. Check your inbox.</div>
-          <button onClick={()=>{setMode("login");setResetSent(false);}} style={{marginTop:16,background:"none",border:"none",color:"#3a6644",fontSize:".82rem",cursor:"pointer"}}>← Back to sign in</button>
+          <div style={{color:"#6a9a78",fontSize:".88rem",lineHeight:1.7}}>A password reset link has been sent to <strong style={{color:"#5ed880"}}>{email}</strong>. Check your inbox.</div>
+          <button onClick={()=>{setMode("login");setResetSent(false);}} style={{marginTop:16,background:"none",border:"none",color:"#6a9a78",fontSize:".82rem",cursor:"pointer"}}>← Back to sign in</button>
         </div>
         :<div style={{display:"flex",flexDirection:"column",gap:10}}>
           <div style={{color:"#4a7a56",fontSize:".82rem"}}>Enter your account email and we will send a reset link.</div>
           <input ref={emailRef} value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email address" type="email" onKeyDown={e=>e.key==="Enter"&&sendReset()} style={inp}/>
           <button onClick={sendReset} disabled={loading} className="cta-btn" style={{background:"linear-gradient(135deg,#22a35a,#1a7a44)",border:"none",borderRadius:11,padding:"13px",color:"#e8f5eb",fontSize:".9rem",cursor:"pointer",fontWeight:600}}>{loading?"Sending…":"Send reset link →"}</button>
-          <button onClick={()=>{setMode("login");setErr("");}} style={{background:"none",border:"none",color:"#3a6644",fontSize:".82rem",cursor:"pointer",textAlign:"center",paddingTop:4}}>← Back to sign in</button>
+          <button onClick={()=>{setMode("login");setErr("");}} style={{background:"none",border:"none",color:"#6a9a78",fontSize:".82rem",cursor:"pointer",textAlign:"center",paddingTop:4}}>← Back to sign in</button>
         </div>
       }
     </Modal>
@@ -463,7 +463,7 @@ function AuthModal({ onClose, onAuth, defaultMode="login" }) {
     <Modal onClose={onClose}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:22}}>
         <span style={{color:"#a8ddb5",fontSize:"1.05rem"}}>{mode==="login"?"Welcome back 🌿":"Join foodnfitness.ai 🌱"}</span>
-        <button onClick={onClose} style={{background:"none",border:"none",color:"#3a6644",cursor:"pointer",fontSize:"1.1rem",lineHeight:1}}>✕</button>
+        <button onClick={onClose} style={{background:"none",border:"none",color:"#6a9a78",cursor:"pointer",fontSize:"1.1rem",lineHeight:1}}>✕</button>
       </div>
       {err&&<div style={{color:"#f09090",fontSize:".82rem",marginBottom:12,padding:"9px 13px",background:"rgba(200,60,60,.1)",borderRadius:9,border:"1px solid rgba(200,60,60,.2)"}}>{err}</div>}
       <div style={{display:"flex",flexDirection:"column",gap:10}}>
@@ -477,7 +477,7 @@ function AuthModal({ onClose, onAuth, defaultMode="login" }) {
         </div>}
         <button onClick={submit} disabled={loading} className="cta-btn" style={{background:"linear-gradient(135deg,#22a35a,#1a7a44)",border:"none",borderRadius:11,padding:"13px",color:"#e8f5eb",fontSize:".9rem",cursor:"pointer",fontWeight:600,marginTop:2}}>{loading?"Please wait…":(mode==="login"?"Sign In →":"Create Free Account →")}</button>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",paddingTop:2}}>
-          <button onClick={()=>{setMode(m=>m==="login"?"signup":"login");setErr("");}} style={{background:"none",border:"none",color:"#3a6644",fontSize:".82rem",cursor:"pointer",fontFamily:"'Georgia',serif"}}>{mode==="login"?"No account? Sign up free":"Already have an account?"}</button>
+          <button onClick={()=>{setMode(m=>m==="login"?"signup":"login");setErr("");}} style={{background:"none",border:"none",color:"#6a9a78",fontSize:".82rem",cursor:"pointer",fontFamily:"'Georgia',serif"}}>{mode==="login"?"No account? Sign up free":"Already have an account?"}</button>
           {mode==="login"&&<button onClick={()=>{setMode("forgot");setErr("");}} style={{background:"none",border:"none",color:"#2a4a30",fontSize:".78rem",cursor:"pointer",fontFamily:"'Georgia',serif",fontStyle:"italic"}}>Forgot password?</button>}
         </div>
       </div>
@@ -517,13 +517,13 @@ function ProfileModal({ user, onClose, onUpdate, onLogout, onUpgrade }) {
   const SEX=[{value:"female",label:"Female",icon:"♀️"},{value:"male",label:"Male",icon:"♂️"}];
   return(
     <Modal onClose={onClose}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}><span style={{color:"#a8ddb5",fontSize:"1.05rem"}}>👤 {user.name}</span><button onClick={onClose} style={{background:"none",border:"none",color:"#3a6644",cursor:"pointer",fontSize:"1.1rem"}}>✕</button></div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}><span style={{color:"#a8ddb5",fontSize:"1.05rem"}}>👤 {user.name}</span><button onClick={onClose} style={{background:"none",border:"none",color:"#6a9a78",cursor:"pointer",fontSize:"1.1rem"}}>✕</button></div>
       <div style={{color:"#2e5535",fontSize:".85rem",marginBottom:20}}>{user.email} · {user.history?.length||0} searches</div>
       <div style={{marginBottom:20}}>
         <div style={{color:"#4a7a56",fontSize:".78rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:10}}>Biological sex <span style={{color:"#2a4a30",fontStyle:"italic",letterSpacing:0,textTransform:"none",fontSize:".74rem"}}>(personalises results)</span></div>
         <div style={{display:"flex",gap:8}}>{SEX.map(opt=>{const active=sex===opt.value;return<button key={opt.value} onClick={()=>setSex(active?"":opt.value)} style={{flex:1,background:active?"rgba(34,163,90,.18)":"rgba(255,255,255,.04)",border:"1.5px solid "+(active?"rgba(34,163,90,.55)":"rgba(255,255,255,.1)"),borderRadius:14,padding:"12px 8px",cursor:"pointer",transition:"all .16s",display:"flex",flexDirection:"column",alignItems:"center",gap:5}}><span style={{fontSize:20}}>{opt.icon}</span><span style={{color:active?"#5ed880":"#4a7a56",fontSize:".84rem",fontFamily:"'Georgia',serif"}}>{opt.label}</span></button>;})}</div>
         {!sex&&<div style={{color:"#1e3d25",fontSize:".74rem",marginTop:7,fontStyle:"italic"}}>Optional — tailors hormone, iron & nutrient advice.</div>}
-        {sex&&<div style={{color:"#3a6644",fontSize:".74rem",marginTop:7,fontStyle:"italic"}}>✓ Personalised for {sex} biology.</div>}
+        {sex&&<div style={{color:"#6a9a78",fontSize:".74rem",marginTop:7,fontStyle:"italic"}}>✓ Personalised for {sex} biology.</div>}
       </div>
       <div style={{marginBottom:20}}>
         <div style={{color:"#4a7a56",fontSize:".78rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>Food allergies</div>
@@ -556,7 +556,7 @@ function SignUpPrompt({ onClose, onSignUp }) {
       <div style={{textAlign:"center"}}>
         <div style={{fontSize:42,marginBottom:12,display:"inline-block",animation:"float 3s ease-in-out infinite"}}>🌿</div>
         <div style={{color:"#a8ddb5",fontSize:"1rem",marginBottom:8}}>You have used your free search</div>
-        <div style={{color:"#3a6644",fontSize:".92rem",lineHeight:1.7,marginBottom:16}}>Sign up free — food, fitness, breathwork and sleep. No card needed.</div>
+        <div style={{color:"#6a9a78",fontSize:".92rem",lineHeight:1.7,marginBottom:16}}>Sign up free — food, fitness, breathwork and sleep. No card needed.</div>
         <div style={{display:"flex",justifyContent:"center",gap:20,marginBottom:20,padding:"12px 16px",background:"rgba(34,163,90,.06)",border:"1px solid rgba(34,163,90,.15)",borderRadius:12}}>
           {[["4","Pillars"],["3","Free credits"],["Free","To join"]].map(([val,lbl],i)=>(
             <div key={i} style={{textAlign:"center"}}><div style={{color:"#4ec97a",fontSize:"1.1rem",fontWeight:600}}>{val}</div><div style={{color:"#2e5535",fontSize:".74rem",letterSpacing:".06em",textTransform:"uppercase"}}>{lbl}</div></div>
@@ -696,23 +696,23 @@ function WeekPlan({ plan }) {
   const rows=[["🥗","food","Food"],["💪","move","Move"],["🌬️","breathe","Breathe"],["🌙","sleep","Sleep"]];
   return(
     <div style={{marginTop:28}}>
-      <div style={{color:"#4a9960",fontSize:".85rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:6}}>🗓️ Your 7-day wellness plan</div>
-      <div style={{color:"#2a4030",fontSize:".82rem",marginBottom:14,fontStyle:"italic"}}>Tap any day to expand</div>
+      <div style={{color:"#6aaa80",fontSize:".85rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:6}}>🗓️ Your 7-day wellness plan</div>
+      <div style={{color:"#5a7a65",fontSize:".82rem",marginBottom:14,fontStyle:"italic"}}>Tap any day to expand</div>
       <div className="np-week-grid" style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:6}}>
         {plan.map((d,i)=>(
           <div key={i} className="day-card" onClick={()=>setActive(active===i?null:i)} style={{background:active===i?"rgba(34,163,90,.18)":"rgba(34,163,90,.07)",border:"1px solid "+(active===i?"rgba(34,163,90,.45)":"rgba(34,163,90,.16)"),borderRadius:12,padding:"10px 5px",textAlign:"center"}}>
-            <div style={{color:"#4a9960",fontSize:".82rem",letterSpacing:".06em",textTransform:"uppercase",marginBottom:4}}>{d.day?.slice(0,3)||"Day"}</div>
+            <div style={{color:"#6aaa80",fontSize:".82rem",letterSpacing:".06em",textTransform:"uppercase",marginBottom:4}}>{d.day?.slice(0,3)||"Day"}</div>
             <div style={{color:"#a8ddb5",fontSize:".78rem",lineHeight:1.3,fontStyle:"italic"}}>{d.focus||""}</div>
           </div>
         ))}
       </div>
       {active!==null&&plan[active]&&(
         <div style={{background:"rgba(34,163,90,.05)",border:"1px solid rgba(34,163,90,.18)",borderRadius:14,padding:"20px",marginTop:10,animation:"fadeUp .22s ease"}}>
-          <div style={{color:"#4ec97a",fontSize:"1rem",fontWeight:600,marginBottom:14}}>{plan[active].day} — <em style={{color:"#4a9960",fontWeight:400}}>{plan[active].focus}</em></div>
+          <div style={{color:"#4ec97a",fontSize:"1rem",fontWeight:600,marginBottom:14}}>{plan[active].day} — <em style={{color:"#6aaa80",fontWeight:400}}>{plan[active].focus}</em></div>
           {rows.map(([icon,key,lbl])=>(
             <div key={key} style={{display:"flex",gap:12,marginBottom:12,alignItems:"flex-start"}}>
               <span style={{minWidth:100,color:"#2e5535",fontSize:".9rem",flexShrink:0,paddingTop:2}}>{icon} {lbl}</span>
-              <span style={{color:"#8dc89e",fontSize:".95rem",lineHeight:1.6}}>{plan[active][key]||"—"}</span>
+              <span style={{color:"#a8d8b4",fontSize:".95rem",lineHeight:1.6}}>{plan[active][key]||"—"}</span>
             </div>
           ))}
         </div>
@@ -725,7 +725,7 @@ function AckBubble({ text, label="A note for you" }) {
   return(
     <div style={{background:"linear-gradient(135deg,rgba(34,163,90,.1),rgba(20,80,40,.07))",border:"1px solid rgba(34,163,90,.22)",borderRadius:18,padding:"20px 24px",marginBottom:18,position:"relative",overflow:"hidden"}}>
       <div style={{position:"absolute",top:14,right:16,fontSize:28,opacity:.08}}>🌿</div>
-      <div style={{color:"#4a9960",fontSize:".8rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>{label}</div>
+      <div style={{color:"#6aaa80",fontSize:".8rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>{label}</div>
       <p style={{color:"#b8e8c4",fontSize:"clamp(1.05rem,1.8vw,1.2rem)",lineHeight:1.85,margin:0,fontStyle:"italic"}}>{text}</p>
     </div>
   );
@@ -737,7 +737,7 @@ function TipRow({ tip }) {
     <div style={{background:"linear-gradient(135deg,rgba(34,163,90,.1),rgba(20,100,55,.05))",border:"1px solid rgba(34,163,90,.22)",borderRadius:14,padding:"16px 20px",display:"flex",gap:12,alignItems:"flex-start",marginBottom:16}}>
       <span style={{fontSize:22,marginTop:2,flexShrink:0}}>💡</span>
       <div>
-        <div style={{color:"#4a9960",fontSize:".78rem",letterSpacing:".08em",textTransform:"uppercase",marginBottom:5}}>Pro tip</div>
+        <div style={{color:"#6aaa80",fontSize:".78rem",letterSpacing:".08em",textTransform:"uppercase",marginBottom:5}}>Pro tip</div>
         <span style={{color:"#a8d8b4",fontSize:"clamp(1rem,1.6vw,1.1rem)",lineHeight:1.7}}>{tip}</span>
       </div>
     </div>
@@ -797,7 +797,7 @@ function ItemDetailModal({ item, meta, pillarType, onClose, onDeepDive }) {
           {loading && (
             <div style={{textAlign:"center",padding:"40px 0"}}>
               <div style={{width:32,height:32,border:"3px solid rgba(34,163,90,.2)",borderTop:"3px solid #22a35a",borderRadius:"50%",animation:"spin 1s linear infinite",margin:"0 auto 12px"}}/>
-              <div style={{color:"#3a6644",fontSize:".9rem"}}>Loading deep dive...</div>
+              <div style={{color:"#6a9a78",fontSize:".9rem"}}>Loading deep dive...</div>
             </div>
           )}
           {detail && !loading && (
@@ -828,7 +828,7 @@ function ItemDetailModal({ item, meta, pillarType, onClose, onDeepDive }) {
                 <div style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.08)",borderRadius:14,padding:"18px 20px"}}>
                   <div style={{color:meta.color,fontSize:".75rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:10}}>🤝 Combinations</div>
                   {detail.combinations.map((c,i) => (
-                    <div key={i} style={{color:"#6aaa80",fontSize:".92rem",lineHeight:1.6,marginBottom:i<detail.combinations.length-1?8:0}}>• {c}</div>
+                    <div key={i} style={{color:"#9fcfaf",fontSize:".92rem",lineHeight:1.6,marginBottom:i<detail.combinations.length-1?8:0}}>• {c}</div>
                   ))}
                 </div>
               )}
@@ -853,6 +853,7 @@ function ItemDetailModal({ item, meta, pillarType, onClose, onDeepDive }) {
 
 function ItemCard({ item, meta, pillarType, onExpand }) {
   const [imgErr, setImgErr] = useState(false);
+  if (!item || !item.name) return null;
   const imgUrl = getImageUrl(item.name, pillarType, item.image);
   return(
     <div className="item-card" onClick={()=>onExpand(item, pillarType)} style={{background:meta.bg,border:"1px solid "+meta.border,borderRadius:18,overflow:"hidden",transition:"transform .2s, box-shadow .2s",animation:"fadeUp .3s ease both",display:"flex",flexDirection:"column",minHeight:290,cursor:"pointer"}}>
@@ -867,7 +868,7 @@ function ItemCard({ item, meta, pillarType, onExpand }) {
       </div>
       <div style={{padding:"14px 16px",flex:1,display:"flex",flexDirection:"column",gap:7}}>
         <div style={{color:"#c8ecd4",fontSize:"1.05rem",fontWeight:700,lineHeight:1.3}}>{item.name}</div>
-        <div style={{color:"#5a9a70",fontSize:".92rem",lineHeight:1.65}}>{item.benefit}</div>
+        <div style={{color:"#8fbe9f",fontSize:".92rem",lineHeight:1.65}}>{item.benefit}</div>
       </div>
     </div>
   );
@@ -878,6 +879,7 @@ function PillarGrid({ pillars, onExpand }) {
   return(
     <div style={{marginBottom:18}}>
       {pillars.map((pillar,pi)=>{
+        if (!pillar || !pillar.items) return null;
         const meta=PILLAR_META[pillar.type]||PILLAR_META.food;
         return(
           <div key={pi} style={{marginBottom:pi<pillars.length-1?24:0}}>
@@ -901,7 +903,7 @@ function RecipeList({ recipes, activeRecipe, setActiveRecipe, msgIdx }) {
   if(!recipes?.length)return null;
   return(
     <div style={{marginBottom:18}}>
-      <div style={{color:"#4a9960",fontSize:".85rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:12}}>🍳 Recipes & protocols</div>
+      <div style={{color:"#6aaa80",fontSize:".85rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:12}}>🍳 Recipes & protocols</div>
       {recipes.map((r,i)=>{
         const rid=msgIdx+"-"+i;
         const open=activeRecipe===rid;
@@ -909,16 +911,16 @@ function RecipeList({ recipes, activeRecipe, setActiveRecipe, msgIdx }) {
           <div key={i} className="rc" style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(34,163,90,.18)",borderRadius:14,overflow:"hidden",marginBottom:10,transition:"border-color .18s"}}>
             <button onClick={()=>setActiveRecipe(open?null:rid)} style={{width:"100%",textAlign:"left",background:"transparent",border:"none",padding:"16px 18px",cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
               <span style={{color:"#c8e8ce",fontSize:"clamp(1rem,1.6vw,1.12rem)",fontWeight:600}}>{r.emoji||"🍽️"} {r.name}</span>
-              <span style={{color:"#3a6644",fontSize:".88rem",transform:open?"rotate(180deg)":"rotate(0deg)",transition:"transform .2s",display:"inline-block"}}>▼</span>
+              <span style={{color:"#6a9a78",fontSize:".88rem",transform:open?"rotate(180deg)":"rotate(0deg)",transition:"transform .2s",display:"inline-block"}}>▼</span>
             </button>
             {open&&(
               <div style={{padding:"0 18px 18px",borderTop:"1px solid rgba(34,163,90,.1)"}}>
-                {r.ingredients?.length>0&&<div style={{marginTop:14,marginBottom:12}}><div style={{color:"#3a6644",fontSize:".78rem",letterSpacing:".08em",textTransform:"uppercase",marginBottom:8}}>Ingredients</div><div style={{display:"flex",flexWrap:"wrap",gap:6}}>{r.ingredients.map((g,j)=><span key={j} style={{background:"rgba(34,163,90,.1)",border:"1px solid rgba(34,163,90,.2)",borderRadius:20,padding:"5px 12px",color:"#8dc89e",fontSize:".9rem"}}>{g}</span>)}</div></div>}
-                <div style={{color:"#3a6644",fontSize:".78rem",letterSpacing:".08em",textTransform:"uppercase",marginBottom:8}}>Steps</div>
+                {r.ingredients?.length>0&&<div style={{marginTop:14,marginBottom:12}}><div style={{color:"#6a9a78",fontSize:".78rem",letterSpacing:".08em",textTransform:"uppercase",marginBottom:8}}>Ingredients</div><div style={{display:"flex",flexWrap:"wrap",gap:6}}>{r.ingredients.map((g,j)=><span key={j} style={{background:"rgba(34,163,90,.1)",border:"1px solid rgba(34,163,90,.2)",borderRadius:20,padding:"5px 12px",color:"#a8d8b4",fontSize:".9rem"}}>{g}</span>)}</div></div>}
+                <div style={{color:"#6a9a78",fontSize:".78rem",letterSpacing:".08em",textTransform:"uppercase",marginBottom:8}}>Steps</div>
                 {(r.steps||[]).map((s,j)=>(
                   <div key={j} style={{display:"flex",gap:12,marginBottom:10,alignItems:"flex-start"}}>
                     <span style={{minWidth:26,height:26,borderRadius:"50%",background:"rgba(34,163,90,.2)",color:"#4ec97a",display:"flex",alignItems:"center",justifyContent:"center",fontSize:".82rem",fontWeight:700,flexShrink:0,marginTop:2}}>{j+1}</span>
-                    <span style={{color:"#8dc89e",fontSize:"clamp(.92rem,1.4vw,1rem)",lineHeight:1.65}}>{s}</span>
+                    <span style={{color:"#a8d8b4",fontSize:"clamp(.92rem,1.4vw,1rem)",lineHeight:1.65}}>{s}</span>
                   </div>
                 ))}
               </div>
@@ -933,6 +935,7 @@ function RecipeList({ recipes, activeRecipe, setActiveRecipe, msgIdx }) {
 // ─── VISUAL CARD GRID (for insight/answer follow-ups) ─────────────────────────
 function VisualCardCard({ card, onExpand }) {
   const [imgErr, setImgErr] = useState(false);
+  if (!card || !card.title) return null;
   const meta = PILLAR_META[card.pillar] || PILLAR_META.food;
   const imgUrl = getImageUrl(card.title, card.pillar, card.image);
   const fakeItem = { name: card.title, benefit: card.body, emoji: card.emoji, image: card.image };
@@ -955,7 +958,7 @@ function VisualCardCard({ card, onExpand }) {
       </div>
       <div style={{padding:"14px 16px",flex:1,display:"flex",flexDirection:"column",gap:7}}>
         <div style={{color:"#c8ecd4",fontSize:"1.05rem",fontWeight:700,lineHeight:1.3}}>{card.emoji} {card.title}</div>
-        <div style={{color:"#5a9a70",fontSize:".92rem",lineHeight:1.65}}>{card.body}</div>
+        <div style={{color:"#8fbe9f",fontSize:".92rem",lineHeight:1.65}}>{card.body}</div>
       </div>
     </div>
   );
@@ -1099,7 +1102,7 @@ function PricingPage({ onBack, user, onCreditsAdded }) {
         <div style={{textAlign:"center",padding:"52px 0 60px",animation:"fadeUp .6s ease"}}>
           <div style={{display:"inline-block",background:"rgba(34,163,90,.1)",border:"1px solid rgba(34,163,90,.22)",borderRadius:40,padding:"5px 17px",fontSize:".7rem",letterSpacing:".18em",textTransform:"uppercase",color:"#4ec97a",marginBottom:22}}>Simple, honest pricing</div>
           <h1 style={{fontSize:"clamp(2.2rem,5.5vw,3.6rem)",fontWeight:400,color:"#c8ecd4",lineHeight:1.15,letterSpacing:"-.02em",marginBottom:14}}>Eat well. Move well.<br/><em style={{color:"#4ec97a"}}>Start for £3.</em></h1>
-          <p style={{color:"#3a6644",fontSize:"clamp(.88rem,2vw,.98rem)",maxWidth:440,margin:"0 auto",lineHeight:1.8}}>Food, fitness, breathwork and sleep — all in one place.</p>
+          <p style={{color:"#6a9a78",fontSize:"clamp(.88rem,2vw,.98rem)",maxWidth:440,margin:"0 auto",lineHeight:1.8}}>Food, fitness, breathwork and sleep — all in one place.</p>
         </div>
         <div className="np-tier-grid" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(270px,1fr))",gap:18,animation:"fadeUp .6s ease .1s both"}}>
           {TIERS.map((t,i)=>(
@@ -1109,9 +1112,9 @@ function PricingPage({ onBack, user, onCreditsAdded }) {
               <div style={{fontSize:".78rem",letterSpacing:".14em",textTransform:"uppercase",color:t.highlight?"#4ec97a":"#2e5535",marginBottom:16}}>{t.name}</div>
               <div style={{marginBottom:4}}><span style={{fontSize:"clamp(2.6rem,5vw,3.2rem)",fontWeight:400,color:"#c8ecd4",letterSpacing:"-.03em",lineHeight:1}}>{t.price}</span><span style={{color:"#2e5535",fontSize:".78rem",marginLeft:5}}>{t.per}</span></div>
               <div style={{color:"#a8ddb5",fontSize:".92rem",marginBottom:4}}>{t.searches}</div>
-              <div style={{display:"inline-block",background:"rgba(34,163,90,.07)",border:"1px solid rgba(34,163,90,.14)",borderRadius:20,padding:"3px 12px",fontSize:".8rem",color:"#3a6644",marginBottom:20,alignSelf:"flex-start"}}>{t.rate}</div>
+              <div style={{display:"inline-block",background:"rgba(34,163,90,.07)",border:"1px solid rgba(34,163,90,.14)",borderRadius:20,padding:"3px 12px",fontSize:".8rem",color:"#6a9a78",marginBottom:20,alignSelf:"flex-start"}}>{t.rate}</div>
               <p style={{color:"#2e5535",fontSize:".9rem",lineHeight:1.7,marginBottom:22,fontStyle:"italic"}}>{t.desc}</p>
-              <div style={{display:"flex",flexDirection:"column",gap:9,marginBottom:28,flex:1}}>{t.features.map((f,j)=><div key={j} style={{display:"flex",gap:8,alignItems:"flex-start"}}><span style={{color:"#22a35a",fontSize:".82rem",marginTop:1,flexShrink:0}}>✓</span><span style={{color:"#5a8a6a",fontSize:".9rem",lineHeight:1.55}}>{f}</span></div>)}</div>
+              <div style={{display:"flex",flexDirection:"column",gap:9,marginBottom:28,flex:1}}>{t.features.map((f,j)=><div key={j} style={{display:"flex",gap:8,alignItems:"flex-start"}}><span style={{color:"#22a35a",fontSize:".82rem",marginTop:1,flexShrink:0}}>✓</span><span style={{color:"#8fbe9f",fontSize:".9rem",lineHeight:1.55}}>{f}</span></div>)}</div>
               <button className="cta-btn" onClick={()=>openCheckout(t)} disabled={processing===t.stripeId||(user&&user.tier&&user.tier.toLowerCase()===t.name.toLowerCase())} style={{background:t.highlight?"linear-gradient(135deg,#22a35a,#1a7a44)":"rgba(255,255,255,.05)",border:t.highlight?"none":"1px solid rgba(80,180,100,.22)",borderRadius:12,padding:"13px 20px",color:t.highlight?"#e8f5eb":"#6aaa80",fontSize:".86rem",cursor:processing===t.stripeId?"wait":"pointer",fontWeight:t.highlight?600:400,width:"100%",boxShadow:t.highlight?"0 4px 20px rgba(34,163,90,.22)":"none",opacity:processing&&processing!==t.paddleId?.6:1}}>{processing===t.stripeId?"Processing…":(user&&user.tier&&user.tier.toLowerCase()===t.name.toLowerCase()?"Current plan ✓":t.cta+" →")}</button>
             </div>
           ))}
@@ -1189,7 +1192,7 @@ function HistoryModal({ onClose, onLoad }) {
     <Modal onClose={onClose} maxWidth={480}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
         <span style={{color:"#a8ddb5",fontSize:"1.05rem"}}>🕐 Conversation history</span>
-        <button onClick={onClose} style={{background:"none",border:"none",color:"#3a6644",cursor:"pointer",fontSize:"1.1rem"}}>✕</button>
+        <button onClick={onClose} style={{background:"none",border:"none",color:"#6a9a78",cursor:"pointer",fontSize:"1.1rem"}}>✕</button>
       </div>
       {convs.length===0
         ? <div style={{color:"#2e5535",fontSize:".9rem",textAlign:"center",padding:"30px 0",fontStyle:"italic"}}>No saved conversations yet.<br/>Complete a search and it will appear here.</div>
@@ -1380,7 +1383,7 @@ export default function App() {
     };
 
     const attemptQuery = async (attempt=1) => {
-      const res=await fetch("/.netlify/functions/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:3500,system:buildPrompt(userRef.current,isFollowUp),messages:apiMessages})});
+      const res=await fetch("/.netlify/functions/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:4000,system:buildPrompt(userRef.current,isFollowUp),messages:apiMessages})});
       const text=await res.text();
       if(!res.ok)throw new Error("Server error "+res.status+": "+text.slice(0,180));
       const data=JSON.parse(text);
@@ -1468,7 +1471,7 @@ export default function App() {
                 <FnfLogo size={80} animated={true}/>
               </div>
               <h1 style={{fontSize:"clamp(2.2rem,5vw,4.2rem)",fontWeight:400,color:"#a8ddb5",margin:"0 0 10px",letterSpacing:"-.02em"}}>How are you feeling today?</h1>
-              <p style={{color:"#3a6644",fontSize:"clamp(1rem,1.9vw,1.2rem)",fontStyle:"italic",margin:"0 0 6px"}}>Food · Fitness · Breathwork · Sleep</p>
+              <p style={{color:"#6a9a78",fontSize:"clamp(1rem,1.9vw,1.2rem)",fontStyle:"italic",margin:"0 0 6px"}}>Food · Fitness · Breathwork · Sleep</p>
               <p style={{color:"#2a4a30",fontSize:"clamp(.88rem,1.5vw,1.02rem)",lineHeight:1.75,margin:"0 0 14px"}}>Describe what you are going through — we will build your personalised wellness plan</p>
               <div style={{display:"flex",flexWrap:"wrap",justifyContent:"center",gap:8,marginTop:6,marginBottom:4}}>
                 {user?.allergies?.length>0&&<div style={{display:"inline-flex",alignItems:"center",gap:5,background:"rgba(200,70,70,.07)",border:"1px solid rgba(200,70,70,.17)",borderRadius:20,padding:"3px 12px"}}><span style={{color:"#8a5050",fontSize:".82rem"}}>🚫 Avoiding: {user.allergies.join(", ")}</span></div>}
@@ -1505,16 +1508,16 @@ export default function App() {
               {messages.map((msg,idx)=>(
                 <div key={idx} style={{marginBottom:msg.role==="user"?8:24,minHeight:0}}>
                   {msg.role==="user"&&<div style={{display:"flex",justifyContent:"flex-end"}}><div style={{display:"inline-block",background:"rgba(34,163,90,.16)",border:"1px solid rgba(34,163,90,.28)",borderRadius:"20px 20px 5px 20px",padding:"14px 20px",maxWidth:"82%",color:"#d8f0de",fontSize:"1.05rem",lineHeight:1.7,fontWeight:500}}>{msg.content}</div></div>}
-                  {msg.role==="assistant"&&<ResultCard result={msg.result} isLast={idx===messages.length-1} onGetMore={()=>{}} activeRecipe={activeRecipe} setActiveRecipe={setActiveRecipe} msgIdx={idx} onAskFollowUp={(q)=>{setInput(q);setTimeout(()=>handleQuery(q),100);}}/>}
+                  {msg.role==="assistant"&&(() => { try { return <ResultCard result={msg.result} isLast={idx===messages.length-1} onGetMore={()=>{}} activeRecipe={activeRecipe} setActiveRecipe={setActiveRecipe} msgIdx={idx} onAskFollowUp={(q)=>{setInput(q);setTimeout(()=>handleQuery(q),100);}}/> } catch(e) { return <div style={{color:"#8fbe9f",padding:"12px",fontSize:".9rem"}}>Could not render result — please try again.</div>; } })()}
                 </div>
               ))}
-              {loading&&<div style={{display:"flex",alignItems:"center",gap:10,padding:"24px 0",animation:"fadeIn .15s ease"}}><span style={{fontSize:22,display:"inline-block",animation:"spin 1.8s linear infinite"}}>🌿</span><span style={{color:"#4a9960",fontSize:"1rem",fontStyle:"italic",animation:"pulse 2s ease infinite"}}>Building your wellness plan...</span></div>}
+              {loading&&<div style={{display:"flex",alignItems:"center",gap:10,padding:"24px 0",animation:"fadeIn .15s ease"}}><span style={{fontSize:22,display:"inline-block",animation:"spin 1.8s linear infinite"}}>🌿</span><span style={{color:"#6aaa80",fontSize:"1rem",fontStyle:"italic",animation:"pulse 2s ease infinite"}}>Building your wellness plan...</span></div>}
               {error&&<div style={{background:"rgba(200,60,60,.08)",border:"1px solid rgba(200,60,60,.18)",borderRadius:10,padding:"11px 15px",color:"#f09090",fontSize:".82rem",marginBottom:12,lineHeight:1.6}}>⚠️ {error}<button onClick={()=>setError(null)} style={{background:"none",border:"none",color:"#f09090",cursor:"pointer",float:"right",fontSize:".82rem"}}>✕</button></div>}
               <div ref={bottomRef}/>
             </div>
             <div style={{padding:"10px clamp(16px,3vw,32px) clamp(16px,2vw,24px)",borderTop:"1px solid rgba(80,180,100,.07)",marginTop:4}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:8,marginBottom:8,flexWrap:"wrap"}}>
-                <button onClick={reset} style={{background:"none",border:"none",color:"#3a6644",fontSize:".82rem",cursor:"pointer",flexShrink:0}}>← Start over</button>
+                <button onClick={reset} style={{background:"none",border:"none",color:"#6a9a78",fontSize:".82rem",cursor:"pointer",flexShrink:0}}>← Start over</button>
                 <span style={{color:"#1a3020",fontSize:".75rem",textAlign:"right",minWidth:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
                   {(()=>{
                     if(user){const searches=messages.filter(m=>m.role==="user").length;const credDisplay=user.tier==="optimise"?"∞ unlimited":(user.credits??0)+" cr left";return searches+" search"+(searches!==1?"es":"")+" · "+credDisplay;}
@@ -1530,7 +1533,7 @@ export default function App() {
           </div>
         </div>
 
-        <div style={{display: hasConvo ? "none" : "block", textAlign:"center",padding:"24px 0 8px"}}><div style={{color:"#3a6644",fontSize:".82rem",letterSpacing:".06em",marginBottom:8}}>foodnfitness.ai · Eat well. Move well. Live well. · Not medical advice</div><div style={{display:"flex",justifyContent:"center",gap:20}}><a href="/terms.html" style={{color:"#2a5435",fontSize:".75rem",textDecoration:"none"}}>Terms</a><a href="/privacy.html" style={{color:"#2a5435",fontSize:".75rem",textDecoration:"none"}}>Privacy</a><a href="/refund.html" style={{color:"#2a5435",fontSize:".75rem",textDecoration:"none"}}>Refund Policy</a></div></div>
+        <div style={{display: hasConvo ? "none" : "block", textAlign:"center",padding:"24px 0 8px"}}><div style={{color:"#6a9a78",fontSize:".82rem",letterSpacing:".06em",marginBottom:8}}>foodnfitness.ai · Eat well. Move well. Live well. · Not medical advice</div><div style={{display:"flex",justifyContent:"center",gap:20}}><a href="/terms.html" style={{color:"#5a8a68",fontSize:".75rem",textDecoration:"none"}}>Terms</a><a href="/privacy.html" style={{color:"#5a8a68",fontSize:".75rem",textDecoration:"none"}}>Privacy</a><a href="/refund.html" style={{color:"#5a8a68",fontSize:".75rem",textDecoration:"none"}}>Refund Policy</a></div></div>
       </div>
     </div>
   );
