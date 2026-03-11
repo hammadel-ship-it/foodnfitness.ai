@@ -124,8 +124,6 @@ const buildPrompt = (user, isFollowUp) => {
   }
 };
 
-};
-
 const buildWeekPlanPrompt = (user, concern) => {
   const allergy = user?.allergies?.length
     ? "CRITICAL: allergic to " + user.allergies.join(", ") + ". NEVER include these."
