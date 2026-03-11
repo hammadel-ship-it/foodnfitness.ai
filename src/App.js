@@ -97,25 +97,25 @@ const buildPrompt = (user, isFollowUp) => {
       seed + " " + timeCtx + " " + seasonCtx + " " + sexNote + " " + history + "\n\n" +
       baseRules + "\n" +
       "JSON format:\n" +
-      '{"responseType":"initial","acknowledgment":"2 warm empathetic sentences referencing their exact words and situation","pillars":[{"type":"food","label":"Food and Nutrition","items":[{"emoji":"🫐","name":"Specific food or supplement name","image":"2-3 word Unsplash search term that will return a perfect photo of this exact item e.g. fresh ginger root, tart cherries, wild salmon fillet","benefit":"Precise mechanism and how to use it — be specific about quantity, timing or preparation"}]},{"type":"exercise","label":"Exercise and Movement","items":[{"emoji":"🏃","name":"Specific exercise name","image":"2-3 word Unsplash search term for a photo of someone doing this exercise e.g. yoga stretch pose, foam roller back, tai chi park","benefit":"Exact technique, sets, reps or duration — actionable detail"}]}],"recipes":[{"name":"Recipe name","emoji":"🥣","ingredients":["specific amount + ingredient"],"steps":["Precise step"]}],"tip":"One hyper-specific, surprising, actionable tip they likely have not heard before"}' + "\n\n" +
+      "{\"responseType\":\"initial\",\"acknowledgment\":\"2 warm empathetic sentences referencing their exact words\",\"pillars\":[{\"type\":\"food\",\"label\":\"Food and Nutrition\",\"items\":[{\"emoji\":\"🫐\",\"name\":\"Specific food name\",\"image\":\"2-3 word photo search term for this exact item e.g. fresh ginger root\",\"benefit\":\"Precise mechanism, quantity and timing\"}]},{\"type\":\"exercise\",\"label\":\"Exercise and Movement\",\"items\":[{\"emoji\":\"🏃\",\"name\":\"Specific exercise\",\"image\":\"2-3 word search term e.g. yoga stretch pose\",\"benefit\":\"Exact technique, sets, reps or duration\"}]}],\"recipes\":[{\"name\":\"Recipe name\",\"emoji\":\"🥣\",\"ingredients\":[\"amount + ingredient\"],\"steps\":[\"Precise step\"]}],\"tip\":\"One hyper-specific surprising tip\"}\n\n" +
       "CONTENT RULES:\n" +
       "- acknowledgment: warm, specific, never generic\n" +
-      "- pillars: always include ALL 4 types (food, exercise, breath, sleep) — vary the order\n" +
-      "- items: 4 per pillar. Be SPECIFIC — not 'leafy greens' but 'Watercress' with a precise benefit\n" +
-      "- recipes: 2 recipes directly addressing the concern. Include exact quantities in ingredients\n" +
-      "- tip: must be surprising and hyper-specific. Not 'drink more water' — something genuinely useful\n" +
-      "- VARIETY: draw from different cultures, traditions and science. Avoid the most obvious recommendations\n" +
-      "- image: pick the most visually recognisable 2-3 word search term for that exact item. Examples: 'fresh turmeric root', 'black garlic bulb', 'wall calf stretch', 'box breathing meditation', 'cool bedroom sleep'\n" +
+      "- pillars: always include ALL 4 types (food, exercise, breath, sleep)\n" +
+      "- items: 4 per pillar. Be SPECIFIC with precise benefits\n" +
+      "- image: 2-3 word Unsplash search term matching the exact item. E.g. tart cherry juice, black garlic bulb, foam roller stretch, box breathing calm\n" +
+      "- recipes: 2 recipes with exact quantities\n" +
+      "- tip: surprising and hyper-specific\n" +
+      "- VARIETY: draw from different cultures and traditions\n" +
       allergy;
   } else {
     return "You are a world-class holistic wellness coach continuing a conversation. " +
       seed + " " + timeCtx + " " + sexNote + "\n\n" +
       baseRules + "\n" +
       "Pick the BEST response type for what the user asked:\n\n" +
-      'If they want more foods, supplements or practices: {"responseType":"items","acknowledgment":"1-2 specific sentences","pillars":[{"type":"food","label":"Foods","items":[{"emoji":"🌿","name":"Specific name","benefit":"Precise benefit with mechanism"}]}],"tip":"surprising specific tip"}\n\n' +
-      'If they want a recipe, protocol or plan: {"responseType":"recipe","acknowledgment":"1-2 sentences","recipes":[{"name":"Name","emoji":"🥣","ingredients":["amount + ingredient"],"steps":["precise step"]}],"tip":"tip"}\n\n' +
-      'If they want deeper understanding or science: {"responseType":"insight","acknowledgment":"1-2 sentences","cards":[{"emoji":"🔬","title":"Short specific title","body":"Fascinating, specific insight with mechanism — 2-3 sentences","pillar":"food"}],"tip":"tip"}\n\n' +
-      'If they have a specific question: {"responseType":"answer","acknowledgment":"1-2 sentences","cards":[{"emoji":"🌿","title":"Short title","body":"Precise answer with specific details — 2-3 sentences","pillar":"food"}],"tip":"tip"}\n\n' +
+      "If they want more foods or practices: {\"responseType\":\"items\",\"acknowledgment\":\"1-2 specific sentences\",\"pillars\":[{\"type\":\"food\",\"label\":\"Foods\",\"items\":[{\"emoji\":\"🌿\",\"name\":\"Specific name\",\"image\":\"2-3 word photo search term\",\"benefit\":\"Precise benefit with mechanism\"}]}],\"tip\":\"surprising tip\"}\n\n" +
+      "If they want a recipe or plan: {\"responseType\":\"recipe\",\"acknowledgment\":\"1-2 sentences\",\"recipes\":[{\"name\":\"Name\",\"emoji\":\"🥣\",\"ingredients\":[\"amount + ingredient\"],\"steps\":[\"precise step\"]}],\"tip\":\"tip\"}\n\n" +
+      "If they want deeper understanding or science: {\"responseType\":\"insight\",\"acknowledgment\":\"1-2 sentences\",\"cards\":[{\"emoji\":\"🔬\",\"title\":\"Short specific title\",\"image\":\"2-3 word photo search term e.g. turmeric root\",\"body\":\"Fascinating specific insight 2-3 sentences\",\"pillar\":\"food\"}],\"tip\":\"tip\"}\n\n" +
+      "If they have a specific question: {\"responseType\":\"answer\",\"acknowledgment\":\"1-2 sentences\",\"cards\":[{\"emoji\":\"🌿\",\"title\":\"Short title\",\"image\":\"2-3 word photo search term\",\"body\":\"Precise answer 2-3 sentences\",\"pillar\":\"food\"}],\"tip\":\"tip\"}\n\n" +
       "RULES:\n" +
       "- 4 to 5 items or cards\n" +
       "- pillar must be: food, exercise, breath, or sleep\n" +
@@ -267,7 +267,7 @@ function safeParseJSON(raw, expectArray=false) {
   // 2. Extract outermost { } or [ ]
   if (expectArray) { const a=s.indexOf("["),b=s.lastIndexOf("]"); if(a!==-1&&b!==-1)s=s.slice(a,b+1); }
   else             { const a=s.indexOf("{"),b=s.lastIndexOf("}"); if(a!==-1&&b!==-1)s=s.slice(a,b+1); }
-  if (!s) throw new Error("No JSON found.");
+  if (!s) return {};
 
   // 3. Try raw
   try{return JSON.parse(s);}catch(_){}
@@ -298,11 +298,23 @@ function safeParseJSON(raw, expectArray=false) {
   if (lastClose > 0) {
     const trimmed = s.slice(0, lastClose+1);
     try{return JSON.parse(trimmed);}catch(_){}
-    // Also try fixing trailing commas on trimmed version
     try{return JSON.parse(trimmed.replace(/,\s*([}\]])/g,"$1"));}catch(_){}
   }
 
-  throw new Error("Something went wrong — please try again.");
+  // 9. Nuclear option: try to extract any partial valid object
+  //    Build a minimal result from whatever keys we can find
+  const ackMatch = s.match(/"acknowledgment"\s*:\s*"([^"]+)"/);
+  const typeMatch = s.match(/"responseType"\s*:\s*"([^"]+)"/);
+  if (ackMatch) {
+    return {
+      responseType: typeMatch?.[1] || "initial",
+      acknowledgment: ackMatch[1],
+      pillars: [], cards: [], recipes: [], tip: ""
+    };
+  }
+
+  // Last resort — return empty shell, repairResult will fill it in
+  return {};
 }
 
 function Modal({ onClose, children, maxWidth=420 }) {
@@ -561,109 +573,109 @@ function SignUpPrompt({ onClose, onSignUp }) {
 
 const IMG = (id) => `https://images.unsplash.com/${id}?w=500&h=320&q=80&fit=crop&auto=format`;
 
-// Keyword → Unsplash photo ID. Ordered from most specific to most general.
+// Comprehensive keyword → Unsplash photo ID map
+// Keys are lowercase substrings; MOST SPECIFIC entries must come FIRST
 const IMAGE_MAP = [
-  // ── Most specific multi-word food names first ──────────────────────────────
-  [["black garlic"],                                     IMG("photo-1615485290382-441e4d049cb5")],
-  [["tart cherry","cherry juice"],                       IMG("photo-1528821128474-27f963b062bf")],
-  [["white willow","willow bark"],                       IMG("photo-1556679343-c7306c1976bc")],
-  [["bone broth"],                                       IMG("photo-1547592180-85f173990554")],
+  // ── Specific named foods (most specific first) ────────────────────────────
+  [["montmorency cherry","tart cherry","sour cherry"],  IMG("photo-1528821128474-27f963b062bf")],
+  [["black garlic","fermented garlic"],                  IMG("photo-1615485290382-441e4d049cb5")],
+  [["ceylon cinnamon","cinnamon bark","cinnamon"],       IMG("photo-1599789198809-0dd24a82dd14")],
+  [["white willow bark","willow bark"],                  IMG("photo-1556679343-c7306c1976bc")],
+  [["wild alaskan salmon","wild salmon"],                IMG("photo-1519708227418-c8fd9a32b7a2")],
+  [["bone broth","collagen broth"],                      IMG("photo-1547592180-85f173990554")],
   [["golden milk","turmeric latte","turmeric tea"],      IMG("photo-1615485500704-8e990f9900f7")],
-  [["wild sardine","sardine","anchovy"],                 IMG("photo-1519708227418-c8fd9a32b7a2")],
-  [["lion mane","reishi","chaga","medicinal mushroom"],  IMG("photo-1506905925346-21bda4d32df4")],
-  [["sweet potato","yam"],                               IMG("photo-1596097635121-14b38c5d7f29")],
-  [["tart cherry"],                                      IMG("photo-1528821128474-27f963b062bf")],
-  [["ginger shot","ginger tea","ginger root","ginger"],  IMG("photo-1573506254977-9a6e4f14e7d9")],
-  [["turmeric"],                                         IMG("photo-1615485500704-8e990f9900f7")],
-  [["matcha","green tea"],                               IMG("photo-1515823662972-da6a2e4d3002")],
-  [["chamomile tea","herbal tea","peppermint tea"],       IMG("photo-1544787219-7f47ccb76574")],
-  [["salmon","mackerel","omega-3 fish","fish oil"],      IMG("photo-1519708227418-c8fd9a32b7a2")],
-  [["blueberr","acai","berry","berries"],                IMG("photo-1457296898342-cdd24585d095")],
+  [["turmeric root","turmeric"],                         IMG("photo-1615485500704-8e990f9900f7")],
+  [["ginger shot","ginger root","ginger tea","ginger"],  IMG("photo-1573506254977-9a6e4f14e7d9")],
+  [["matcha","green tea","ceremonial matcha"],           IMG("photo-1515823662972-da6a2e4d3002")],
+  [["chamomile","herbal tea","peppermint tea"],           IMG("photo-1544787219-7f47ccb76574")],
+  [["wild sardine","sardine","anchovy"],                  IMG("photo-1519708227418-c8fd9a32b7a2")],
+  [["salmon","mackerel","trout","fish oil","omega"],      IMG("photo-1519708227418-c8fd9a32b7a2")],
+  [["blueberry","blueberries","acai","bilberry"],         IMG("photo-1457296898342-cdd24585d095")],
+  [["cherry","cherries"],                                IMG("photo-1528821128474-27f963b062bf")],
   [["avocado"],                                          IMG("photo-1523049673857-eb18f1d7b578")],
-  [["spinach","kale","leafy green","watercress","arugula"],IMG("photo-1576045057995-568f588f82fb")],
-  [["broccoli","crucifer","cauliflower","brussels"],     IMG("photo-1584270354949-c26b0d5b4a0c")],
+  [["spinach","kale","watercress","arugula","leafy"],     IMG("photo-1576045057995-568f588f82fb")],
+  [["broccoli","cauliflower","brussels sprout"],         IMG("photo-1584270354949-c26b0d5b4a0c")],
   [["garlic"],                                           IMG("photo-1615485290382-441e4d049cb5")],
   [["egg","eggs"],                                       IMG("photo-1482049016688-2d3e1b311543")],
-  [["oat","porridge","granola"],                         IMG("photo-1517673132405-a56a62b18caf")],
-  [["lemon","lime","citrus"],                            IMG("photo-1587486913049-53fc88980cfc")],
-  [["mushroom"],                                         IMG("photo-1506905925346-21bda4d32df4")],
-  [["walnut","almond","cashew","pistachio","pecan"],     IMG("photo-1508061253366-f7da158b6d46")],
+  [["oat","porridge","granola","oatmeal"],                IMG("photo-1517673132405-a56a62b18caf")],
+  [["lemon","lime","citrus"],                             IMG("photo-1587486913049-53fc88980cfc")],
+  [["reishi","lion mane","chaga","mushroom"],             IMG("photo-1506905925346-21bda4d32df4")],
+  [["walnut","almond","cashew","pistachio","pecan","nut"],IMG("photo-1508061253366-f7da158b6d46")],
   [["quinoa","millet","buckwheat"],                      IMG("photo-1586201375761-83865001e31c")],
-  [["lentil","chickpea","legume","bean"],                IMG("photo-1515543904379-3d757dda9578")],
-  [["beetroot","beet"],                                  IMG("photo-1593789382576-fca9e7bafcd6")],
-  [["kimchi","sauerkraut","fermented","probiotic"],      IMG("photo-1569050467447-ce54b3bbc37d")],
+  [["lentil","chickpea","legume","bean"],                 IMG("photo-1515543904379-3d757dda9578")],
+  [["beetroot","beet juice"],                            IMG("photo-1593789382576-fca9e7bafcd6")],
+  [["kimchi","sauerkraut","fermented","probiotic"],       IMG("photo-1569050467447-ce54b3bbc37d")],
   [["kefir","yogurt","dairy"],                           IMG("photo-1488477181946-6428a0291777")],
   [["pomegranate"],                                      IMG("photo-1615485736208-84e11f6f7d42")],
   [["pineapple","bromelain","papaya"],                   IMG("photo-1490474418585-ba9bad8fd0ea")],
-  [["smoothie","protein shake"],                         IMG("photo-1553530666-ba11a90a3332")],
-  [["collagen","gelatin"],                               IMG("photo-1571019613454-1cb2f99b2d8b")],
-  [["ashwagandha","rhodiola","adaptogen"],               IMG("photo-1532187863486-abf9dbad1b69")],
-  [["magnesium","zinc","vitamin d","mineral"],           IMG("photo-1532187863486-abf9dbad1b69")],
-  [["celery","cucumber"],                                IMG("photo-1452195100486-9cc805987862")],
+  [["sweet potato","yam"],                               IMG("photo-1596097635121-14b38c5d7f29")],
+  [["smoothie","protein shake","green drink"],           IMG("photo-1553530666-ba11a90a3332")],
+  [["collagen","gelatin","peptide"],                     IMG("photo-1571019613454-1cb2f99b2d8b")],
+  [["ashwagandha","rhodiola","adaptogen","maca"],        IMG("photo-1532187863486-abf9dbad1b69")],
+  [["magnesium","zinc","vitamin d","supplement"],        IMG("photo-1532187863486-abf9dbad1b69")],
   [["lavender","aromatherapy","essential oil"],          IMG("photo-1611909023032-2d6b3134ecba")],
-  [["cherry"],                                           IMG("photo-1528821128474-27f963b062bf")],
+  [["celery","cucumber"],                                IMG("photo-1452195100486-9cc805987862")],
+  [["grapefruit","orange"],                              IMG("photo-1587132137056-bfbf0166836e")],
   // ── Exercise & movement ───────────────────────────────────────────────────
   [["yin yoga","restorative yoga","yoga nidra"],         IMG("photo-1506126613408-eca07ce68773")],
   [["yoga"],                                             IMG("photo-1506126613408-eca07ce68773")],
   [["pilates"],                                          IMG("photo-1518611012118-696072aa579a")],
   [["joint circle","joint rotation","gentle joint"],     IMG("photo-1544367567-0f2fcb009e0b")],
-  [["lymphatic","arm swing","lymph drainage"],           IMG("photo-1571019614242-c5c5dee9f50b")],
+  [["lymphatic","arm swing","lymph"],                    IMG("photo-1571019614242-c5c5dee9f50b")],
   [["wall calf","calf stretch","calf raise"],            IMG("photo-1544367567-0f2fcb009e0b")],
-  [["finger tendon","hand exercise","wrist circle"],     IMG("photo-1518611012118-696072aa579a")],
+  [["finger tendon","hand exercise","wrist"],            IMG("photo-1518611012118-696072aa579a")],
   [["foam roll","self-massage","trigger point"],         IMG("photo-1544367567-0f2fcb009e0b")],
   [["stretch","hip flexor","hamstring","mobility"],      IMG("photo-1544367567-0f2fcb009e0b")],
   [["walk","stroll","hiking"],                           IMG("photo-1571019614242-c5c5dee9f50b")],
   [["run","jog","sprint"],                               IMG("photo-1483721310020-03333e577078")],
-  [["swim","pool"],                                      IMG("photo-1530549387789-4c1017266635")],
+  [["swim","pool","aquatic"],                            IMG("photo-1530549387789-4c1017266635")],
   [["cycle","bike","cycling"],                           IMG("photo-1558618666-fcd25c85cd64")],
   [["hiit","interval","circuit"],                        IMG("photo-1534438327276-14e5300c3a48")],
-  [["strength","weight lifting","resistance","deadlift","squat"],IMG("photo-1534438327276-14e5300c3a48")],
+  [["strength","weight","resistance","deadlift","squat"],IMG("photo-1534438327276-14e5300c3a48")],
   [["plank","core","abdominal"],                         IMG("photo-1518611012118-696072aa579a")],
   [["tai chi","qigong"],                                 IMG("photo-1506126613408-eca07ce68773")],
-  // ── Breathwork ────────────────────────────────────────────────────────────
+  [["progressive muscle","muscle relaxation"],           IMG("photo-1544367567-0f2fcb009e0b")],
+  // ── Breathwork & stress ───────────────────────────────────────────────────
   [["box breath","4-4-4","square breath"],               IMG("photo-1545389336-cf090694435e")],
-  [["4-7-8","478"],                                      IMG("photo-1545389336-cf090694435e")],
+  [["4-7-8","478 breath"],                               IMG("photo-1545389336-cf090694435e")],
   [["humming bee","bhramari"],                           IMG("photo-1545389336-cf090694435e")],
   [["alternate nostril","nadi shodhana"],                IMG("photo-1545389336-cf090694435e")],
-  [["breath","breathing","pranayama"],                   IMG("photo-1545389336-cf090694435e")],
-  [["meditat","mindful"],                                IMG("photo-1545389336-cf090694435e")],
+  [["breath","breathing","pranayama","inhale","exhale"], IMG("photo-1545389336-cf090694435e")],
+  [["meditat","mindful","awareness"],                    IMG("photo-1545389336-cf090694435e")],
   [["cold shower","ice bath","cold plunge"],             IMG("photo-1571019613454-1cb2f99b2d8b")],
   [["sauna","steam","heat therapy"],                     IMG("photo-1571019613454-1cb2f99b2d8b")],
   [["journal","gratitude","diary"],                      IMG("photo-1455390582262-044cdead277a")],
   // ── Sleep & recovery ──────────────────────────────────────────────────────
-  [["red light therapy","photobiomodulation","infrared"], IMG("photo-1512428559087-560fa5ceab42")],
-  [["binaural","sound therapy","40hz","gamma frequency"],IMG("photo-1512428559087-560fa5ceab42")],
+  [["red light","photobiomodulation","infrared"],        IMG("photo-1512428559087-560fa5ceab42")],
+  [["binaural","sound therapy","40hz","gamma"],          IMG("photo-1512428559087-560fa5ceab42")],
   [["blue light","screen time"],                         IMG("photo-1512428559087-560fa5ceab42")],
-  [["cool room","bedroom temperature","thermostat"],     IMG("photo-1541781774459-bb2af2f05b55")],
-  [["elevation positioning","sleep position","pillow placement"],IMG("photo-1541781774459-bb2af2f05b55")],
+  [["cool room","bedroom temp","thermostat"],            IMG("photo-1541781774459-bb2af2f05b55")],
+  [["elevation position","sleep position","pillow"],     IMG("photo-1541781774459-bb2af2f05b55")],
   [["sleep hygiene","wind down","bedtime"],              IMG("photo-1541781774459-bb2af2f05b55")],
   [["sleep","nap","rest","recovery"],                    IMG("photo-1541781774459-bb2af2f05b55")],
   [["earthing","grounding","barefoot"],                  IMG("photo-1571019614242-c5c5dee9f50b")],
 ];
 
-// Category fallbacks per pillar — used when no keyword matches
+// Pillar fallbacks
 const PILLAR_FALLBACKS = {
-  food:     IMG("photo-1490645935967-10de6ba17061"),  // beautiful food spread
-  exercise: IMG("photo-1506126613408-eca07ce68773"),  // yoga/movement
-  breath:   IMG("photo-1545389336-cf090694435e"),     // meditation
-  sleep:    IMG("photo-1541781774459-bb2af2f05b55"),  // peaceful sleep
+  food:     IMG("photo-1490645935967-10de6ba17061"),
+  exercise: IMG("photo-1506126613408-eca07ce68773"),
+  breath:   IMG("photo-1545389336-cf090694435e"),
+  sleep:    IMG("photo-1541781774459-bb2af2f05b55"),
 };
 
-// aiTerm: the "image" field generated by the AI — most specific, use first
-// name: fallback to keyword map
-// pillarType: last resort category fallback
+// getImageUrl: AI term tried first (both alone and combined with name),
+// then item name, then pillar fallback
 function getImageUrl(name, pillarType, aiTerm) {
-  const searchStr = (aiTerm || name || "").toLowerCase();
-  // Always try AI-provided term first against keyword map
-  const candidates = aiTerm
-    ? [aiTerm.toLowerCase(), name.toLowerCase()]
-    : [name.toLowerCase()];
+  const candidates = [];
+  if (aiTerm) candidates.push(aiTerm.toLowerCase());
+  if (name)   candidates.push(name.toLowerCase());
+
   for (const str of candidates) {
     for (const [keywords, url] of IMAGE_MAP) {
       if (keywords.some(k => str.includes(k))) return url;
     }
   }
-  // Use pillar-specific fallback
   return PILLAR_FALLBACKS[pillarType] || PILLAR_FALLBACKS.food;
 }
 
@@ -954,7 +966,9 @@ function ResultCard({ result, isLast, onGetMore, activeRecipe, setActiveRecipe, 
   const [expandedPillar, setExpandedPillar] = useState(null);
 
   if(!result)return null;
-  if(!result.acknowledgment && !result.pillars && !result.cards && !result.recipes) return null;
+  // Always render something — never silently swallow partial results
+  const hasAnything = result.acknowledgment || result.pillars?.length || result.cards?.length || result.recipes?.length || result.tip;
+  if(!hasAnything) return null;
 
   const type = result.responseType || "initial";
   const ack = result.acknowledgment || "";
@@ -1334,19 +1348,48 @@ export default function App() {
     messages.forEach(m=>{if(m.role==="user")apiMessages.push({role:"user",content:m.content});else if(m.result)apiMessages.push({role:"assistant",content:m.result.acknowledgment||""});});
     apiMessages.push({role:"user",content:q});
     setMessages(p=>[...p,{role:"user",content:q}]);setInput("");setError(null);setLoading(true);
+    // Repair a parsed result so it always has enough to render
+    const repairResult = (r, q) => {
+      if (!r || typeof r !== "object") return null;
+      // Ensure acknowledgment always exists
+      if (!r.acknowledgment) r.acknowledgment = "Here is what I found for you.";
+      // Ensure responseType
+      if (!r.responseType) {
+        if (r.pillars?.length) r.responseType = "initial";
+        else if (r.cards?.length) r.responseType = "insight";
+        else if (r.recipes?.length) r.responseType = "recipe";
+        else r.responseType = "initial";
+      }
+      // Ensure pillars array exists
+      if (!r.pillars) r.pillars = [];
+      // Ensure cards array exists
+      if (!r.cards) r.cards = [];
+      // Ensure each pillar has items array
+      (r.pillars||[]).forEach(p => { if(!p.items) p.items=[]; });
+      return r;
+    };
+
     const attemptQuery = async (attempt=1) => {
-      const res=await fetch("/.netlify/functions/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:2000,system:buildPrompt(userRef.current,isFollowUp),messages:apiMessages})});
+      const res=await fetch("/.netlify/functions/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:3500,system:buildPrompt(userRef.current,isFollowUp),messages:apiMessages})});
       const text=await res.text();
       if(!res.ok)throw new Error("Server error "+res.status+": "+text.slice(0,180));
       const data=JSON.parse(text);
       const raw=(data.content||[]).map(b=>b.text||"").join("").trim();
-      if(!raw)throw new Error("Empty response from AI.");
-      const result=safeParseJSON(raw,false);
-      if(!result.acknowledgment){
-        if(attempt<3)return attemptQuery(attempt+1);
-        throw new Error("Unexpected response shape.");
+      if(!raw){ if(attempt<3) return attemptQuery(attempt+1); }
+      let result;
+      try { result = safeParseJSON(raw, false); } catch(parseErr) {
+        if(attempt<3) return attemptQuery(attempt+1);
+        throw parseErr;
       }
-      return result;
+      const repaired = repairResult(result, q);
+      // Must have something renderable
+      const hasContent = repaired && (
+        repaired.pillars?.length || repaired.cards?.length ||
+        repaired.recipes?.length || repaired.acknowledgment
+      );
+      if (!hasContent && attempt<3) return attemptQuery(attempt+1);
+      // Always return something — even a minimal shell
+      return repaired || { responseType:"initial", acknowledgment:"Here are your recommendations.", pillars:[], cards:[], recipes:[], tip:"" };
     };
     try{
       const result = await attemptQuery();
@@ -1361,7 +1404,10 @@ export default function App() {
       recordSuccess(isFollowUp,q);
       if(window.posthog)window.posthog.capture("search_completed",{query:q,is_follow_up:isFollowUp,pillar_count:(result.pillars||[]).length});if(window.tlTrack)window.tlTrack('feature_used',{feature:'search',is_follow_up:isFollowUp,pillar_count:(result.pillars||[]).length});
       fetchWeekPlan(q);
-    }catch(e){setError("Something went wrong — please try your search again.");}finally{setLoading(false);}
+    }catch(e){
+      // Network/server hard failure — show inline error but keep prior results visible
+      setError("Connection issue — please try again.");
+    }finally{setLoading(false);}
   };
 
   const reset=()=>{setMessages([]);setError(null);setInput("");};
