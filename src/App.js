@@ -556,29 +556,76 @@ function SignUpPrompt({ onClose, onSignUp }) {
   );
 }
 
+// ─── IMAGE SEARCH HELPER ─────────────────────────────────────────────────────
+// Maps wellness terms to curated Unsplash photo IDs for rich visual cards
+const UNSPLASH_MAP = {
+  // Foods
+  "turmeric":"photo-1615485500704-8e990f9900f7","ginger":"photo-1531236716684-b6c28b2d5dc3",
+  "blueberries":"photo-1457296898342-cdd24585d095","salmon":"photo-1519708227418-c8fd9a32b7a2",
+  "avocado":"photo-1523049673857-eb18f1d7b578","spinach":"photo-1576045057995-568f588f82fb",
+  "broccoli":"photo-1584270354949-c26b0d5b4a0c","oats":"photo-1517673132405-a56a62b18caf",
+  "eggs":"photo-1482049016688-2d3e1b311543","lemon":"photo-1587486913049-53fc88980cfc",
+  "garlic":"photo-1615485290382-441e4d049cb5","mushrooms":"photo-1518977676601-b53f82aba655",
+  "nuts":"photo-1509358271058-acd22cc93898","seeds":"photo-1543362906-acfc16c67564",
+  "berries":"photo-1576673442511-7e39b6545c87","greens":"photo-1576045057995-568f588f82fb",
+  "watercress":"photo-1576045057995-568f588f82fb","kimchi":"photo-1583577612013-4fecf3de8de9",
+  "miso":"photo-1547592180-85f173990554","kefir":"photo-1488477181946-6428a0291777",
+  "matcha":"photo-1515823662972-da6a2e4d3002","ashwagandha":"photo-1615485290382-441e4d049cb5",
+  "magnesium":"photo-1532187863486-abf9dbad1b69","zinc":"photo-1532187863486-abf9dbad1b69",
+  "collagen":"photo-1571019613454-1cb2f99b2d8b","omega":"photo-1519708227418-c8fd9a32b7a2",
+  "chamomile":"photo-1544787219-7f47ccb76574","lavender":"photo-1611909023032-2d6b3134ecba",
+  "beetroot":"photo-1593789382576-fca9e7bafcd6","sweet potato":"photo-1596097635121-14b38c5d7f29",
+  "quinoa":"photo-1586201375761-83865001e31c","lentils":"photo-1515543904379-3d757dda9578",
+  "chickpeas":"photo-1515543904379-3d757dda9578","walnuts":"photo-1508061253366-f7da158b6d46",
+  // Exercises
+  "yoga":"photo-1506126613408-eca07ce68773","meditation":"photo-1545389336-cf090694435e",
+  "walking":"photo-1571019614242-c5c5dee9f50b","running":"photo-1483721310020-03333e577078",
+  "swimming":"photo-1530549387789-4c1017266635","cycling":"photo-1558618666-fcd25c85cd64",
+  "stretching":"photo-1544367567-0f2fcb009e0b","pilates":"photo-1518611012118-696072aa579a",
+  "breathing":"photo-1545389336-cf090694435e","hiit":"photo-1534438327276-14e5300c3a48",
+  "strength":"photo-1534438327276-14e5300c3a48","plank":"photo-1518611012118-696072aa579a",
+  "squat":"photo-1574680178050-55c6a6a96e0a","deadlift":"photo-1534438327276-14e5300c3a48",
+  "pushup":"photo-1571019614242-c5c5dee9f50b","foam rolling":"photo-1518611012118-696072aa579a",
+  // Sleep & breath
+  "sleep":"photo-1541781774459-bb2af2f05b55","rest":"photo-1541781774459-bb2af2f05b55",
+  "breathwork":"photo-1545389336-cf090694435e","nap":"photo-1541781774459-bb2af2f05b55",
+  "cold shower":"photo-1571019613454-1cb2f99b2d8b","sauna":"photo-1545389336-cf090694435e",
+  "journaling":"photo-1455390582262-044cdead277a","gratitude":"photo-1455390582262-044cdead277a",
+};
+
+function getUnsplashUrl(name, size=400) {
+  const lower = (name||"").toLowerCase();
+  for (const [key, id] of Object.entries(UNSPLASH_MAP)) {
+    if (lower.includes(key)) return `https://images.unsplash.com/${id}?w=${size}&q=75&fit=crop&auto=format`;
+  }
+  // Fallback: use Unsplash source with search term
+  const term = encodeURIComponent(lower.split(" ").slice(0,2).join(" ") + " wellness");
+  return `https://source.unsplash.com/featured/${size}x${size}/?${term}`;
+}
+
 function WeekPlan({ plan }) {
   const [active,setActive]=useState(null);
   if(!Array.isArray(plan)||plan.length===0)return null;
   const rows=[["🥗","food","Food"],["💪","move","Move"],["🌬️","breathe","Breathe"],["🌙","sleep","Sleep"]];
   return(
-    <div style={{marginTop:24}}>
-      <div style={{color:"#4a9960",fontSize:".78rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:5}}>🗓️ 7-day wellness plan</div>
-      <div style={{color:"#2a4030",fontSize:".8rem",marginBottom:14,fontStyle:"italic"}}>Tap any day to expand</div>
-      <div className="np-week-grid" style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:5}}>
+    <div style={{marginTop:28}}>
+      <div style={{color:"#4a9960",fontSize:".85rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:6}}>🗓️ Your 7-day wellness plan</div>
+      <div style={{color:"#2a4030",fontSize:".82rem",marginBottom:14,fontStyle:"italic"}}>Tap any day to expand</div>
+      <div className="np-week-grid" style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:6}}>
         {plan.map((d,i)=>(
-          <div key={i} className="day-card" onClick={()=>setActive(active===i?null:i)} style={{background:active===i?"rgba(34,163,90,.16)":"rgba(34,163,90,.06)",border:"1px solid "+(active===i?"rgba(34,163,90,.42)":"rgba(34,163,90,.14)"),borderRadius:10,padding:"9px 5px",textAlign:"center"}}>
-            <div style={{color:"#4a9960",fontSize:".76rem",letterSpacing:".06em",textTransform:"uppercase",marginBottom:3}}>{d.day?.slice(0,3)||"Day"}</div>
-            <div style={{color:"#a8ddb5",fontSize:".72rem",lineHeight:1.3,fontStyle:"italic"}}>{d.focus||""}</div>
+          <div key={i} className="day-card" onClick={()=>setActive(active===i?null:i)} style={{background:active===i?"rgba(34,163,90,.18)":"rgba(34,163,90,.07)",border:"1px solid "+(active===i?"rgba(34,163,90,.45)":"rgba(34,163,90,.16)"),borderRadius:12,padding:"10px 5px",textAlign:"center"}}>
+            <div style={{color:"#4a9960",fontSize:".82rem",letterSpacing:".06em",textTransform:"uppercase",marginBottom:4}}>{d.day?.slice(0,3)||"Day"}</div>
+            <div style={{color:"#a8ddb5",fontSize:".78rem",lineHeight:1.3,fontStyle:"italic"}}>{d.focus||""}</div>
           </div>
         ))}
       </div>
       {active!==null&&plan[active]&&(
-        <div style={{background:"rgba(34,163,90,.05)",border:"1px solid rgba(34,163,90,.16)",borderRadius:12,padding:"16px",marginTop:8,animation:"fadeUp .22s ease"}}>
-          <div style={{color:"#4ec97a",fontSize:".85rem",fontWeight:600,marginBottom:12}}>{plan[active].day} — <em style={{color:"#4a9960",fontWeight:400}}>{plan[active].focus}</em></div>
+        <div style={{background:"rgba(34,163,90,.05)",border:"1px solid rgba(34,163,90,.18)",borderRadius:14,padding:"20px",marginTop:10,animation:"fadeUp .22s ease"}}>
+          <div style={{color:"#4ec97a",fontSize:"1rem",fontWeight:600,marginBottom:14}}>{plan[active].day} — <em style={{color:"#4a9960",fontWeight:400}}>{plan[active].focus}</em></div>
           {rows.map(([icon,key,lbl])=>(
-            <div key={key} style={{display:"flex",gap:11,marginBottom:9,alignItems:"flex-start"}}>
-              <span style={{minWidth:90,color:"#2e5535",fontSize:".82rem",flexShrink:0,paddingTop:1}}>{icon} {lbl}</span>
-              <span style={{color:"#8dc89e",fontSize:".88rem",lineHeight:1.55}}>{plan[active][key]||"—"}</span>
+            <div key={key} style={{display:"flex",gap:12,marginBottom:12,alignItems:"flex-start"}}>
+              <span style={{minWidth:100,color:"#2e5535",fontSize:".9rem",flexShrink:0,paddingTop:2}}>{icon} {lbl}</span>
+              <span style={{color:"#8dc89e",fontSize:".95rem",lineHeight:1.6}}>{plan[active][key]||"—"}</span>
             </div>
           ))}
         </div>
@@ -589,10 +636,10 @@ function WeekPlan({ plan }) {
 
 function AckBubble({ text, label="A note for you" }) {
   return(
-    <div style={{background:"linear-gradient(135deg,rgba(34,163,90,.1),rgba(20,80,40,.07))",border:"1px solid rgba(34,163,90,.22)",borderRadius:16,padding:"18px 20px",marginBottom:14,position:"relative",overflow:"hidden"}}>
-      <div style={{position:"absolute",top:12,right:14,fontSize:20,opacity:.08}}>🌿</div>
-      <div style={{color:"#4a9960",fontSize:".78rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:6}}>{label}</div>
-      <p style={{color:"#b8e8c4",fontSize:"clamp(1rem,1.6vw,1.12rem)",lineHeight:1.8,margin:0,fontStyle:"italic"}}>{text}</p>
+    <div style={{background:"linear-gradient(135deg,rgba(34,163,90,.1),rgba(20,80,40,.07))",border:"1px solid rgba(34,163,90,.22)",borderRadius:18,padding:"20px 24px",marginBottom:18,position:"relative",overflow:"hidden"}}>
+      <div style={{position:"absolute",top:14,right:16,fontSize:28,opacity:.08}}>🌿</div>
+      <div style={{color:"#4a9960",fontSize:".8rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>{label}</div>
+      <p style={{color:"#b8e8c4",fontSize:"clamp(1.05rem,1.8vw,1.2rem)",lineHeight:1.85,margin:0,fontStyle:"italic"}}>{text}</p>
     </div>
   );
 }
@@ -600,9 +647,43 @@ function AckBubble({ text, label="A note for you" }) {
 function TipRow({ tip }) {
   if(!tip)return null;
   return(
-    <div style={{background:"linear-gradient(135deg,rgba(34,163,90,.08),rgba(20,100,55,.04))",border:"1px solid rgba(34,163,90,.18)",borderRadius:12,padding:"12px 16px",display:"flex",gap:10,alignItems:"flex-start",marginBottom:14}}>
-      <span style={{fontSize:15,marginTop:1,flexShrink:0}}>💡</span>
-      <span style={{color:"#a8d8b4",fontSize:"clamp(.95rem,1.5vw,1.06rem)",lineHeight:1.62}}>{tip}</span>
+    <div style={{background:"linear-gradient(135deg,rgba(34,163,90,.1),rgba(20,100,55,.05))",border:"1px solid rgba(34,163,90,.22)",borderRadius:14,padding:"16px 20px",display:"flex",gap:12,alignItems:"flex-start",marginBottom:16}}>
+      <span style={{fontSize:22,marginTop:2,flexShrink:0}}>💡</span>
+      <div>
+        <div style={{color:"#4a9960",fontSize:".78rem",letterSpacing:".08em",textTransform:"uppercase",marginBottom:5}}>Pro tip</div>
+        <span style={{color:"#a8d8b4",fontSize:"clamp(1rem,1.6vw,1.1rem)",lineHeight:1.7}}>{tip}</span>
+      </div>
+    </div>
+  );
+}
+
+function ItemCard({ item, meta }) {
+  const [imgErr, setImgErr] = useState(false);
+  const imgUrl = getUnsplashUrl(item.name, 300);
+  return(
+    <div className="item-card" style={{background:meta.bg,border:"1px solid "+meta.border,borderRadius:16,overflow:"hidden",transition:"transform .18s, box-shadow .18s",animation:"fadeUp .3s ease both",display:"flex",flexDirection:"column"}}>
+      {!imgErr ? (
+        <div style={{width:"100%",height:110,overflow:"hidden",position:"relative",background:"rgba(0,0,0,.2)"}}>
+          <img
+            src={imgUrl}
+            alt={item.name}
+            onError={()=>setImgErr(true)}
+            style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}
+          />
+          <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,transparent 50%,rgba(0,0,0,.4))"}}/>
+        </div>
+      ) : (
+        <div style={{width:"100%",height:80,display:"flex",alignItems:"center",justifyContent:"center",fontSize:44,background:"rgba(0,0,0,.1)"}}>
+          {item.emoji||"🌿"}
+        </div>
+      )}
+      <div style={{padding:"12px 14px",flex:1,display:"flex",flexDirection:"column",gap:5}}>
+        <div style={{display:"flex",alignItems:"center",gap:7}}>
+          <span style={{fontSize:20}}>{item.emoji||"🌿"}</span>
+          <span style={{color:"#b8e8c4",fontSize:"clamp(.95rem,1.4vw,1.05rem)",fontWeight:600,lineHeight:1.3}}>{item.name}</span>
+        </div>
+        <div style={{color:"#5a8a6a",fontSize:"clamp(.82rem,1.2vw,.92rem)",lineHeight:1.55}}>{item.benefit}</div>
+      </div>
     </div>
   );
 }
@@ -610,22 +691,18 @@ function TipRow({ tip }) {
 function PillarGrid({ pillars }) {
   if(!pillars?.length)return null;
   return(
-    <div style={{marginBottom:14}}>
+    <div style={{marginBottom:18}}>
       {pillars.map((pillar,pi)=>{
         const meta=PILLAR_META[pillar.type]||PILLAR_META.food;
         return(
-          <div key={pi} style={{marginBottom:pi<pillars.length-1?18:0}}>
-            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
-              <span style={{fontSize:16}}>{meta.icon}</span>
-              <span style={{color:meta.color,fontSize:".78rem",letterSpacing:".1em",textTransform:"uppercase"}}>{pillar.label||meta.label}</span>
+          <div key={pi} style={{marginBottom:pi<pillars.length-1?24:0}}>
+            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14,paddingBottom:8,borderBottom:"1px solid rgba(255,255,255,.06)"}}>
+              <span style={{fontSize:22}}>{meta.icon}</span>
+              <span style={{color:meta.color,fontSize:".88rem",letterSpacing:".1em",textTransform:"uppercase",fontWeight:600}}>{pillar.label||meta.label}</span>
             </div>
-            <div className="np-item-grid" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(120px,1fr))",gap:7}}>
+            <div className="np-item-grid" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(150px,1fr))",gap:10}}>
               {(pillar.items||[]).map((item,i)=>(
-                <div key={i} className="item-card" style={{background:meta.bg,border:"1px solid "+meta.border,borderRadius:14,padding:"clamp(12px,1.5vw,17px) clamp(8px,1.2vw,13px)",textAlign:"center",transition:"transform .18s, box-shadow .18s",animation:"fadeUp .3s ease "+(i*.05)+"s both"}}>
-                  <div style={{fontSize:"clamp(26px,2.8vw,34px)",marginBottom:5}}>{item.emoji||"🌿"}</div>
-                  <div style={{color:"#b8e8c4",fontSize:"clamp(.88rem,1.3vw,1rem)",fontWeight:600,marginBottom:4}}>{item.name}</div>
-                  <div style={{color:"#4a7a56",fontSize:"clamp(.75rem,1.1vw,.84rem)",lineHeight:1.4}}>{item.benefit}</div>
-                </div>
+                <ItemCard key={i} item={item} meta={meta}/>
               ))}
             </div>
           </div>
@@ -638,25 +715,25 @@ function PillarGrid({ pillars }) {
 function RecipeList({ recipes, activeRecipe, setActiveRecipe, msgIdx }) {
   if(!recipes?.length)return null;
   return(
-    <div style={{marginBottom:14}}>
-      <div style={{color:"#4a9960",fontSize:".78rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:10}}>🍳 Recipes & protocols</div>
+    <div style={{marginBottom:18}}>
+      <div style={{color:"#4a9960",fontSize:".85rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:12}}>🍳 Recipes & protocols</div>
       {recipes.map((r,i)=>{
         const rid=msgIdx+"-"+i;
         const open=activeRecipe===rid;
         return(
-          <div key={i} className="rc" style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(34,163,90,.16)",borderRadius:12,overflow:"hidden",marginBottom:7,transition:"border-color .18s"}}>
-            <button onClick={()=>setActiveRecipe(open?null:rid)} style={{width:"100%",textAlign:"left",background:"transparent",border:"none",padding:"12px 16px",cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <span style={{color:"#c8e8ce",fontSize:"clamp(.95rem,1.5vw,1.08rem)"}}>{r.emoji||"🍽️"} {r.name}</span>
-              <span style={{color:"#3a6644",fontSize:".78rem",transform:open?"rotate(180deg)":"rotate(0deg)",transition:"transform .2s",display:"inline-block"}}>▼</span>
+          <div key={i} className="rc" style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(34,163,90,.18)",borderRadius:14,overflow:"hidden",marginBottom:10,transition:"border-color .18s"}}>
+            <button onClick={()=>setActiveRecipe(open?null:rid)} style={{width:"100%",textAlign:"left",background:"transparent",border:"none",padding:"16px 18px",cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <span style={{color:"#c8e8ce",fontSize:"clamp(1rem,1.6vw,1.12rem)",fontWeight:600}}>{r.emoji||"🍽️"} {r.name}</span>
+              <span style={{color:"#3a6644",fontSize:".88rem",transform:open?"rotate(180deg)":"rotate(0deg)",transition:"transform .2s",display:"inline-block"}}>▼</span>
             </button>
             {open&&(
-              <div style={{padding:"0 16px 14px",borderTop:"1px solid rgba(34,163,90,.1)"}}>
-                {r.ingredients?.length>0&&<div style={{marginTop:10,marginBottom:9}}><div style={{color:"#3a6644",fontSize:".72rem",letterSpacing:".08em",textTransform:"uppercase",marginBottom:6}}>Ingredients</div><div style={{display:"flex",flexWrap:"wrap",gap:5}}>{r.ingredients.map((g,j)=><span key={j} style={{background:"rgba(34,163,90,.09)",border:"1px solid rgba(34,163,90,.18)",borderRadius:20,padding:"3px 9px",color:"#8dc89e",fontSize:".82rem"}}>{g}</span>)}</div></div>}
-                <div style={{color:"#3a6644",fontSize:".72rem",letterSpacing:".08em",textTransform:"uppercase",marginBottom:6}}>Steps</div>
+              <div style={{padding:"0 18px 18px",borderTop:"1px solid rgba(34,163,90,.1)"}}>
+                {r.ingredients?.length>0&&<div style={{marginTop:14,marginBottom:12}}><div style={{color:"#3a6644",fontSize:".78rem",letterSpacing:".08em",textTransform:"uppercase",marginBottom:8}}>Ingredients</div><div style={{display:"flex",flexWrap:"wrap",gap:6}}>{r.ingredients.map((g,j)=><span key={j} style={{background:"rgba(34,163,90,.1)",border:"1px solid rgba(34,163,90,.2)",borderRadius:20,padding:"5px 12px",color:"#8dc89e",fontSize:".9rem"}}>{g}</span>)}</div></div>}
+                <div style={{color:"#3a6644",fontSize:".78rem",letterSpacing:".08em",textTransform:"uppercase",marginBottom:8}}>Steps</div>
                 {(r.steps||[]).map((s,j)=>(
-                  <div key={j} style={{display:"flex",gap:8,marginBottom:6,alignItems:"flex-start"}}>
-                    <span style={{minWidth:22,height:22,borderRadius:"50%",background:"rgba(34,163,90,.18)",color:"#4ec97a",display:"flex",alignItems:"center",justifyContent:"center",fontSize:".76rem",fontWeight:700,flexShrink:0,marginTop:1}}>{j+1}</span>
-                    <span style={{color:"#8dc89e",fontSize:".88rem",lineHeight:1.55}}>{s}</span>
+                  <div key={j} style={{display:"flex",gap:12,marginBottom:10,alignItems:"flex-start"}}>
+                    <span style={{minWidth:26,height:26,borderRadius:"50%",background:"rgba(34,163,90,.2)",color:"#4ec97a",display:"flex",alignItems:"center",justifyContent:"center",fontSize:".82rem",fontWeight:700,flexShrink:0,marginTop:2}}>{j+1}</span>
+                    <span style={{color:"#8dc89e",fontSize:"clamp(.92rem,1.4vw,1rem)",lineHeight:1.65}}>{s}</span>
                   </div>
                 ))}
               </div>
@@ -670,17 +747,9 @@ function RecipeList({ recipes, activeRecipe, setActiveRecipe, msgIdx }) {
 
 function ResultCard({ result, isLast, onGetMore, activeRecipe, setActiveRecipe, msgIdx }) {
   if(!result)return null;
-  // Guard: if result has no acknowledgment at all, don't render a broken card
   if(!result.acknowledgment && !result.pillars && !result.cards && !result.recipes) return null;
 
   const type = result.responseType || "initial";
-  const moreBtn = isLast && (
-    <div style={{textAlign:"right",marginTop:6}}>
-      <button onClick={onGetMore} style={{background:"none",border:"none",color:"#3a6644",fontSize:".8rem",cursor:"pointer",fontStyle:"italic"}}>Get more searches →</button>
-    </div>
-  );
-
-  // Safe acknowledgment — fall back to empty string so AckBubble doesn't crash
   const ack = result.acknowledgment || "";
 
   if(type==="initial") return(
@@ -690,7 +759,6 @@ function ResultCard({ result, isLast, onGetMore, activeRecipe, setActiveRecipe, 
       <RecipeList recipes={result.recipes||[]} activeRecipe={activeRecipe} setActiveRecipe={setActiveRecipe} msgIdx={msgIdx}/>
       <TipRow tip={result.tip}/>
       {isLast&&<WeekPlan plan={result.weekPlan}/>}
-      {moreBtn}
     </div>
   );
 
@@ -699,7 +767,6 @@ function ResultCard({ result, isLast, onGetMore, activeRecipe, setActiveRecipe, 
       {ack && <AckBubble text={ack} label="More for you"/>}
       <PillarGrid pillars={result.pillars||[]}/>
       <TipRow tip={result.tip}/>
-      {moreBtn}
     </div>
   );
 
@@ -708,7 +775,6 @@ function ResultCard({ result, isLast, onGetMore, activeRecipe, setActiveRecipe, 
       {ack && <AckBubble text={ack} label="Here is how"/>}
       <RecipeList recipes={result.recipes||[]} activeRecipe={activeRecipe} setActiveRecipe={setActiveRecipe} msgIdx={msgIdx}/>
       <TipRow tip={result.tip}/>
-      {moreBtn}
     </div>
   );
 
@@ -718,15 +784,15 @@ function ResultCard({ result, isLast, onGetMore, activeRecipe, setActiveRecipe, 
       <div style={{animation:"slideUp .3s ease"}}>
         {ack && <AckBubble text={ack} label={label}/>}
         {(result.cards||[]).length>0 && (
-          <div style={{display:"flex",flexDirection:"column",gap:9,marginBottom:14}}>
+          <div style={{display:"flex",flexDirection:"column",gap:12,marginBottom:18}}>
             {result.cards.map((card,i)=>{
               const meta=PILLAR_META[card.pillar]||PILLAR_META.food;
               return(
-                <div key={i} style={{display:"flex",gap:14,alignItems:"flex-start",background:meta.bg,border:"1px solid "+meta.border,borderRadius:14,padding:"14px 16px",animation:"fadeUp .25s ease "+(i*.07)+"s both"}}>
-                  <div style={{fontSize:"clamp(24px,2.8vw,30px)",lineHeight:1,flexShrink:0,marginTop:2}}>{card.emoji||"🌿"}</div>
+                <div key={i} style={{display:"flex",gap:16,alignItems:"flex-start",background:meta.bg,border:"1px solid "+meta.border,borderRadius:16,padding:"18px 20px",animation:"fadeUp .25s ease "+(i*.07)+"s both"}}>
+                  <div style={{fontSize:"clamp(28px,3vw,36px)",lineHeight:1,flexShrink:0,marginTop:2}}>{card.emoji||"🌿"}</div>
                   <div>
-                    <div style={{color:meta.color,fontSize:"clamp(.88rem,1.4vw,1rem)",fontWeight:600,marginBottom:4}}>{card.title}</div>
-                    <div style={{color:"#6aaa80",fontSize:"clamp(.82rem,1.3vw,.95rem)",lineHeight:1.65}}>{card.body}</div>
+                    <div style={{color:meta.color,fontSize:"clamp(.95rem,1.5vw,1.08rem)",fontWeight:600,marginBottom:6}}>{card.title}</div>
+                    <div style={{color:"#6aaa80",fontSize:"clamp(.88rem,1.4vw,1rem)",lineHeight:1.75}}>{card.body}</div>
                   </div>
                 </div>
               );
@@ -734,27 +800,25 @@ function ResultCard({ result, isLast, onGetMore, activeRecipe, setActiveRecipe, 
           </div>
         )}
         <TipRow tip={result.tip}/>
-        {moreBtn}
       </div>
     );
   }
 
-  // Fallback — only render what actually exists
   return(
     <div style={{animation:"slideUp .3s ease"}}>
       {ack && <AckBubble text={ack} label="Here is what I found"/>}
       {result.pillars?.length>0 && <PillarGrid pillars={result.pillars}/>}
       {result.recipes?.length>0 && <RecipeList recipes={result.recipes} activeRecipe={activeRecipe} setActiveRecipe={setActiveRecipe} msgIdx={msgIdx}/>}
       {result.cards?.length>0 && (
-        <div style={{display:"flex",flexDirection:"column",gap:9,marginBottom:14}}>
+        <div style={{display:"flex",flexDirection:"column",gap:12,marginBottom:18}}>
           {result.cards.map((card,i)=>{
             const meta=PILLAR_META[card.pillar]||PILLAR_META.food;
             return(
-              <div key={i} style={{display:"flex",gap:14,alignItems:"flex-start",background:meta.bg,border:"1px solid "+meta.border,borderRadius:14,padding:"14px 16px"}}>
-                <div style={{fontSize:"clamp(24px,2.8vw,30px)",lineHeight:1,flexShrink:0,marginTop:2}}>{card.emoji||"🌿"}</div>
+              <div key={i} style={{display:"flex",gap:16,alignItems:"flex-start",background:meta.bg,border:"1px solid "+meta.border,borderRadius:16,padding:"18px 20px"}}>
+                <div style={{fontSize:"clamp(28px,3vw,36px)",lineHeight:1,flexShrink:0,marginTop:2}}>{card.emoji||"🌿"}</div>
                 <div>
-                  <div style={{color:meta.color,fontSize:"clamp(.88rem,1.4vw,1rem)",fontWeight:600,marginBottom:4}}>{card.title}</div>
-                  <div style={{color:"#6aaa80",fontSize:"clamp(.82rem,1.3vw,.95rem)",lineHeight:1.65}}>{card.body}</div>
+                  <div style={{color:meta.color,fontSize:"clamp(.95rem,1.5vw,1.08rem)",fontWeight:600,marginBottom:6}}>{card.title}</div>
+                  <div style={{color:"#6aaa80",fontSize:"clamp(.88rem,1.4vw,1rem)",lineHeight:1.75}}>{card.body}</div>
                 </div>
               </div>
             );
@@ -762,7 +826,6 @@ function ResultCard({ result, isLast, onGetMore, activeRecipe, setActiveRecipe, 
         </div>
       )}
       <TipRow tip={result.tip}/>
-      {moreBtn}
     </div>
   );
 }
