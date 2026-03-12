@@ -611,27 +611,100 @@ function SignUpPrompt({ onClose, onSignUp }) {
 
 // ─── IMAGE SYSTEM ─────────────────────────────────────────────────────────────
 
-// Use Unsplash search by keyword — always semantically correct, never wrong photo
-const SEARCH = (query) => `https://source.unsplash.com/500x320/?${encodeURIComponent(query)}`;
-const IMG = SEARCH; // legacy alias so existing map entries still work — id param becomes the search query
+// Direct Unsplash photo URLs — verified photo IDs
+const IMG = (id) => `https://images.unsplash.com/${id}?w=500&h=320&q=80&fit=crop&auto=format`;
+// Fallback: keyword-based lookup from a curated set
+const SEARCH = (query) => {
+  const q = query.toLowerCase();
+  // Map common queries to verified Unsplash photo IDs
+  const lookup = {
+    "fennel": "photo-1416879595882-3373a0480b5b",
+    "fennel seeds": "photo-1416879595882-3373a0480b5b",
+    "fennel seeds herbal": "photo-1416879595882-3373a0480b5b",
+    "cucumber mint water glass": "photo-1541167760496-1628856ab772",
+    "cucumber mint": "photo-1541167760496-1628856ab772",
+    "fresh mint leaves": "photo-1628557010577-e96890a9f3f7",
+    "mint": "photo-1628557010577-e96890a9f3f7",
+    "green vegetable juice": "photo-1610970881699-d41ab9ad7bcc",
+    "kombucha fermented drink": "photo-1558618666-fcd25c85cd64",
+    "chamomile herbal tea cup": "photo-1544787219-7f47ccb76574",
+    "herbal tea": "photo-1544787219-7f47ccb76574",
+    "golden turmeric latte": "photo-1615485500704-8e990f9900f7",
+    "matcha green tea bowl": "photo-1515823662972-da6a2e4d3002",
+    "fresh ginger root": "photo-1573506254977-9a6e4f14e7d9",
+    "ginger": "photo-1573506254977-9a6e4f14e7d9",
+    "fresh cherries bowl": "photo-1528821128474-27f963b062bf",
+    "fresh blueberries": "photo-1457296898342-cdd24585d095",
+    "avocado halved": "photo-1523049673857-eb18f1d7b578",
+    "dried prunes figs": "photo-1519996529931-28324d5a630e",
+    "fresh vegetables colorful": "photo-1540420773420-3366772f4999",
+    "fresh vegetables healthy food": "photo-1540420773420-3366772f4999",
+    "fresh spinach kale leaves": "photo-1576045057995-568f588f82fb",
+    "broccoli fresh vegetable": "photo-1459411552884-841db9b3cc2a",
+    "fresh cucumber sliced": "photo-1604977042946-1eecc30f269e",
+    "cucumber fresh sliced": "photo-1604977042946-1eecc30f269e",
+    "cucumber": "photo-1604977042946-1eecc30f269e",
+    "salmon fillet fresh": "photo-1519708227418-c8fd9a32b7a2",
+    "black garlic bulbs": "photo-1501012070610-bef101015de8",
+    "ceylon cinnamon sticks": "photo-1588421357574-87938a86fa28",
+    "fresh eggs bowl": "photo-1482049016688-2d3e1b311543",
+    "oatmeal porridge bowl": "photo-1517673132405-a56a62b18caf",
+    "flaxseeds chia seeds": "photo-1508061253366-f7da158b6d46",
+    "fresh lemon citrus fruit": "photo-1587486913049-53fc88980cfc",
+    "reishi mushroom": "photo-1516594915697-87eb3b1c14ea",
+    "quinoa grain bowl": "photo-1586201375761-83865001e31c",
+    "chickpea lentils legumes": "photo-1515543904379-3d757dda9578",
+    "fresh beetroot beet": "photo-1593789382576-fca9e7bafcd6",
+    "kimchi fermented vegetables": "photo-1569050467447-ce54b3bbc37d",
+    "yogurt kefir dairy": "photo-1488477181946-6428a0291777",
+    "sweet potato roasted": "photo-1596097635121-14b38c5d7f29",
+    "healthy smoothie drink": "photo-1553530666-ba11a90a3332",
+    "lavender aromatherapy": "photo-1611909023032-2d6b3134ecba",
+    "fresh grapefruit orange citrus": "photo-1587132137056-bfbf0166836e",
+    "yoga outdoor exercise": "photo-1506126613408-eca07ce68773",
+    "pilates exercise mat": "photo-1518611012118-696072aa579a",
+    "stretching flexibility exercise": "photo-1544367567-0f2fcb009e0b",
+    "meditation breathing calm peaceful": "photo-1506126613408-eca07ce68773",
+    "peaceful sleep bedroom cozy": "photo-1541781774459-bb2af2f05b55",
+    "outdoor fitness exercise workout": "photo-1476480862126-209bfaa8edc8",
+    "aloe vera plant": "photo-1598440947952-7398b500bb6c",
+    "bone broth soup bowl": "photo-1547592180-85f173990554",
+    "apple cider vinegar bottle": "photo-1526887593587-b730e579d80c",
+    "fresh papaya tropical fruit": "photo-1526318472351-c6ffd3cbf2de",
+    "dried figs prunes fruit": "photo-1519996529931-28324d5a630e",
+    "collagen supplement powder": "photo-1571019613454-1cb2f99b2d8b",
+    "dandelion greens herb": "photo-1540420773420-3366772f4999",
+    "olive oil bottle": "photo-1474979266404-7eaacbcd87c5",
+    "cold pressed olive oil": "photo-1474979266404-7eaacbcd87c5",
+    "healthy food nutrition": "photo-1512621776951-a57141f2eefd",
+    "healthy food": "photo-1512621776951-a57141f2eefd",
+  };
+  for (const [key, id] of Object.entries(lookup)) {
+    if (q.includes(key) || key.includes(q.split(" ")[0])) {
+      return IMG(id);
+    }
+  }
+  // Final fallback — generic healthy food
+  return IMG("photo-1512621776951-a57141f2eefd");
+};
 
 // Comprehensive keyword → Unsplash photo ID map
 // Keys are lowercase substrings; MOST SPECIFIC entries must come FIRST
 const IMAGE_MAP = [
   // ── Specific named foods (most specific first) ────────────────────────────
   // Drinks & infusions — must be BEFORE generic ingredients
-  [["fennel tea","fennel seed","fennel"],                SEARCH("apple cider vinegar bottle")],
+  [["fennel tea","fennel seed","fennel"],                SEARCH("fennel seeds herbal")],
   [["cucumber mint","mint water","cucumber water","infused water"],SEARCH("cucumber mint water glass")],
   [["mint","peppermint","spearmint"],                    SEARCH("fresh mint leaves")],
   [["lemon water","lemon ginger","ginger lemon"],        SEARCH("cucumber mint water glass")],
   [["green juice","celery juice","vegetable juice"],     SEARCH("green vegetable juice")],
   [["kombucha","water kefir"],                           SEARCH("kombucha fermented drink")],
-  [["licorice","liquorice","anise"],                     SEARCH("apple cider vinegar bottle")],
-  [["dandelion","nettle","burdock","milk thistle"],       SEARCH("chamomile herbal tea cup")],
-  [["slippery elm","marshmallow root","digestive herb"],  SEARCH("herbal supplement capsules")],
-  [["papaya enzyme","digestive enzyme","bromelain"],      SEARCH("fresh papaya fruit")],
+  [["licorice","liquorice","anise"],                     SEARCH("herbal tea")],
+  [["dandelion","nettle","burdock","milk thistle"],       SEARCH("dandelion greens herb")],
+  [["slippery elm","marshmallow root","digestive herb"],  SEARCH("herbal tea")],
+  [["papaya enzyme","digestive enzyme","bromelain"],      SEARCH("fresh papaya tropical fruit")],
   [["apple cider vinegar","acv"],                        SEARCH("apple cider vinegar bottle")],
-  [["activated charcoal","bentonite clay"],              SEARCH("herbal supplement capsules")],
+  [["activated charcoal","bentonite clay"],              SEARCH("herbal tea")],
   [["flaxseed","chia seed","psyllium","fiber"],          SEARCH("flaxseeds chia seeds")],
   [["prune","fig","dried fruit"],                        SEARCH("dried prunes figs")],
   [["warm water","hot water","lemon warm"],              SEARCH("cucumber mint water glass")],
@@ -669,12 +742,12 @@ const IMAGE_MAP = [
   [["kimchi","sauerkraut","fermented","probiotic"],       SEARCH("healthy food nutrition")],
   [["kefir","yogurt","dairy"],                           SEARCH("healthy food nutrition")],
   [["pomegranate"],                                      SEARCH("dried prunes figs")],
-  [["pineapple","bromelain","papaya"],                   SEARCH("fresh papaya fruit")],
+  [["pineapple","bromelain","papaya"],                   SEARCH("fresh papaya tropical fruit")],
   [["sweet potato","yam"],                               SEARCH("healthy food nutrition")],
   [["smoothie","protein shake","green drink"],           SEARCH("healthy food nutrition")],
   [["collagen","gelatin","peptide"],                     SEARCH("healthy food nutrition")],
-  [["ashwagandha","rhodiola","adaptogen","maca"],        SEARCH("herbal supplement capsules")],
-  [["magnesium","zinc","vitamin d","supplement"],        SEARCH("herbal supplement capsules")],
+  [["ashwagandha","rhodiola","adaptogen","maca"],        SEARCH("herbal tea")],
+  [["magnesium","zinc","vitamin d","supplement"],        SEARCH("herbal tea")],
   [["lavender","aromatherapy","essential oil"],          SEARCH("healthy food nutrition")],
   [["cucumber","celery"],                               SEARCH("cucumber fresh sliced")],
   [["grapefruit","orange"],                              SEARCH("healthy food nutrition")],
