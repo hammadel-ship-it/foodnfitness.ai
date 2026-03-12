@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 // ─── SUPABASE ─────────────────────────────────────────────────────────────────
@@ -879,8 +879,9 @@ function PillarGrid({ pillars, onExpand }) {
   return(
     <div style={{marginBottom:18}}>
       {pillars.map((pillar,pi)=>{
-        if (!pillar || !pillar.items) return null;
-        const meta=PILLAR_META[pillar.type]||PILLAR_META.food;
+        if (!pillar || !Array.isArray(pillar.items)) return null;
+        const pillarType = (pillar.type||"food").toLowerCase();
+        const meta=PILLAR_META[pillarType]||PILLAR_META.food;
         return(
           <div key={pi} style={{marginBottom:pi<pillars.length-1?24:0}}>
             <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14,paddingBottom:8,borderBottom:"1px solid rgba(255,255,255,.06)"}}>
@@ -888,7 +889,7 @@ function PillarGrid({ pillars, onExpand }) {
               <span style={{color:meta.color,fontSize:".88rem",letterSpacing:".1em",textTransform:"uppercase",fontWeight:600}}>{pillar.label||meta.label}</span>
             </div>
             <div className="np-item-grid" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10}}>
-              {(pillar.items||[]).map((item,i)=>(
+              {(pillar.items||[]).filter(item=>item&&item.name).map((item,i)=>(
                 <ItemCard key={i} item={item} meta={meta} pillarType={pillar.type} onExpand={onExpand}/>
               ))}
             </div>
@@ -900,7 +901,7 @@ function PillarGrid({ pillars, onExpand }) {
 }
 
 function RecipeList({ recipes, activeRecipe, setActiveRecipe, msgIdx }) {
-  if(!recipes?.length)return null;
+  if(!recipes?.length||!Array.isArray(recipes))return null;
   return(
     <div style={{marginBottom:18}}>
       <div style={{color:"#6aaa80",fontSize:".85rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:12}}>🍳 Recipes & protocols</div>
@@ -936,7 +937,8 @@ function RecipeList({ recipes, activeRecipe, setActiveRecipe, msgIdx }) {
 function VisualCardCard({ card, onExpand }) {
   const [imgErr, setImgErr] = useState(false);
   if (!card || !card.title) return null;
-  const meta = PILLAR_META[card.pillar] || PILLAR_META.food;
+  const pillarKey = (card.pillar||"food").toLowerCase();
+  const meta = PILLAR_META[pillarKey] || PILLAR_META.food;
   const imgUrl = getImageUrl(card.title, card.pillar, card.image);
   const fakeItem = { name: card.title, benefit: card.body, emoji: card.emoji, image: card.image };
   return (
@@ -968,7 +970,7 @@ function VisualCardGrid({ cards, onExpand }) {
   if (!cards?.length) return null;
   return (
     <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10,marginBottom:18}}>
-      {cards.map((card, i) => <VisualCardCard key={i} card={card} onExpand={onExpand}/>)}
+      {(cards||[]).filter(c=>c&&c.title).map((card, i) => <VisualCardCard key={i} card={card} onExpand={onExpand}/>)}
     </div>
   );
 }
@@ -978,12 +980,21 @@ function ResultCard({ result, isLast, onGetMore, activeRecipe, setActiveRecipe, 
   const [expandedMeta, setExpandedMeta] = useState(null);
   const [expandedPillar, setExpandedPillar] = useState(null);
 
-  if(!result)return null;
+  if(!result || typeof result !== "object") return null;
   // Always render something — never silently swallow partial results
   const hasAnything = result.acknowledgment || result.pillars?.length || result.cards?.length || result.recipes?.length || result.tip;
   if(!hasAnything) return null;
 
-  const type = result.responseType || "initial";
+  // Normalise responseType — handle casing, aliases, unexpected values
+  const rawType = (result.responseType || "").toLowerCase().trim();
+  const type = rawType === "items"   ? "items"
+             : rawType === "recipe"  ? "recipe"
+             : rawType === "insight" ? "insight"
+             : rawType === "answer"  ? "answer"
+             : (result.pillars?.length) ? "initial"
+             : (result.cards?.length)   ? "insight"
+             : (result.recipes?.length) ? "recipe"
+             : "initial";
   const ack = result.acknowledgment || "";
 
   const handleExpand = (item, pillarType) => {
@@ -1053,9 +1064,9 @@ function ResultCard({ result, isLast, onGetMore, activeRecipe, setActiveRecipe, 
     <div style={{animation:"slideUp .3s ease"}}>
       {modal}
       {ack && <AckBubble text={ack} label="Here is what I found"/>}
-      {result.pillars?.length>0 && <PillarGrid pillars={result.pillars} onExpand={handleExpand}/>}
-      {result.recipes?.length>0 && <RecipeList recipes={result.recipes} activeRecipe={activeRecipe} setActiveRecipe={setActiveRecipe} msgIdx={msgIdx}/>}
-      {result.cards?.length>0 && <VisualCardGrid cards={result.cards} onExpand={handleExpand}/>}
+      {(result.pillars||[]).length>0 && <PillarGrid pillars={result.pillars||[]} onExpand={handleExpand}/>}
+      {(result.recipes||[]).length>0 && <RecipeList recipes={result.recipes||[]} activeRecipe={activeRecipe} setActiveRecipe={setActiveRecipe} msgIdx={msgIdx}/>}
+      {(result.cards||[]).length>0 && <VisualCardGrid cards={result.cards||[]} onExpand={handleExpand}/>}
       <TipRow tip={result.tip}/>
     </div>
   );
@@ -1264,7 +1275,89 @@ function FnfLogo({ size = 40, animated = false }) {
   );
 }
 
-export default function App() {
+// ─── SIGNUP GATE MODAL (shown after 3 free searches) ─────────────────────────
+function SignupGateModal({ onSignup, onLogin, onClose }) {
+  return (
+    <div style={{position:"fixed",inset:0,zIndex:500,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px"}}>
+      <div style={{position:"absolute",inset:0,background:"rgba(5,14,7,.92)",backdropFilter:"blur(12px)"}} onClick={onClose}/>
+      <div style={{position:"relative",width:"100%",maxWidth:420,background:"linear-gradient(160deg,#0d2010,#091509)",border:"1px solid rgba(34,163,90,.3)",borderRadius:24,overflow:"hidden",boxShadow:"0 32px 80px rgba(0,0,0,.7)"}}>
+        <div style={{height:4,background:"linear-gradient(90deg,#22a35a,#4ec97a,#22a35a)"}}/>
+        <div style={{padding:"36px 32px 40px"}}>
+          <div style={{textAlign:"center",marginBottom:24}}>
+            <div style={{width:64,height:64,borderRadius:"50%",background:"rgba(34,163,90,.15)",border:"1px solid rgba(34,163,90,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,margin:"0 auto 16px"}}>🌿</div>
+            <div style={{color:"#e8f5eb",fontSize:"1.5rem",fontWeight:700,fontFamily:"Georgia,serif",marginBottom:8}}>You have used your 3 free searches</div>
+            <div style={{color:"#6a9a78",fontSize:".95rem",lineHeight:1.7}}>Create a free account to keep going — unlimited searches, saved history, and personalised plans.</div>
+          </div>
+          <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:28}}>
+            {[["🔍","Unlimited searches — always free"],["💾","Saved conversation history"],["🧬","Personalised to your profile"],["📋","Weekly wellness plans"]].map(([icon,text],i)=>(
+              <div key={i} style={{display:"flex",alignItems:"center",gap:12,background:"rgba(34,163,90,.07)",border:"1px solid rgba(34,163,90,.15)",borderRadius:12,padding:"12px 16px"}}>
+                <span style={{fontSize:20}}>{icon}</span>
+                <span style={{color:"#a8d8b4",fontSize:".95rem"}}>{text}</span>
+              </div>
+            ))}
+          </div>
+          <button onClick={onSignup} style={{width:"100%",padding:"16px",background:"linear-gradient(135deg,#22a35a,#1a7a44)",border:"none",borderRadius:14,color:"#e8f5eb",fontSize:"1.05rem",fontWeight:700,cursor:"pointer",marginBottom:12,fontFamily:"Georgia,serif"}}>
+            Create free account →
+          </button>
+          <button onClick={onLogin} style={{width:"100%",padding:"14px",background:"transparent",border:"1px solid rgba(34,163,90,.25)",borderRadius:14,color:"#6a9a78",fontSize:".95rem",cursor:"pointer",fontFamily:"Georgia,serif"}}>
+            I already have an account
+          </button>
+          <div style={{textAlign:"center",marginTop:16,color:"#2a5435",fontSize:".8rem"}}>Free forever · No card required</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+// ─── ERROR BOUNDARY ──────────────────────────────────────────────────────────
+class SafeResult extends React.Component {
+  constructor(props) { super(props); this.state = { hasError: false, errorMsg: "" }; }
+  static getDerivedStateFromError(err) { return { hasError: true, errorMsg: err?.message || "" }; }
+  componentDidCatch(err, info) { console.error("ResultCard crash:", err, info); }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{padding:"16px 20px",background:"rgba(34,163,90,.06)",borderRadius:12,border:"1px solid rgba(34,163,90,.2)",display:"flex",alignItems:"center",gap:12}}>
+          <span style={{fontSize:20}}>⚠️</span>
+          <div>
+            <div style={{color:"#a8d8b4",fontSize:".95rem",marginBottom:4}}>Could not display this result.</div>
+            <button onClick={()=>this.setState({hasError:false,errorMsg:""})} style={{background:"none",border:"none",color:"#4ec97a",fontSize:".85rem",cursor:"pointer",padding:0,textDecoration:"underline"}}>Try rendering again</button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+// Top-level App error boundary — catches anything SafeResult misses
+class AppErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { hasError: false }; }
+  static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(err, info) { console.error("App-level crash:", err, info); }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{minHeight:"100vh",background:"#0b1a0d",display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
+          <div style={{textAlign:"center",maxWidth:400}}>
+            <div style={{fontSize:48,marginBottom:16}}>🌿</div>
+            <div style={{color:"#c8ecd4",fontSize:"1.2rem",fontWeight:600,marginBottom:8,fontFamily:"Georgia,serif"}}>Something went wrong</div>
+            <div style={{color:"#6a9a78",fontSize:".95rem",marginBottom:24,lineHeight:1.6}}>The app hit an unexpected error. Your search history is safe.</div>
+            <button onClick={()=>{ this.setState({hasError:false}); window.location.reload(); }}
+              style={{background:"linear-gradient(135deg,#22a35a,#1a7a44)",border:"none",borderRadius:12,padding:"12px 28px",color:"#e8f5eb",fontSize:"1rem",cursor:"pointer",fontFamily:"Georgia,serif",fontWeight:600}}>
+              Reload app
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+
+function App() {
   const [page,setPage]=useState("home");
   const [user,setUser]=useState(getUser);
   const [showAuth,setShowAuth]=useState(false);
@@ -1284,6 +1377,13 @@ export default function App() {
   const bottomRef=useRef(null);
   const userRef=useRef(user);
   const hasConvo=messages.length>0;
+
+  useEffect(()=>{
+    const handler = (e) => console.error("[fnf] unhandled error:", e?.message || e);
+    window.addEventListener("error", handler);
+    window.addEventListener("unhandledrejection", e => console.error("[fnf] unhandled promise:", e?.reason));
+    return () => window.removeEventListener("error", handler);
+  }, []);
 
   useEffect(()=>{userRef.current=user;},[user]);
   useEffect(()=>{bottomRef.current?.scrollIntoView({behavior:"smooth"});},[messages,loading]);
@@ -1333,7 +1433,7 @@ export default function App() {
       const cu=userRef.current;
       const res=await fetch("/.netlify/functions/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:2200,system:buildWeekPlanPrompt(cu,concern),messages:[{role:"user",content:"Create a 7-day holistic wellness plan for: "+concern}]})});
       if(!res.ok)return;
-      const data=JSON.parse(await res.text());
+      let data; try { data=JSON.parse(await res.text()); } catch(_){return;}
       const raw=(data.content||[]).map(b=>b.text||"").join("").trim();
       const plan=safeParseJSON(raw,true);
       if(!Array.isArray(plan)||plan.length===0)return;
@@ -1386,7 +1486,7 @@ export default function App() {
       const res=await fetch("/.netlify/functions/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:4000,system:buildPrompt(userRef.current,isFollowUp),messages:apiMessages})});
       const text=await res.text();
       if(!res.ok)throw new Error("Server error "+res.status+": "+text.slice(0,180));
-      const data=JSON.parse(text);
+      let data; try { data=JSON.parse(text); } catch(_){ if(attempt<3) return attemptQuery(attempt+1); throw new Error("Invalid server response"); }
       const raw=(data.content||[]).map(b=>b.text||"").join("").trim();
       if(!raw){ if(attempt<3) return attemptQuery(attempt+1); }
       let result;
@@ -1505,10 +1605,10 @@ export default function App() {
         <div style={{display: hasConvo ? "block" : "none"}}>
           <div style={{minHeight:"80vh",display:"flex",flexDirection:"column"}}>
             <div style={{padding:"16px 20px 0"}}>
-              {messages.map((msg,idx)=>(
+              {(messages||[]).map((msg,idx)=>{ if(!msg) return null; return (
                 <div key={idx} style={{marginBottom:msg.role==="user"?8:24,minHeight:0}}>
                   {msg.role==="user"&&<div style={{display:"flex",justifyContent:"flex-end"}}><div style={{display:"inline-block",background:"rgba(34,163,90,.16)",border:"1px solid rgba(34,163,90,.28)",borderRadius:"20px 20px 5px 20px",padding:"14px 20px",maxWidth:"82%",color:"#d8f0de",fontSize:"1.05rem",lineHeight:1.7,fontWeight:500}}>{msg.content}</div></div>}
-                  {msg.role==="assistant"&&(() => { try { return <ResultCard result={msg.result} isLast={idx===messages.length-1} onGetMore={()=>{}} activeRecipe={activeRecipe} setActiveRecipe={setActiveRecipe} msgIdx={idx} onAskFollowUp={(q)=>{setInput(q);setTimeout(()=>handleQuery(q),100);}}/> } catch(e) { return <div style={{color:"#8fbe9f",padding:"12px",fontSize:".9rem"}}>Could not render result — please try again.</div>; } })()}
+                  {msg.role==="assistant"&&<SafeResult><ResultCard result={msg.result} isLast={idx===messages.length-1} onGetMore={()=>{}} activeRecipe={activeRecipe} setActiveRecipe={setActiveRecipe} msgIdx={idx} onAskFollowUp={(q)=>{setInput(q);setTimeout(()=>handleQuery(q),100);}}/></SafeResult>}
                 </div>
               ))}
               {loading&&<div style={{display:"flex",alignItems:"center",gap:10,padding:"24px 0",animation:"fadeIn .15s ease"}}><span style={{fontSize:22,display:"inline-block",animation:"spin 1.8s linear infinite"}}>🌿</span><span style={{color:"#6aaa80",fontSize:"1rem",fontStyle:"italic",animation:"pulse 2s ease infinite"}}>Building your wellness plan...</span></div>}
@@ -1537,4 +1637,8 @@ export default function App() {
       </div>
     </div>
   );
+}
+
+export default function AppWithBoundary() {
+  return <AppErrorBoundary><App/></AppErrorBoundary>;
 }
