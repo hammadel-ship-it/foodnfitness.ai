@@ -577,6 +577,24 @@ const IMG = (id) => `https://images.unsplash.com/${id}?w=500&h=320&q=80&fit=crop
 // Keys are lowercase substrings; MOST SPECIFIC entries must come FIRST
 const IMAGE_MAP = [
   // ── Specific named foods (most specific first) ────────────────────────────
+  // Drinks & infusions — must be BEFORE generic ingredients
+  [["fennel tea","fennel seed","fennel"],                IMG("photo-1563729784474-d77dbb933a9e")],
+  [["cucumber mint","mint water","cucumber water","infused water"],IMG("photo-1556679343-c7306c1976bc")],
+  [["mint","peppermint","spearmint"],                    IMG("photo-1628557010577-e96890a9f3f7")],
+  [["lemon water","lemon ginger","ginger lemon"],        IMG("photo-1556679343-c7306c1976bc")],
+  [["green juice","celery juice","vegetable juice"],     IMG("photo-1610970881699-d41ab9ad7bcc")],
+  [["kombucha","water kefir"],                           IMG("photo-1625395572538-5b5b0cf4e024")],
+  [["licorice","liquorice","anise"],                     IMG("photo-1563729784474-d77dbb933a9e")],
+  [["dandelion","nettle","burdock","milk thistle"],       IMG("photo-1544787219-7f47ccb76574")],
+  [["slippery elm","marshmallow root","digestive herb"],  IMG("photo-1532187863486-abf9dbad1b69")],
+  [["papaya enzyme","digestive enzyme","bromelain"],      IMG("photo-1490474418585-ba9bad8fd0ea")],
+  [["apple cider vinegar","acv"],                        IMG("photo-1563729784474-d77dbb933a9e")],
+  [["activated charcoal","bentonite clay"],              IMG("photo-1532187863486-abf9dbad1b69")],
+  [["flaxseed","chia seed","psyllium","fiber"],          IMG("photo-1508061253366-f7da158b6d46")],
+  [["prune","fig","dried fruit"],                        IMG("photo-1615485736208-84e11f6f7d42")],
+  [["warm water","hot water","lemon warm"],              IMG("photo-1556679343-c7306c1976bc")],
+  [["aloe vera","aloe juice"],                           IMG("photo-1598440947952-7398b500bb6c")],
+  [["bone broth"],                                       IMG("photo-1547592180-85f173990554")],
   [["montmorency cherry","tart cherry","sour cherry"],  IMG("photo-1528821128474-27f963b062bf")],
   [["black garlic","fermented garlic"],                  IMG("photo-1593424946386-96dc53ed3d8e")],
   [["ceylon cinnamon","cinnamon bark","cinnamon"],       IMG("photo-1599789198809-0dd24a82dd14")],
@@ -587,7 +605,9 @@ const IMAGE_MAP = [
   [["turmeric root","turmeric"],                         IMG("photo-1615485500704-8e990f9900f7")],
   [["ginger shot","ginger root","ginger tea","ginger"],  IMG("photo-1573506254977-9a6e4f14e7d9")],
   [["matcha","green tea","ceremonial matcha"],           IMG("photo-1515823662972-da6a2e4d3002")],
-  [["chamomile","herbal tea","peppermint tea"],           IMG("photo-1544787219-7f47ccb76574")],
+  [["chamomile","chamomile tea"],                        IMG("photo-1544787219-7f47ccb76574")],
+  [["herbal tea","peppermint tea","licorice tea","dandelion tea"],IMG("photo-1544787219-7f47ccb76574")],
+  [["fennel"],                                           IMG("photo-1563729784474-d77dbb933a9e")],
   [["wild sardine","sardine","anchovy"],                  IMG("photo-1519708227418-c8fd9a32b7a2")],
   [["salmon","mackerel","trout","fish oil","omega"],      IMG("photo-1519708227418-c8fd9a32b7a2")],
   [["blueberry","blueberries","acai","bilberry"],         IMG("photo-1457296898342-cdd24585d095")],
@@ -614,7 +634,7 @@ const IMAGE_MAP = [
   [["ashwagandha","rhodiola","adaptogen","maca"],        IMG("photo-1532187863486-abf9dbad1b69")],
   [["magnesium","zinc","vitamin d","supplement"],        IMG("photo-1532187863486-abf9dbad1b69")],
   [["lavender","aromatherapy","essential oil"],          IMG("photo-1611909023032-2d6b3134ecba")],
-  [["celery","cucumber"],                                IMG("photo-1452195100486-9cc805987862")],
+  [["cucumber","celery"],                               IMG("photo-1604977042946-1eecc30f269e")],
   [["grapefruit","orange"],                              IMG("photo-1587132137056-bfbf0166836e")],
   // ── Exercise & movement ───────────────────────────────────────────────────
   [["yin yoga","restorative yoga","yoga nidra"],         IMG("photo-1506126613408-eca07ce68773")],
@@ -658,7 +678,7 @@ const IMAGE_MAP = [
 
 // Pillar fallbacks
 const PILLAR_FALLBACKS = {
-  food:     IMG("photo-1490645935967-10de6ba17061"),
+  food:     IMG("photo-1512621776951-a57141f2eefd"),  // fresh vegetables spread
   exercise: IMG("photo-1506126613408-eca07ce68773"),
   breath:   IMG("photo-1545389336-cf090694435e"),
   sleep:    IMG("photo-1541781774459-bb2af2f05b55"),
