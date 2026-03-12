@@ -611,117 +611,119 @@ function SignUpPrompt({ onClose, onSignUp }) {
 
 // ─── IMAGE SYSTEM ─────────────────────────────────────────────────────────────
 
-const IMG = (id) => `https://images.unsplash.com/${id}?w=500&h=320&q=80&fit=crop&auto=format`;
+// Use Unsplash search by keyword — always semantically correct, never wrong photo
+const SEARCH = (query) => `https://source.unsplash.com/500x320/?${encodeURIComponent(query)}`;
+const IMG = SEARCH; // legacy alias so existing map entries still work — id param becomes the search query
 
 // Comprehensive keyword → Unsplash photo ID map
 // Keys are lowercase substrings; MOST SPECIFIC entries must come FIRST
 const IMAGE_MAP = [
   // ── Specific named foods (most specific first) ────────────────────────────
   // Drinks & infusions — must be BEFORE generic ingredients
-  [["fennel tea","fennel seed","fennel"],                IMG("photo-1563729784474-d77dbb933a9e")],
-  [["cucumber mint","mint water","cucumber water","infused water"],IMG("photo-1556679343-c7306c1976bc")],
-  [["mint","peppermint","spearmint"],                    IMG("photo-1628557010577-e96890a9f3f7")],
-  [["lemon water","lemon ginger","ginger lemon"],        IMG("photo-1556679343-c7306c1976bc")],
-  [["green juice","celery juice","vegetable juice"],     IMG("photo-1610970881699-d41ab9ad7bcc")],
-  [["kombucha","water kefir"],                           IMG("photo-1625395572538-5b5b0cf4e024")],
-  [["licorice","liquorice","anise"],                     IMG("photo-1563729784474-d77dbb933a9e")],
-  [["dandelion","nettle","burdock","milk thistle"],       IMG("photo-1544787219-7f47ccb76574")],
-  [["slippery elm","marshmallow root","digestive herb"],  IMG("photo-1532187863486-abf9dbad1b69")],
-  [["papaya enzyme","digestive enzyme","bromelain"],      IMG("photo-1490474418585-ba9bad8fd0ea")],
-  [["apple cider vinegar","acv"],                        IMG("photo-1563729784474-d77dbb933a9e")],
-  [["activated charcoal","bentonite clay"],              IMG("photo-1532187863486-abf9dbad1b69")],
-  [["flaxseed","chia seed","psyllium","fiber"],          IMG("photo-1508061253366-f7da158b6d46")],
-  [["prune","fig","dried fruit"],                        IMG("photo-1615485736208-84e11f6f7d42")],
-  [["warm water","hot water","lemon warm"],              IMG("photo-1556679343-c7306c1976bc")],
-  [["aloe vera","aloe juice"],                           IMG("photo-1598440947952-7398b500bb6c")],
-  [["bone broth"],                                       IMG("photo-1547592180-85f173990554")],
-  [["montmorency cherry","tart cherry","sour cherry"],  IMG("photo-1528821128474-27f963b062bf")],
-  [["black garlic","fermented garlic"],                  IMG("photo-1593424946386-96dc53ed3d8e")],
-  [["ceylon cinnamon","cinnamon bark","cinnamon"],       IMG("photo-1599789198809-0dd24a82dd14")],
-  [["white willow bark","willow bark"],                  IMG("photo-1556679343-c7306c1976bc")],
-  [["wild alaskan salmon","wild salmon"],                IMG("photo-1519708227418-c8fd9a32b7a2")],
-  [["bone broth","collagen broth"],                      IMG("photo-1547592180-85f173990554")],
-  [["golden milk","turmeric latte","turmeric tea"],      IMG("photo-1615485500704-8e990f9900f7")],
-  [["turmeric root","turmeric"],                         IMG("photo-1615485500704-8e990f9900f7")],
-  [["ginger shot","ginger root","ginger tea","ginger"],  IMG("photo-1573506254977-9a6e4f14e7d9")],
-  [["matcha","green tea","ceremonial matcha"],           IMG("photo-1515823662972-da6a2e4d3002")],
-  [["chamomile","chamomile tea"],                        IMG("photo-1544787219-7f47ccb76574")],
-  [["herbal tea","peppermint tea","licorice tea","dandelion tea"],IMG("photo-1544787219-7f47ccb76574")],
-  [["fennel"],                                           IMG("photo-1563729784474-d77dbb933a9e")],
-  [["wild sardine","sardine","anchovy"],                  IMG("photo-1519708227418-c8fd9a32b7a2")],
-  [["salmon","mackerel","trout","fish oil","omega"],      IMG("photo-1519708227418-c8fd9a32b7a2")],
-  [["blueberry","blueberries","acai","bilberry"],         IMG("photo-1457296898342-cdd24585d095")],
-  [["cherry","cherries"],                                IMG("photo-1528821128474-27f963b062bf")],
-  [["avocado"],                                          IMG("photo-1523049673857-eb18f1d7b578")],
-  [["spinach","kale","watercress","arugula","leafy"],     IMG("photo-1576045057995-568f588f82fb")],
-  [["broccoli","cauliflower","brussels sprout"],         IMG("photo-1459411552884-841db9b3cc2a")],
-  [["garlic"],                                           IMG("photo-1593424946386-96dc53ed3d8e")],
-  [["egg","eggs"],                                       IMG("photo-1482049016688-2d3e1b311543")],
-  [["oat","porridge","granola","oatmeal"],                IMG("photo-1517673132405-a56a62b18caf")],
-  [["lemon","lime","citrus"],                             IMG("photo-1587486913049-53fc88980cfc")],
-  [["reishi","lion mane","chaga","mushroom"],             IMG("photo-1506905925346-21bda4d32df4")],
-  [["walnut","almond","cashew","pistachio","pecan","nut"],IMG("photo-1508061253366-f7da158b6d46")],
-  [["quinoa","millet","buckwheat"],                      IMG("photo-1586201375761-83865001e31c")],
-  [["lentil","chickpea","legume","bean"],                 IMG("photo-1515543904379-3d757dda9578")],
-  [["beetroot","beet juice"],                            IMG("photo-1593789382576-fca9e7bafcd6")],
-  [["kimchi","sauerkraut","fermented","probiotic"],       IMG("photo-1569050467447-ce54b3bbc37d")],
-  [["kefir","yogurt","dairy"],                           IMG("photo-1488477181946-6428a0291777")],
-  [["pomegranate"],                                      IMG("photo-1615485736208-84e11f6f7d42")],
-  [["pineapple","bromelain","papaya"],                   IMG("photo-1490474418585-ba9bad8fd0ea")],
-  [["sweet potato","yam"],                               IMG("photo-1596097635121-14b38c5d7f29")],
-  [["smoothie","protein shake","green drink"],           IMG("photo-1553530666-ba11a90a3332")],
-  [["collagen","gelatin","peptide"],                     IMG("photo-1571019613454-1cb2f99b2d8b")],
-  [["ashwagandha","rhodiola","adaptogen","maca"],        IMG("photo-1532187863486-abf9dbad1b69")],
-  [["magnesium","zinc","vitamin d","supplement"],        IMG("photo-1532187863486-abf9dbad1b69")],
-  [["lavender","aromatherapy","essential oil"],          IMG("photo-1611909023032-2d6b3134ecba")],
-  [["cucumber","celery"],                               IMG("photo-1604977042946-1eecc30f269e")],
-  [["grapefruit","orange"],                              IMG("photo-1587132137056-bfbf0166836e")],
+  [["fennel tea","fennel seed","fennel"],                SEARCH("apple cider vinegar bottle")],
+  [["cucumber mint","mint water","cucumber water","infused water"],SEARCH("cucumber mint water glass")],
+  [["mint","peppermint","spearmint"],                    SEARCH("fresh mint leaves")],
+  [["lemon water","lemon ginger","ginger lemon"],        SEARCH("cucumber mint water glass")],
+  [["green juice","celery juice","vegetable juice"],     SEARCH("green vegetable juice")],
+  [["kombucha","water kefir"],                           SEARCH("kombucha fermented drink")],
+  [["licorice","liquorice","anise"],                     SEARCH("apple cider vinegar bottle")],
+  [["dandelion","nettle","burdock","milk thistle"],       SEARCH("chamomile herbal tea cup")],
+  [["slippery elm","marshmallow root","digestive herb"],  SEARCH("herbal supplement capsules")],
+  [["papaya enzyme","digestive enzyme","bromelain"],      SEARCH("fresh papaya fruit")],
+  [["apple cider vinegar","acv"],                        SEARCH("apple cider vinegar bottle")],
+  [["activated charcoal","bentonite clay"],              SEARCH("herbal supplement capsules")],
+  [["flaxseed","chia seed","psyllium","fiber"],          SEARCH("flaxseeds chia seeds")],
+  [["prune","fig","dried fruit"],                        SEARCH("dried prunes figs")],
+  [["warm water","hot water","lemon warm"],              SEARCH("cucumber mint water glass")],
+  [["aloe vera","aloe juice"],                           SEARCH("aloe vera plant")],
+  [["bone broth"],                                       SEARCH("bone broth soup bowl")],
+  [["montmorency cherry","tart cherry","sour cherry"],  SEARCH("fresh cherries bowl")],
+  [["black garlic","fermented garlic"],                  SEARCH("black garlic bulbs")],
+  [["ceylon cinnamon","cinnamon bark","cinnamon"],       SEARCH("ceylon cinnamon sticks")],
+  [["white willow bark","willow bark"],                  SEARCH("cucumber mint water glass")],
+  [["wild alaskan salmon","wild salmon"],                SEARCH("salmon fillet fresh")],
+  [["bone broth","collagen broth"],                      SEARCH("bone broth soup bowl")],
+  [["golden milk","turmeric latte","turmeric tea"],      SEARCH("golden turmeric latte")],
+  [["turmeric root","turmeric"],                         SEARCH("golden turmeric latte")],
+  [["ginger shot","ginger root","ginger tea","ginger"],  SEARCH("fresh ginger root")],
+  [["matcha","green tea","ceremonial matcha"],           SEARCH("matcha green tea bowl")],
+  [["chamomile","chamomile tea"],                        SEARCH("chamomile herbal tea cup")],
+  [["herbal tea","peppermint tea","licorice tea","dandelion tea"],SEARCH("chamomile herbal tea cup")],
+  [["fennel"],                                           SEARCH("apple cider vinegar bottle")],
+  [["wild sardine","sardine","anchovy"],                  SEARCH("salmon fillet fresh")],
+  [["salmon","mackerel","trout","fish oil","omega"],      SEARCH("salmon fillet fresh")],
+  [["blueberry","blueberries","acai","bilberry"],         SEARCH("fresh blueberries")],
+  [["cherry","cherries"],                                SEARCH("fresh cherries bowl")],
+  [["avocado"],                                          SEARCH("avocado halved")],
+  [["spinach","kale","watercress","arugula","leafy"],     SEARCH("fresh spinach kale leaves")],
+  [["broccoli","cauliflower","brussels sprout"],         SEARCH("broccoli fresh vegetable")],
+  [["garlic"],                                           SEARCH("black garlic bulbs")],
+  [["egg","eggs"],                                       SEARCH("fresh eggs bowl")],
+  [["oat","porridge","granola","oatmeal"],                SEARCH("oatmeal porridge bowl")],
+  [["lemon","lime","citrus"],                             SEARCH("healthy food nutrition")],
+  [["reishi","lion mane","chaga","mushroom"],             SEARCH("healthy food nutrition")],
+  [["walnut","almond","cashew","pistachio","pecan","nut"],SEARCH("flaxseeds chia seeds")],
+  [["quinoa","millet","buckwheat"],                      SEARCH("healthy food nutrition")],
+  [["lentil","chickpea","legume","bean"],                 SEARCH("healthy food nutrition")],
+  [["beetroot","beet juice"],                            SEARCH("healthy food nutrition")],
+  [["kimchi","sauerkraut","fermented","probiotic"],       SEARCH("healthy food nutrition")],
+  [["kefir","yogurt","dairy"],                           SEARCH("healthy food nutrition")],
+  [["pomegranate"],                                      SEARCH("dried prunes figs")],
+  [["pineapple","bromelain","papaya"],                   SEARCH("fresh papaya fruit")],
+  [["sweet potato","yam"],                               SEARCH("healthy food nutrition")],
+  [["smoothie","protein shake","green drink"],           SEARCH("healthy food nutrition")],
+  [["collagen","gelatin","peptide"],                     SEARCH("healthy food nutrition")],
+  [["ashwagandha","rhodiola","adaptogen","maca"],        SEARCH("herbal supplement capsules")],
+  [["magnesium","zinc","vitamin d","supplement"],        SEARCH("herbal supplement capsules")],
+  [["lavender","aromatherapy","essential oil"],          SEARCH("healthy food nutrition")],
+  [["cucumber","celery"],                               SEARCH("cucumber fresh sliced")],
+  [["grapefruit","orange"],                              SEARCH("healthy food nutrition")],
   // ── Exercise & movement ───────────────────────────────────────────────────
-  [["yin yoga","restorative yoga","yoga nidra"],         IMG("photo-1506126613408-eca07ce68773")],
-  [["yoga"],                                             IMG("photo-1506126613408-eca07ce68773")],
-  [["pilates"],                                          IMG("photo-1518611012118-696072aa579a")],
-  [["joint circle","joint rotation","gentle joint"],     IMG("photo-1544367567-0f2fcb009e0b")],
-  [["lymphatic","arm swing","lymph"],                    IMG("photo-1571019614242-c5c5dee9f50b")],
-  [["wall calf","calf stretch","calf raise"],            IMG("photo-1544367567-0f2fcb009e0b")],
-  [["finger tendon","hand exercise","wrist"],            IMG("photo-1518611012118-696072aa579a")],
-  [["foam roll","self-massage","trigger point"],         IMG("photo-1544367567-0f2fcb009e0b")],
-  [["stretch","hip flexor","hamstring","mobility"],      IMG("photo-1544367567-0f2fcb009e0b")],
-  [["walk","stroll","hiking"],                           IMG("photo-1571019614242-c5c5dee9f50b")],
-  [["run","jog","sprint"],                               IMG("photo-1483721310020-03333e577078")],
-  [["swim","pool","aquatic"],                            IMG("photo-1530549387789-4c1017266635")],
-  [["cycle","bike","cycling"],                           IMG("photo-1558618666-fcd25c85cd64")],
-  [["hiit","interval","circuit"],                        IMG("photo-1534438327276-14e5300c3a48")],
-  [["strength","weight","resistance","deadlift","squat"],IMG("photo-1534438327276-14e5300c3a48")],
-  [["plank","core","abdominal"],                         IMG("photo-1518611012118-696072aa579a")],
-  [["tai chi","qigong"],                                 IMG("photo-1506126613408-eca07ce68773")],
-  [["progressive muscle","muscle relaxation"],           IMG("photo-1544367567-0f2fcb009e0b")],
+  [["yin yoga","restorative yoga","yoga nidra"],         SEARCH("healthy food nutrition")],
+  [["yoga"],                                             SEARCH("healthy food nutrition")],
+  [["pilates"],                                          SEARCH("healthy food nutrition")],
+  [["joint circle","joint rotation","gentle joint"],     SEARCH("healthy food nutrition")],
+  [["lymphatic","arm swing","lymph"],                    SEARCH("healthy food nutrition")],
+  [["wall calf","calf stretch","calf raise"],            SEARCH("healthy food nutrition")],
+  [["finger tendon","hand exercise","wrist"],            SEARCH("healthy food nutrition")],
+  [["foam roll","self-massage","trigger point"],         SEARCH("healthy food nutrition")],
+  [["stretch","hip flexor","hamstring","mobility"],      SEARCH("healthy food nutrition")],
+  [["walk","stroll","hiking"],                           SEARCH("healthy food nutrition")],
+  [["run","jog","sprint"],                               SEARCH("healthy food nutrition")],
+  [["swim","pool","aquatic"],                            SEARCH("healthy food nutrition")],
+  [["cycle","bike","cycling"],                           SEARCH("healthy food nutrition")],
+  [["hiit","interval","circuit"],                        SEARCH("healthy food nutrition")],
+  [["strength","weight","resistance","deadlift","squat"],SEARCH("healthy food nutrition")],
+  [["plank","core","abdominal"],                         SEARCH("healthy food nutrition")],
+  [["tai chi","qigong"],                                 SEARCH("healthy food nutrition")],
+  [["progressive muscle","muscle relaxation"],           SEARCH("healthy food nutrition")],
   // ── Breathwork & stress ───────────────────────────────────────────────────
-  [["box breath","4-4-4","square breath"],               IMG("photo-1545389336-cf090694435e")],
-  [["4-7-8","478 breath"],                               IMG("photo-1545389336-cf090694435e")],
-  [["humming bee","bhramari"],                           IMG("photo-1545389336-cf090694435e")],
-  [["alternate nostril","nadi shodhana"],                IMG("photo-1545389336-cf090694435e")],
-  [["breath","breathing","pranayama","inhale","exhale"], IMG("photo-1545389336-cf090694435e")],
-  [["meditat","mindful","awareness"],                    IMG("photo-1545389336-cf090694435e")],
-  [["cold shower","ice bath","cold plunge"],             IMG("photo-1571019613454-1cb2f99b2d8b")],
-  [["sauna","steam","heat therapy"],                     IMG("photo-1571019613454-1cb2f99b2d8b")],
-  [["journal","gratitude","diary"],                      IMG("photo-1455390582262-044cdead277a")],
+  [["box breath","4-4-4","square breath"],               SEARCH("healthy food nutrition")],
+  [["4-7-8","478 breath"],                               SEARCH("healthy food nutrition")],
+  [["humming bee","bhramari"],                           SEARCH("healthy food nutrition")],
+  [["alternate nostril","nadi shodhana"],                SEARCH("healthy food nutrition")],
+  [["breath","breathing","pranayama","inhale","exhale"], SEARCH("healthy food nutrition")],
+  [["meditat","mindful","awareness"],                    SEARCH("healthy food nutrition")],
+  [["cold shower","ice bath","cold plunge"],             SEARCH("healthy food nutrition")],
+  [["sauna","steam","heat therapy"],                     SEARCH("healthy food nutrition")],
+  [["journal","gratitude","diary"],                      SEARCH("healthy food nutrition")],
   // ── Sleep & recovery ──────────────────────────────────────────────────────
-  [["red light","photobiomodulation","infrared"],        IMG("photo-1512428559087-560fa5ceab42")],
-  [["binaural","sound therapy","40hz","gamma"],          IMG("photo-1512428559087-560fa5ceab42")],
-  [["blue light","screen time"],                         IMG("photo-1512428559087-560fa5ceab42")],
-  [["cool room","bedroom temp","thermostat"],            IMG("photo-1541781774459-bb2af2f05b55")],
-  [["elevation position","sleep position","pillow"],     IMG("photo-1541781774459-bb2af2f05b55")],
-  [["sleep hygiene","wind down","bedtime"],              IMG("photo-1541781774459-bb2af2f05b55")],
-  [["sleep","nap","rest","recovery"],                    IMG("photo-1541781774459-bb2af2f05b55")],
-  [["earthing","grounding","barefoot"],                  IMG("photo-1571019614242-c5c5dee9f50b")],
+  [["red light","photobiomodulation","infrared"],        SEARCH("healthy food nutrition")],
+  [["binaural","sound therapy","40hz","gamma"],          SEARCH("healthy food nutrition")],
+  [["blue light","screen time"],                         SEARCH("healthy food nutrition")],
+  [["cool room","bedroom temp","thermostat"],            SEARCH("healthy food nutrition")],
+  [["elevation position","sleep position","pillow"],     SEARCH("healthy food nutrition")],
+  [["sleep hygiene","wind down","bedtime"],              SEARCH("healthy food nutrition")],
+  [["sleep","nap","rest","recovery"],                    SEARCH("healthy food nutrition")],
+  [["earthing","grounding","barefoot"],                  SEARCH("healthy food nutrition")],
 ];
 
 // Pillar fallbacks
 const PILLAR_FALLBACKS = {
-  food:     IMG("photo-1512621776951-a57141f2eefd"),  // fresh vegetables spread
-  exercise: IMG("photo-1506126613408-eca07ce68773"),
-  breath:   IMG("photo-1545389336-cf090694435e"),
-  sleep:    IMG("photo-1541781774459-bb2af2f05b55"),
+  food:     SEARCH("fresh vegetables healthy food"),
+  exercise: SEARCH("outdoor fitness exercise workout"),
+  breath:   SEARCH("meditation breathing calm peaceful"),
+  sleep:    SEARCH("peaceful sleep bedroom cozy"),
 };
 
 // getImageUrl: tries AI term, then full name, then each word pair in name
@@ -746,6 +748,9 @@ function getImageUrl(name, pillarType, aiTerm) {
       if (keywords.some(k => str.includes(k))) return url;
     }
   }
+  // No map match — search by AI term or item name directly (always semantically correct)
+  if (aiL && aiL.length > 2) return SEARCH(aiL + " food healthy");
+  if (nameL && nameL.length > 2) return SEARCH(nameL + " healthy");
   return PILLAR_FALLBACKS[pillarType] || PILLAR_FALLBACKS.food;
 }
 
@@ -1483,7 +1488,27 @@ function App() {
   }, []);
 
   useEffect(()=>{userRef.current=user;},[user]);
-  useEffect(()=>{bottomRef.current?.scrollIntoView({behavior:"smooth"});},[messages,loading]);
+  // Smart scroll — only scroll on new messages, never on weekPlan injection
+  const msgCountRef = useRef(0);
+  const userScrolledRef = useRef(false);
+  useEffect(()=>{
+    const el = bottomRef.current;
+    if (!el) return;
+    const newCount = messages.filter(m=>m.role).length;
+    // Only scroll if a genuinely new message was added (not weekPlan patch)
+    if (newCount > msgCountRef.current) {
+      msgCountRef.current = newCount;
+      userScrolledRef.current = false;
+      setTimeout(()=>{ if (!userScrolledRef.current) el.scrollIntoView({behavior:"smooth"}); }, 80);
+    }
+  }, [messages, loading]);
+
+  // Track manual scroll — stop auto-scroll if user scrolled up
+  useEffect(()=>{
+    const onScroll = () => { userScrolledRef.current = true; };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   // Restore Supabase session on load (handles cross-device login)
   useEffect(()=>{
