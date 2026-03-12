@@ -170,7 +170,7 @@ const CONV_KEY = "np_conversations";
 const MAX_CONVS = 500; // Keep full history — never truncate
 
 // ── Local cache (per-user key so different users on same browser don't mix) ──
-const localKey = (userId) => userId ? \`np_conv_\${userId}\` : "np_conv_guest";
+const localKey = (userId) => userId ? "np_conv_" + userId : "np_conv_guest";
 
 const loadConversationsLocal = (userId) => {
   try { return JSON.parse(localStorage.getItem(localKey(userId))||"[]"); } catch { return []; }
