@@ -555,7 +555,7 @@ function SignUpPrompt({ onClose, onSignUp }) {
     <Modal onClose={onClose} maxWidth={360}>
       <div style={{textAlign:"center"}}>
         <div style={{fontSize:42,marginBottom:12,display:"inline-block",animation:"float 3s ease-in-out infinite"}}>🌿</div>
-        <div style={{color:"#a8ddb5",fontSize:"1rem",marginBottom:8}}>You have used your free search</div>
+        <div style={{color:"#a8ddb5",fontSize:"1rem",marginBottom:8}}>You have used all 3 free searches</div>
         <div style={{color:"#6a9a78",fontSize:".92rem",lineHeight:1.7,marginBottom:16}}>Sign up free — food, fitness, breathwork and sleep. No card needed.</div>
         <div style={{display:"flex",justifyContent:"center",gap:20,marginBottom:20,padding:"12px 16px",background:"rgba(34,163,90,.06)",border:"1px solid rgba(34,163,90,.15)",borderRadius:12}}>
           {[["4","Pillars"],["3","Free credits"],["Free","To join"]].map(([val,lbl],i)=>(
@@ -1496,7 +1496,7 @@ export default function App() {
             </div>
             {!user&&<div style={{textAlign:"center",padding:"12px 0 8px"}}>
               <button onClick={()=>{setAuthMode("signup");setShowAuth(true);if(window.tlTrack)window.tlTrack("signup_started");}} style={{background:"linear-gradient(135deg,rgba(34,163,90,.18),rgba(34,163,90,.08))",border:"1px solid rgba(34,163,90,.4)",borderRadius:24,padding:"10px 28px",color:"#4ec97a",fontSize:".95rem",cursor:"pointer",fontFamily:"'Georgia',serif",fontWeight:600,letterSpacing:".02em",boxShadow:"0 2px 16px rgba(34,163,90,.15)",transition:"all .18s"}}>
-                ✦ Sign up free — get 3 credits
+                ✦ Sign up free — unlimited searches
               </button>
             </div>}
         </div>
@@ -1523,8 +1523,8 @@ export default function App() {
                     if(user){const searches=messages.filter(m=>m.role==="user").length;const credDisplay=user.tier==="optimise"?"∞ unlimited":(user.credits??0)+" cr left";return searches+" search"+(searches!==1?"es":"")+" · "+credDisplay;}
                     const g=getGuestCount();
                     const rem=Math.max(0,3-g);
-                    if(rem===0)return <span style={{color:"#f09090",fontWeight:500,fontSize:".75rem"}}>Free searches used — <button onClick={()=>{setAuthMode("signup");setShowAuth(true);if(window.tlTrack)window.tlTrack("signup_started");}} style={{background:"none",border:"none",color:"#4ec97a",cursor:"pointer",fontFamily:"'Georgia',serif",fontSize:"inherit",padding:0,textDecoration:"underline"}}>sign up free</button></span>;
-                    return rem+" free search"+(rem!==1?"es":"")+" left · sign up to unlock all";
+                    if(rem===0)return <span style={{color:"#f09090",fontWeight:500,fontSize:".75rem"}}>3 free searches used — <button onClick={()=>{setAuthMode("signup");setShowAuth(true);if(window.tlTrack)window.tlTrack("signup_started");}} style={{background:"none",border:"none",color:"#4ec97a",cursor:"pointer",fontFamily:"'Georgia',serif",fontSize:"inherit",padding:0,textDecoration:"underline"}}>sign up free to continue</button></span>;
+                    return rem+" of 3 free search"+(rem!==1?"es":"")+" used";
                   })()}
                 </span>
               </div>
