@@ -107,12 +107,12 @@ const buildPrompt = (user, isFollowUp) => {
       "CONTENT RULES:\n" +
       "- acknowledgment: warm, specific, never generic\n" +
       "- pillars: always include ALL 4 types (food, exercise, breath, sleep)\n" +
-      "- items: 3 per pillar. Be SPECIFIC and concise\n" +
+      "- items: 2 per pillar only. Be SPECIFIC and concise\n" +
       "- when: time-anchored moment e.g. Morning before eating, 30 min post-workout, 90 min before bed\n" +
       "- struggle: what the user feels RIGHT NOW e.g. Stomach tightens after eating, Lying awake anxious, Muscles aching\n" +
       "- outcome: what they will physically feel e.g. Bloating reduces, Fall asleep faster, Energy sustained\n" +
       "- timeframe: honest realistic window e.g. Within 20 min, After 3 days, In 1-2 weeks\n" +
-      "- recipes: 2 recipes with exact quantities\n" +
+      "- recipes: 0 recipes on first response (omit recipes array entirely)\n" +
       "- tip: surprising and hyper-specific\n" +
       "- VARIETY: draw from different cultures and traditions\n" +
       allergy;
@@ -1734,7 +1734,7 @@ function App() {
   const fetchWeekPlan=async(concern)=>{
     try{
       const cu=userRef.current;
-      const res=await fetch("/.netlify/functions/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:3000,system:buildWeekPlanPrompt(cu,concern),messages:[{role:"user",content:"Create a 7-day holistic wellness plan for: "+concern}]})});
+      const res=await fetch("/.netlify/functions/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:1200,system:buildWeekPlanPrompt(cu,concern),messages:[{role:"user",content:"Create a 7-day holistic wellness plan for: "+concern}]})});
       if(!res.ok)return;
       let data; try { data=JSON.parse(await res.text()); } catch(_){return;}
       const raw=(data.content||[]).map(b=>b.text||"").join("").trim();
@@ -1827,7 +1827,7 @@ function App() {
       // Attempt 1: Haiku fast (8s target), 2: Haiku minimal (6s), 3: Haiku tiny (5s)
       const timeouts = [9000, 8000, 7000];
       const models   = ["claude-haiku-4-5-20251001","claude-haiku-4-5-20251001","claude-haiku-4-5-20251001"];
-      const tokens   = [3000, 2200, 1600];
+      const tokens   = [1800, 1400, 1000];
       const idx = Math.min(attempt-1, 2);
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), timeouts[idx]);
