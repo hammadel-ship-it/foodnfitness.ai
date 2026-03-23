@@ -17,12 +17,14 @@ export default async (request, context) => {
     const body = await request.json();
     const max_tokens = Math.min(body.max_tokens || 1800, 2000);
 
+    const apiKey = Netlify.env.get("ANTHROPIC_API_KEY");
+
     const anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "anthropic-version": "2023-06-01",
-        "x-api-key": Deno.env.get("ANTHROPIC_API_KEY"),
+        "x-api-key": apiKey,
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
