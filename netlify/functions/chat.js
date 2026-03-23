@@ -18,23 +18,33 @@ exports.handler = async (event) => {
   try {
     const body = JSON.parse(event.body);
 
-    // Use max_tokens from request body, with sensible bounds (500 min, 4000 max)
-    const max_tokens = Math.min(Math.max(body.max_tokens || 1500, 500), 4000);
+    // Allow up to 6000 tokens — needed for 4 pillars x 4 items x 5 fields + recipes
+    const max_tokens = Math.min(Math.max(body.max_tokens || 2000, 500), 6000);
 
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "anthropic-version": "2023-06-01",
-        "x-api-key": process.env.ANTHROPIC_API_KEY,
-      },
-      body: JSON.stringify({
-        model: body.model || "claude-sonnet-4-20250514",
-        max_tokens: max_tokens,
-        system: body.system,
-        messages: body.messages,
-      }),
-    });
+    // Race against 24s timeout (Netlify limit is 26s)
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 24000);
+
+    let response;
+    try {
+      response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        signal: controller.signal,
+        headers: {
+          "Content-Type": "application/json",
+          "anthropic-version": "2023-06-01",
+          "x-api-key": process.env.ANTHROPIC_API_KEY,
+        },
+        body: JSON.stringify({
+          model: body.model || "claude-sonnet-4-20250514",
+          max_tokens: max_tokens,
+          system: body.system,
+          messages: body.messages,
+        }),
+      });
+    } finally {
+      clearTimeout(timer);
+    }
 
     const text = await response.text();
 
@@ -47,10 +57,13 @@ exports.handler = async (event) => {
       body: text,
     };
   } catch (e) {
+    const isTimeout = e.name === "AbortError";
     return {
-      statusCode: 500,
+      statusCode: isTimeout ? 504 : 500,
       headers: { "Access-Control-Allow-Origin": "*" },
-      body: JSON.stringify({ error: e.message }),
+      body: JSON.stringify({
+        error: isTimeout ? "Request timed out - please try again" : e.message
+      }),
     };
   }
 };
