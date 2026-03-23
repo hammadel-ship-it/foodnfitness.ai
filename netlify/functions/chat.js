@@ -18,12 +18,12 @@ exports.handler = async (event) => {
   try {
     const body = JSON.parse(event.body);
 
-    // Allow up to 6000 tokens — needed for 4 pillars x 4 items x 5 fields + recipes
-    const max_tokens = Math.min(Math.max(body.max_tokens || 2000, 500), 6000);
+    // Hard cap at 1800 tokens — keeps response under 9s on free plan
+    const max_tokens = Math.min(Math.max(body.max_tokens || 1800, 300), 1800);
 
-    // Race against 24s timeout (Netlify limit is 26s)
+    // 9s internal timeout — stays within Netlify free plan 10s limit
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 24000);
+    const timer = setTimeout(() => controller.abort(), 9000);
 
     let response;
     try {
@@ -36,7 +36,7 @@ exports.handler = async (event) => {
           "x-api-key": process.env.ANTHROPIC_API_KEY,
         },
         body: JSON.stringify({
-          model: body.model || "claude-sonnet-4-20250514",
+          model: body.model || "claude-haiku-4-5-20251001",
           max_tokens: max_tokens,
           system: body.system,
           messages: body.messages,
@@ -62,7 +62,7 @@ exports.handler = async (event) => {
       statusCode: isTimeout ? 504 : 500,
       headers: { "Access-Control-Allow-Origin": "*" },
       body: JSON.stringify({
-        error: isTimeout ? "Request timed out - please try again" : e.message
+        error: isTimeout ? "TIMEOUT" : e.message
       }),
     };
   }
