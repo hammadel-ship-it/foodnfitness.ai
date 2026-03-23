@@ -103,12 +103,15 @@ const buildPrompt = (user, isFollowUp) => {
       seed + " " + timeCtx + " " + seasonCtx + " " + sexNote + " " + ageNote + " " + weightNote + " " + history + "\n\n" +
       baseRules + "\n" +
       "JSON format:\n" +
-      "{\"responseType\":\"initial\",\"acknowledgment\":\"2 warm empathetic sentences referencing their exact words\",\"pillars\":[{\"type\":\"food\",\"label\":\"Food and Nutrition\",\"items\":[{\"emoji\":\"\",\"name\":\"Specific food name\",\"image\":\"2-3 word photo search term for this exact item e.g. fresh ginger root\",\"benefit\":\"Precise mechanism, quantity and timing\"}]},{\"type\":\"exercise\",\"label\":\"Exercise and Movement\",\"items\":[{\"emoji\":\"\",\"name\":\"Specific exercise\",\"image\":\"2-3 word search term e.g. yoga stretch pose\",\"benefit\":\"Exact technique, sets, reps or duration\"}]}],\"recipes\":[{\"name\":\"Recipe name\",\"emoji\":\"\",\"ingredients\":[\"amount + ingredient\"],\"steps\":[\"Precise step\"]}],\"tip\":\"One hyper-specific surprising tip\"}\n\n" +
+      "{\"responseType\":\"initial\",\"acknowledgment\":\"2 warm empathetic sentences referencing their exact words\",\"pillars\":[{\"type\":\"food\",\"label\":\"Food and Nutrition\",\"items\":[{\"emoji\":\"\",\"name\":\"Specific food name\",\"when\":\"Best time of day e.g. Morning on empty stomach\",\"benefit\":\"Precise mechanism and quantity\",\"struggle\":\"What they feel RIGHT NOW e.g. Stomach cramping and gas\",\"outcome\":\"What they will feel after e.g. Bloating reduces noticeably\",\"timeframe\":\"Realistic expectation e.g. Within 20 minutes\"}]}],\"recipes\":[{\"name\":\"Recipe name\",\"emoji\":\"\",\"ingredients\":[\"amount + ingredient\"],\"steps\":[\"Precise step\"]}],\"tip\":\"One hyper-specific surprising tip\"}\n\n" +
       "CONTENT RULES:\n" +
       "- acknowledgment: warm, specific, never generic\n" +
       "- pillars: always include ALL 4 types (food, exercise, breath, sleep)\n" +
-      "- items: 4 per pillar. Be SPECIFIC with precise benefits\n" +
-      "- image: 2-3 word Unsplash search term matching the exact item. E.g. tart cherry juice, black garlic bulb, foam roller stretch, box breathing calm\n" +
+      "- items: 4 per pillar. Be SPECIFIC\n" +
+      "- when: time-anchored moment e.g. Morning before eating, 30 min post-workout, 90 min before bed\n" +
+      "- struggle: what the user feels RIGHT NOW e.g. Stomach tightens after eating, Lying awake anxious, Muscles aching\n" +
+      "- outcome: what they will physically feel e.g. Bloating reduces, Fall asleep faster, Energy sustained\n" +
+      "- timeframe: honest realistic window e.g. Within 20 min, After 3 days, In 1-2 weeks\n" +
       "- recipes: 2 recipes with exact quantities\n" +
       "- tip: surprising and hyper-specific\n" +
       "- VARIETY: draw from different cultures and traditions\n" +
@@ -118,7 +121,7 @@ const buildPrompt = (user, isFollowUp) => {
       seed + " " + timeCtx + " " + sexNote + " " + ageNote + " " + weightNote + "\n\n" +
       baseRules + "\n" +
       "Pick the BEST response type for what the user asked:\n\n" +
-      "If they want more foods or practices: {\"responseType\":\"items\",\"acknowledgment\":\"1-2 specific sentences\",\"pillars\":[{\"type\":\"food\",\"label\":\"Foods\",\"items\":[{\"emoji\":\"\",\"name\":\"Specific name\",\"image\":\"2-3 word photo search term\",\"benefit\":\"Precise benefit with mechanism\"}]}],\"tip\":\"surprising tip\"}\n\n" +
+      "If they want more foods or practices: {\"responseType\":\"items\",\"acknowledgment\":\"1-2 specific sentences\",\"pillars\":[{\"type\":\"food\",\"label\":\"Foods\",\"items\":[{\"emoji\":\"\",\"name\":\"Specific name\",\"when\":\"Best time\",\"benefit\":\"Precise benefit\",\"struggle\":\"What they feel now\",\"outcome\":\"What they feel after\",\"timeframe\":\"When they notice it\"}]}],\"tip\":\"surprising tip\"}\n\n" +
       "If they want a recipe or plan: {\"responseType\":\"recipe\",\"acknowledgment\":\"1-2 sentences\",\"recipes\":[{\"name\":\"Name\",\"emoji\":\"\",\"ingredients\":[\"amount + ingredient\"],\"steps\":[\"precise step\"]}],\"tip\":\"tip\"}\n\n" +
       "If they want deeper understanding or science: {\"responseType\":\"insight\",\"acknowledgment\":\"1-2 sentences\",\"cards\":[{\"emoji\":\"\",\"title\":\"Short specific title\",\"image\":\"2-3 word photo search term e.g. turmeric root\",\"body\":\"Fascinating specific insight 2-3 sentences\",\"pillar\":\"food\"}],\"tip\":\"tip\"}\n\n" +
       "If they have a specific question: {\"responseType\":\"answer\",\"acknowledgment\":\"1-2 sentences\",\"cards\":[{\"emoji\":\"\",\"title\":\"Short title\",\"image\":\"2-3 word photo search term\",\"body\":\"Precise answer 2-3 sentences\",\"pillar\":\"food\"}],\"tip\":\"tip\"}\n\n" +
@@ -158,7 +161,7 @@ Shape: [{"day":"Monday","focus":"word","food":"meal","move":"exercise with durat
 const getUser   = () => { try { return JSON.parse(localStorage.getItem("np_user")||"null"); } catch { return null; } };
 const saveUser  = (u) => localStorage.setItem("np_user", JSON.stringify(u));
 const clearUser = () => {
-  // Only remove auth session — preserve profile prefs (age/weight/sex) across sign-out
+  // Only remove auth session - preserve profile prefs (age/weight/sex) across sign-out
   const u = getUser();
   if (u?.email) {
     try { localStorage.setItem("np_prefs_" + u.email, JSON.stringify({age:u.age,weight:u.weight,sex:u.sex,allergies:u.allergies})); } catch(e) {}
@@ -609,7 +612,7 @@ function ProfileModal({ user, onClose, onUpdate, onLogout, onUpgrade }) {
         <div style={{color:"#4a7a56",fontSize:".78rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>Food allergies</div>
         <div style={{display:"flex",flexWrap:"wrap",gap:6}}>{ALLERGIES.map(a=><button key={a} onClick={()=>toggle(a)} style={{background:allergies.includes(a)?"rgba(34,163,90,.22)":"rgba(255,255,255,.04)",border:"1px solid "+(allergies.includes(a)?"rgba(34,163,90,.55)":"rgba(255,255,255,.1)"),borderRadius:20,padding:"4px 11px",color:allergies.includes(a)?"#5ed880":"#4a7a56",fontSize:".84rem",cursor:"pointer",transition:"all .14s"}}>{a}</button>)}</div>
       </div>
-      <div style={{display:"flex",gap:9,marginBottom:9}}><button onClick={save} disabled={saving} className="cta-btn" style={{flex:1,background:"linear-gradient(135deg,#22a35a,#1a7a44)",border:"none",borderRadius:10,padding:"11px",color:"#e8f5eb",fontSize:".85rem",cursor:"pointer",fontWeight:600}}>{saving?"Saving...":(saved?"Saved ✓":"Save changes")}</button><button onClick={logout} style={{background:"rgba(220,80,80,.08)",border:"1px solid rgba(220,80,80,.22)",borderRadius:10,padding:"11px 16px",color:"#f09090",fontSize:".85rem",cursor:"pointer"}}>Sign out</button></div>
+      <div style={{display:"flex",gap:9,marginBottom:9}}><button onClick={save} disabled={saving} className="cta-btn" style={{flex:1,background:"linear-gradient(135deg,#22a35a,#1a7a44)",border:"none",borderRadius:10,padding:"11px",color:"#e8f5eb",fontSize:".85rem",cursor:"pointer",fontWeight:600}}>{saving?"Saving...":(saved?"Saved!":"Save changes")}</button><button onClick={logout} style={{background:"rgba(220,80,80,.08)",border:"1px solid rgba(220,80,80,.22)",borderRadius:10,padding:"11px 16px",color:"#f09090",fontSize:".85rem",cursor:"pointer"}}>Sign out</button></div>
 
 
     </Modal>
@@ -934,12 +937,10 @@ function TipRow({ tip }) {
 
 // --- ITEM DETAIL MODAL -------------------------------------------------------
 function ItemDetailModal({ item, meta, pillarType, onClose, onDeepDive }) {
-  const [imgErr, setImgErr] = useState(false);
   const [loading, setLoading] = useState(false);
   const [detail, setDetail] = useState(null);
   if(!item || !meta || !onClose) return null;
   const safeMeta = meta || PILLAR_META.food;
-  const imgUrl = getImageUrl((item.name||""), pillarType, item.image);
 
   const loadDetail = async () => {
     if (detail || loading) return;
@@ -968,18 +969,13 @@ function ItemDetailModal({ item, meta, pillarType, onClose, onDeepDive }) {
   return (
     <div className="modal-wrap" onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",zIndex:400,display:"flex",alignItems:"flex-end",justifyContent:"center",padding:"0"}}>
       <div className="modal-box" onClick={e=>e.stopPropagation()} style={{background:"#0d1f10",borderRadius:"24px 24px 0 0",width:"100%",maxWidth:640,maxHeight:"90vh",overflowY:"auto",animation:"slideUp .3s ease"}}>
-        {/* Hero image */}
-        <div style={{width:"100%",height:220,position:"relative",overflow:"hidden",flexShrink:0}}>
-          {!imgErr
-            ? <img src={imgUrl} alt={item.name} onError={()=>setImgErr(true)} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
-            : <div style={{width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:80,background:meta.bg}}>{item.emoji||""}</div>
-          }
-          <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,rgba(0,0,0,.2),rgba(13,31,16,.95))"}}/>
-          <button onClick={onClose} style={{position:"absolute",top:16,right:16,background:"rgba(0,0,0,.5)",border:"none",borderRadius:"50%",width:36,height:36,color:"#fff",fontSize:18,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}></button>
-          <div style={{position:"absolute",bottom:20,left:24}}>
-            <div style={{color:meta.color,fontSize:".75rem",letterSpacing:".12em",textTransform:"uppercase",marginBottom:4}}>{meta.label}</div>
-            <div style={{color:"#e8f5eb",fontSize:"1.5rem",fontWeight:700,lineHeight:1.2}}>{item.emoji} {item.name}</div>
-          </div>
+        {/* Hero - emoji + colour, no photo */}
+        <div style={{width:"100%",background:"linear-gradient(160deg,"+safeMeta.bg+",rgba(0,0,0,.3))",padding:"28px 24px 20px",position:"relative",flexShrink:0,borderBottom:"1px solid "+safeMeta.border}}>
+          <button onClick={onClose} style={{position:"absolute",top:16,right:16,background:"rgba(0,0,0,.4)",border:"none",borderRadius:"50%",width:34,height:34,color:"#fff",fontSize:16,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>&times;</button>
+          <div style={{fontSize:52,marginBottom:10,lineHeight:1}}>{item.emoji||""}</div>
+          <div style={{color:safeMeta.color,fontSize:".72rem",letterSpacing:".12em",textTransform:"uppercase",marginBottom:4}}>{safeMeta.label}</div>
+          <div style={{color:"#e8f5eb",fontSize:"1.4rem",fontWeight:700,lineHeight:1.25}}>{item.name}</div>
+          {item.when&&<div style={{marginTop:8,display:"inline-block",background:safeMeta.bg,border:"0.5px solid "+safeMeta.border,borderRadius:20,padding:"3px 12px",color:safeMeta.color,fontSize:".78rem"}}>{item.when}</div>}
         </div>
 
         {/* Content */}
@@ -1041,49 +1037,116 @@ function ItemDetailModal({ item, meta, pillarType, onClose, onDeepDive }) {
   );
 }
 
-function ItemCard({ item, meta, pillarType, onExpand }) {
-  const [imgErr, setImgErr] = useState(false);
+function ProtocolItem({ item, pillarType, meta, onExpand, index }) {
   try {
   if (!item || !item.name) return null;
-  const imgUrl = getImageUrl(item.name, pillarType, item.image);
-  return(
-    <div className="item-card" onClick={()=>onExpand(item, pillarType)} style={{background:meta.bg,border:"1px solid "+meta.border,borderRadius:18,overflow:"hidden",transition:"transform .2s, box-shadow .2s",animation:"fadeUp .3s ease both",display:"flex",flexDirection:"column",minHeight:290,cursor:"pointer"}}>
-      <div style={{width:"100%",height:170,overflow:"hidden",position:"relative",background:"rgba(0,0,0,.25)",flexShrink:0}}>
-        {!imgErr ? (
-          <img src={imgUrl} alt={item.name} onError={()=>setImgErr(true)} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}/>
-        ) : (
-          <div style={{width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:64,background:meta.bg}}>{item.emoji||""}</div>
-        )}
-        <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,transparent 55%,rgba(0,0,0,.6))"}}/>
-        <div style={{position:"absolute",top:10,right:10,background:"rgba(0,0,0,.45)",borderRadius:20,padding:"3px 9px",fontSize:".72rem",color:"rgba(255,255,255,.7)"}}>Tap to learn more</div>
+  const C = {
+    food:     { dot:"#22a35a", tagBg:"rgba(34,163,90,.15)",   tagColor:"#4ec97a",  line:"rgba(34,163,90,.2)",   headerBg:"#0d2010" },
+    exercise: { dot:"#4a9fd4", tagBg:"rgba(74,159,212,.15)",  tagColor:"#6ab4e8",  line:"rgba(74,159,212,.2)",  headerBg:"#0d1e2a" },
+    breath:   { dot:"#9b7fe8", tagBg:"rgba(155,127,232,.15)", tagColor:"#b89ef0",  line:"rgba(155,127,232,.2)", headerBg:"#160f28" },
+    sleep:    { dot:"#5b9bd5", tagBg:"rgba(91,155,213,.15)",  tagColor:"#7ab0e0",  line:"rgba(91,155,213,.2)",  headerBg:"#0d1828" },
+  }[pillarType] || { dot:"#22a35a", tagBg:"rgba(34,163,90,.15)", tagColor:"#4ec97a", line:"rgba(34,163,90,.2)", headerBg:"#0d2010" };
+
+  return (
+    <div onClick={()=>onExpand(item, pillarType)} className="item-card"
+      style={{cursor:"pointer",animation:"fadeUp .32s ease both",animationDelay:(index*0.08)+"s",
+              display:"flex",gap:0,marginBottom:10}}>
+
+      {/* Timeline spine */}
+      <div style={{display:"flex",flexDirection:"column",alignItems:"center",flexShrink:0,paddingTop:8,marginRight:12}}>
+        <div style={{width:10,height:10,borderRadius:"50%",background:C.dot,flexShrink:0,boxShadow:"0 0 0 3px "+C.tagBg,zIndex:1}}/>
+        <div style={{width:1.5,flex:1,background:C.line,marginTop:4,minHeight:20}}/>
       </div>
-      <div style={{padding:"14px 16px",flex:1,display:"flex",flexDirection:"column",gap:7}}>
-        <div style={{color:"#c8ecd4",fontSize:"1.05rem",fontWeight:700,lineHeight:1.3}}>{item.name}</div>
-        <div style={{color:"#8fbe9f",fontSize:".92rem",lineHeight:1.65}}>{item.benefit}</div>
+
+      {/* Card */}
+      <div style={{flex:1,background:"rgba(255,255,255,.02)",border:"0.5px solid "+C.line,borderRadius:14,overflow:"hidden",marginBottom:4}}>
+
+        {/* Coloured header: emoji + name + WHEN pill */}
+        <div style={{background:C.headerBg,padding:"10px 14px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
+          <div style={{display:"flex",alignItems:"center",gap:9,minWidth:0}}>
+            <span style={{fontSize:20,lineHeight:1,flexShrink:0}}>{item.emoji||meta.icon}</span>
+            <span style={{color:"#d8f0de",fontSize:".93rem",fontWeight:600,lineHeight:1.25}}>{item.name}</span>
+          </div>
+          {item.when&&(
+            <span style={{background:C.tagBg,color:C.tagColor,fontSize:".65rem",fontWeight:700,
+                          padding:"3px 10px",borderRadius:20,letterSpacing:".04em",
+                          whiteSpace:"nowrap",flexShrink:0,border:"0.5px solid "+C.line}}>
+              {item.when}
+            </span>
+          )}
+        </div>
+
+        {/* Benefit text */}
+        <div style={{padding:"10px 14px 0",color:"#7a9a82",fontSize:".87rem",lineHeight:1.65}}>
+          {item.benefit}
+        </div>
+
+        {/* Before → After strip */}
+        {(item.outcome||item.struggle)&&(
+          <div style={{padding:"10px 14px 12px",display:"flex",alignItems:"stretch",gap:6,marginTop:6}}>
+            {/* Before */}
+            <div style={{flex:"0 0 42%",background:"rgba(180,50,50,.07)",border:"0.5px solid rgba(180,60,60,.18)",borderRadius:8,padding:"7px 10px"}}>
+              <div style={{color:"rgba(220,100,100,.6)",fontSize:".6rem",fontWeight:700,textTransform:"uppercase",letterSpacing:".08em",marginBottom:3}}>Right now</div>
+              <div style={{color:"#c08888",fontSize:".8rem",lineHeight:1.4,fontStyle:"italic"}}>
+                {item.struggle||"Dealing with this issue"}
+              </div>
+            </div>
+            {/* Arrow */}
+            <div style={{display:"flex",alignItems:"center",color:C.tagColor,fontSize:18,flexShrink:0}}>></div>
+            {/* After */}
+            <div style={{flex:1,background:C.tagBg,border:"0.5px solid "+C.line,borderRadius:8,padding:"7px 10px"}}>
+              <div style={{color:C.tagColor,fontSize:".6rem",fontWeight:700,textTransform:"uppercase",letterSpacing:".08em",marginBottom:3}}>
+                {item.timeframe||"With consistency"}
+              </div>
+              <div style={{color:"#c8ecd4",fontSize:".8rem",lineHeight:1.4,fontWeight:500}}>
+                {item.outcome||"You will feel the difference"}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!(item.outcome||item.struggle)&&<div style={{height:8}}/>}
+
+        {/* Tap to deep dive */}
+        <div style={{borderTop:"0.5px solid "+C.line,padding:"6px 14px",display:"flex",justifyContent:"flex-end",alignItems:"center",gap:4}}>
+          <span style={{color:C.tagColor,fontSize:".7rem",opacity:.6}}>Tap for deep dive</span>
+          <span style={{color:C.tagColor,fontSize:11,opacity:.6}}>></span>
+        </div>
       </div>
     </div>
   );
-  } catch(e) { console.error("ItemCard crash",e); return null; }
+  } catch(e) { console.error("ProtocolItem crash",e); return null; }
 }
+const ItemCard = ProtocolItem;
 
 function PillarGrid({ pillars, onExpand }) {
   try {
-  if(!pillars?.length)return null;
+  if(!pillars?.length) return null;
+  const ICONS = { food:"🥗", exercise:"💪", breath:"🌬️", sleep:"🌙" };
   return(
     <div style={{marginBottom:18}}>
       {pillars.map((pillar,pi)=>{
         if (!pillar || !Array.isArray(pillar.items)) return null;
         const pillarType = (pillar.type||"food").toLowerCase();
-        const meta=PILLAR_META[pillarType]||PILLAR_META.food;
+        const meta = PILLAR_META[pillarType]||PILLAR_META.food;
+        const validItems = (pillar.items||[]).filter(i=>i&&i.name);
+        if (!validItems.length) return null;
         return(
-          <div key={pi} style={{marginBottom:pi<pillars.length-1?24:0}}>
-            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14,paddingBottom:8,borderBottom:"1px solid rgba(255,255,255,.06)"}}>
-              <span style={{fontSize:22}}>{meta.icon}</span>
-              <span style={{color:meta.color,fontSize:".88rem",letterSpacing:".1em",textTransform:"uppercase",fontWeight:600}}>{pillar.label||meta.label}</span>
+          <div key={pi} style={{marginBottom:pi<pillars.length-1?28:0}}>
+            {/* Pillar header */}
+            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12,padding:"10px 14px",
+                         background:meta.bg,border:"0.5px solid "+meta.border,borderRadius:12}}>
+              <span style={{fontSize:20}}>{ICONS[pillarType]||meta.icon}</span>
+              <span style={{color:meta.color,fontSize:".8rem",letterSpacing:".1em",textTransform:"uppercase",fontWeight:700,flex:1}}>{pillar.label||meta.label}</span>
+              <span style={{background:meta.bg,border:"0.5px solid "+meta.border,color:meta.color,
+                            fontSize:".65rem",fontWeight:700,padding:"2px 9px",borderRadius:20,opacity:.75}}>
+                {validItems.length} actions
+              </span>
             </div>
-            <div className="np-item-grid" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10}}>
-              {(pillar.items||[]).filter(item=>item&&item.name).map((item,i)=>(
-                <ItemCard key={i} item={item} meta={meta} pillarType={pillar.type} onExpand={onExpand}/>
+            {/* Timeline items */}
+            <div style={{paddingLeft:4}}>
+              {validItems.map((item,i)=>(
+                <ProtocolItem key={i} item={item} meta={meta} pillarType={pillarType} onExpand={onExpand} index={i}/>
               ))}
             </div>
           </div>
@@ -1130,36 +1193,15 @@ function RecipeList({ recipes, activeRecipe, setActiveRecipe, msgIdx }) {
 }
 
 // --- VISUAL CARD GRID (for insight/answer follow-ups) -------------------------
-function VisualCardCard({ card, onExpand }) {
-  const [imgErr, setImgErr] = useState(false);
+function VisualCardCard({ card, onExpand, index }) {
   try {
   if (!card || !card.title) return null;
   const pillarKey = (card.pillar||"food").toLowerCase();
   const meta = PILLAR_META[pillarKey] || PILLAR_META.food;
-  const imgUrl = getImageUrl(card.title, card.pillar, card.image);
-  const fakeItem = { name: card.title, benefit: card.body, emoji: card.emoji, image: card.image };
+  // Pass as ProtocolItem without before/after - science/insight cards dont need it
+  const fakeItem = { name: card.title, benefit: card.body, emoji: card.emoji||meta.icon, when: null, outcome: null, struggle: null, timeframe: null };
   return (
-    <div
-      onClick={() => onExpand && onExpand(fakeItem, card.pillar)}
-      style={{background:meta.bg,border:"1px solid "+meta.border,borderRadius:18,overflow:"hidden",
-              display:"flex",flexDirection:"column",minHeight:280,cursor:"pointer",
-              transition:"transform .2s, box-shadow .2s",animation:"fadeUp .3s ease both"}}
-      className="item-card"
-    >
-      <div style={{width:"100%",height:160,overflow:"hidden",position:"relative",background:"rgba(0,0,0,.25)",flexShrink:0}}>
-        {!imgErr
-          ? <img src={imgUrl} alt={card.title} onError={()=>setImgErr(true)} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}/>
-          : <div style={{width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:56,background:meta.bg}}>{card.emoji||""}</div>
-        }
-        <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,transparent 50%,rgba(0,0,0,.65))"}}/>
-        <div style={{position:"absolute",top:10,right:10,background:"rgba(0,0,0,.45)",borderRadius:20,padding:"3px 9px",fontSize:".72rem",color:"rgba(255,255,255,.7)"}}>Tap to learn more</div>
-        <div style={{position:"absolute",bottom:10,left:12,color:meta.color,fontSize:".7rem",letterSpacing:".08em",textTransform:"uppercase",fontWeight:600}}>{meta.label}</div>
-      </div>
-      <div style={{padding:"14px 16px",flex:1,display:"flex",flexDirection:"column",gap:7}}>
-        <div style={{color:"#c8ecd4",fontSize:"1.05rem",fontWeight:700,lineHeight:1.3}}>{card.emoji} {card.title}</div>
-        <div style={{color:"#8fbe9f",fontSize:".92rem",lineHeight:1.65}}>{card.body}</div>
-      </div>
-    </div>
+    <ProtocolItem item={fakeItem} pillarType={pillarKey} meta={meta} onExpand={onExpand||(() =>{})} index={index||0}/>
   );
   } catch(e) { console.error("VisualCardCard crash",e); return null; }
 }
@@ -1168,8 +1210,8 @@ function VisualCardGrid({ cards, onExpand }) {
   try {
   if (!cards?.length) return null;
   return (
-    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10,marginBottom:18}}>
-      {(cards||[]).filter(c=>c&&c.title).map((card, i) => <VisualCardCard key={i} card={card} onExpand={onExpand}/>)}
+    <div style={{paddingLeft:4,marginBottom:18}}>
+      {(cards||[]).filter(c=>c&&c.title).map((card, i) => <VisualCardCard key={i} card={card} onExpand={onExpand} index={i}/>)}
     </div>
   );
   } catch(e) { console.error("VisualCardGrid crash",e); return null; }
@@ -1511,7 +1553,7 @@ function SignupGateModal({ onSignup, onLogin, onClose }) {
             <div style={{color:"#6a9a78",fontSize:".95rem",lineHeight:1.7}}>Create a free account to keep going  unlimited searches, saved history, and personalised plans.</div>
           </div>
           <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:28}}>
-            {[["✓","Unlimited searches — always free"],["✓","Saved conversation history"],["✓","Personalised to your profile"],["✓","Weekly wellness plans"]].map(([icon,text],i)=>(
+            {[["v","Unlimited searches - always free"],["v","Saved conversation history"],["v","Personalised to your profile"],["v","Weekly wellness plans"]].map(([icon,text],i)=>(
               <div key={i} style={{display:"flex",alignItems:"center",gap:12,background:"rgba(34,163,90,.07)",border:"1px solid rgba(34,163,90,.15)",borderRadius:12,padding:"12px 16px"}}>
                 <span style={{fontSize:20}}>{icon}</span>
                 <span style={{color:"#a8d8b4",fontSize:".95rem"}}>{text}</span>
