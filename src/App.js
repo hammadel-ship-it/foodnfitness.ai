@@ -951,7 +951,7 @@ function ItemDetailModal({ item, meta, pillarType, onClose, onDeepDive }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           model: "claude-sonnet-4-20250514",
-          max_tokens: 1000,
+          max_tokens: 1500,
           system: "You are a wellness expert. Output ONLY a JSON object. No markdown, no backticks. Use double quotes only. No contractions or apostrophes.\n\nFormat: {\"science\":\"2-3 sentences on mechanism\",\"howToUse\":\"Specific dosage and timing\",\"bestFor\":[\"condition 1\",\"condition 2\",\"condition 3\"],\"combinations\":[\"pairs well with X\",\"avoid Z\"],\"quickTip\":\"One surprising tip\"}",         messages: [{ role: "user", content: `Tell me everything about "${item.name}" for wellness. Benefit context: ${item.benefit}` }]
         })
       });
@@ -1734,7 +1734,7 @@ function App() {
   const fetchWeekPlan=async(concern)=>{
     try{
       const cu=userRef.current;
-      const res=await fetch("/.netlify/functions/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:2200,system:buildWeekPlanPrompt(cu,concern),messages:[{role:"user",content:"Create a 7-day holistic wellness plan for: "+concern}]})});
+      const res=await fetch("/.netlify/functions/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:3000,system:buildWeekPlanPrompt(cu,concern),messages:[{role:"user",content:"Create a 7-day holistic wellness plan for: "+concern}]})});
       if(!res.ok)return;
       let data; try { data=JSON.parse(await res.text()); } catch(_){return;}
       const raw=(data.content||[]).map(b=>b.text||"").join("").trim();
@@ -1781,10 +1781,13 @@ function App() {
           type:  String(p.type  || "food"),
           label: String(p.label || ""),
           items: Array.isArray(p.items) ? p.items.filter(Boolean).map(item => ({
-            name:    String(item.name    || ""),
-            benefit: String(item.benefit || ""),
-            emoji:   String(item.emoji   || ""),
-            image:   String(item.image   || ""),
+            name:      String(item.name      || ""),
+            benefit:   String(item.benefit   || ""),
+            emoji:     String(item.emoji     || ""),
+            when:      String(item.when      || ""),
+            struggle:  String(item.struggle  || ""),
+            outcome:   String(item.outcome   || ""),
+            timeframe: String(item.timeframe || ""),
           })).filter(item => item.name) : []
         }));
         // Clean cards  ensure each has title, body, pillar
@@ -1818,7 +1821,7 @@ function App() {
     };
 
     const attemptQuery = async (attempt=1) => {
-      const res=await fetch("/.netlify/functions/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:2200,system:buildPrompt(userRef.current,isFollowUp),messages:apiMessages})});
+      const res=await fetch("/.netlify/functions/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:6000,system:buildPrompt(userRef.current,isFollowUp),messages:apiMessages})});
       const text=await res.text();
       if(!res.ok)throw new Error("Server error "+res.status+": "+text.slice(0,180));
       let data; try { data=JSON.parse(text); } catch(_){ if(attempt<3) return attemptQuery(attempt+1); throw new Error("Invalid server response"); }
