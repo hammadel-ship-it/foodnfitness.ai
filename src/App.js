@@ -1825,9 +1825,9 @@ function App() {
       // attempt 2: Haiku,  2000 tokens, 22s timeout (faster, cheaper)
       // attempt 3: Haiku,  1600 tokens, 20s timeout (minimal)
       // Attempt 1: Haiku fast (8s target), 2: Haiku minimal (6s), 3: Haiku tiny (5s)
-      const timeouts = [9000, 8000, 7000];
+      const timeouts = [25000, 22000, 20000];
       const models   = ["claude-haiku-4-5-20251001","claude-haiku-4-5-20251001","claude-haiku-4-5-20251001"];
-      const tokens   = [1800, 1400, 1000];
+      const tokens   = [2500, 2000, 1500];
       const idx = Math.min(attempt-1, 2);
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), timeouts[idx]);
