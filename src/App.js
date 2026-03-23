@@ -28,10 +28,10 @@ const SUGGESTIONS = [
 ];
 
 const PILLAR_META = {
-  food:     { label:"Food & Nutrition",    color:"#3db876", bg:"rgba(61,184,118,.12)",  border:"rgba(61,184,118,.3)",  icon:"🥗" },
-  exercise: { label:"Exercise & Movement", color:"#4a9fd4", bg:"rgba(74,159,212,.12)", border:"rgba(74,159,212,.3)", icon:"💪" },
-  breath:   { label:"Breathwork & Stress", color:"#9b7fe8", bg:"rgba(155,127,232,.12)",border:"rgba(155,127,232,.3)",icon:"🌬️" },
-  sleep:    { label:"Sleep & Recovery",    color:"#5b9bd5", bg:"rgba(91,155,213,.12)", border:"rgba(91,155,213,.3)", icon:"🌙" },
+  food:     { label:"Food & Nutrition",    color:"#1e7040", bg:"rgba(30,112,64,.1)",  border:"rgba(30,112,64,.25)",  icon:"🥗" },
+  exercise: { label:"Exercise & Movement", color:"#1e6fa8", bg:"rgba(26,122,191,.1)", border:"rgba(26,122,191,.28)", icon:"💪" },
+  breath:   { label:"Breathwork & Stress", color:"#6b4fc8", bg:"rgba(107,72,200,.1)",border:"rgba(107,79,200,.25)",icon:"🌬️" },
+  sleep:    { label:"Sleep & Recovery",    color:"#2060a0", bg:"rgba(42,106,176,.1)", border:"rgba(32,96,160,.25)", icon:"🌙" },
 };
 
 const ALLERGIES = ["Gluten","Dairy","Nuts","Soy","Eggs","Shellfish","Fish","Sesame"];
@@ -277,13 +277,13 @@ const CSS = `
   @keyframes pulse     { 0%,100%{opacity:.5;}50%{opacity:1;} }
   @keyframes float     { 0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);} }
   @keyframes slideUp   { from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);} }
-  @keyframes pulseRing { 0%{box-shadow:0 0 0 0 rgba(61,184,118,.4);}70%{box-shadow:0 0 0 10px rgba(61,184,118,0);}100%{box-shadow:0 0 0 0 rgba(61,184,118,0);} }
+  @keyframes pulseRing { 0%{box-shadow:0 0 0 0 rgba(45,138,80,.4);}70%{box-shadow:0 0 0 10px rgba(45,138,80,0);}100%{box-shadow:0 0 0 0 rgba(45,138,80,0);} }
   *{box-sizing:border-box;margin:0;padding:0;}
-  html,body{height:100%;background:#16181a;}
+  html,body{height:100%;background:#faf8f5;}
   body{font-family:'Georgia',serif;color:#e0ede2;-webkit-font-smoothing:antialiased;}
   input,textarea,button{font-family:'Georgia',serif;}
   .item-card:hover    {transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,.2);}
-  .rc:hover           {border-color:rgba(61,184,118,.4)!important;}
+  .rc:hover           {border-color:rgba(45,138,80,.4)!important;}
   .tier-card          {transition:transform .25s,box-shadow .25s;}
   .tier-card:hover    {transform:translateY(-6px);box-shadow:0 16px 48px rgba(0,0,0,.3);}
   .cta-btn            {position:relative;overflow:hidden;transition:transform .15s,box-shadow .15s;}
@@ -293,7 +293,7 @@ const CSS = `
   .day-card:hover     {transform:translateY(-2px);}
   .modal-wrap         {animation:fadeIn .2s ease;}
   .modal-box          {animation:slideUp .25s ease;}
-  .search-ring:focus-within{border-color:rgba(61,184,118,.6)!important;box-shadow:0 0 0 3px rgba(61,184,118,.12)!important;}
+  .search-ring:focus-within{border-color:rgba(42,138,82,.6)!important;box-shadow:0 0 0 3px rgba(45,138,80,.12)!important;}
   .pillar-tab         {transition:all .18s;cursor:pointer;}
   .chip-btn:hover     {filter:brightness(1.15);}
   @media(max-width:480px){
@@ -379,8 +379,8 @@ function safeParseJSON(raw, expectArray=false) {
 function Modal({ onClose, children, maxWidth=420 }) {
   useEffect(()=>{ const h=(e)=>e.key==="Escape"&&onClose(); window.addEventListener("keydown",h); return()=>window.removeEventListener("keydown",h); },[onClose]);
   return (
-    <div className="modal-wrap" onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.8)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
-      <div className="modal-box np-modal-pad" onClick={e=>e.stopPropagation()} style={{background:"#1c1f22",border:"1px solid rgba(61,184,118,.3)",borderRadius:22,padding:"32px 28px",maxWidth,width:"100%"}}>
+    <div className="modal-wrap" onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.5)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+      <div className="modal-box np-modal-pad" onClick={e=>e.stopPropagation()} style={{background:"#f0ece6",border:"1px solid rgba(45,138,80,.3)",borderRadius:22,padding:"32px 28px",maxWidth,width:"100%"}}>
         {children}
       </div>
     </div>
@@ -479,21 +479,21 @@ function AuthModal({ onClose, onAuth, defaultMode="login" }) {
     }catch(e){setErr(e.message);}finally{setLoading(false);}
   };
 
-  const inp={background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.12)",borderRadius:10,padding:"11px 14px",color:"#c2d4c5",outline:"none",fontSize:".9rem",width:"100%",boxSizing:"border-box"};
+  const inp={background:"#f5f2ee",border:"1px solid rgba(0,0,0,.1)",borderRadius:10,padding:"11px 14px",color:"#2a3838",outline:"none",fontSize:".9rem",width:"100%",boxSizing:"border-box"};
   const pw={position:"relative",display:"flex",alignItems:"center"};
-  const eb={position:"absolute",right:12,background:"none",border:"none",color:"#7d9483",cursor:"pointer",padding:2,display:"flex",alignItems:"center"};
+  const eb={position:"absolute",right:12,background:"none",border:"none",color:"#5a6868",cursor:"pointer",padding:2,display:"flex",alignItems:"center"};
 
   if(mode==="reset")return(
     <Modal onClose={onClose}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
-        <span style={{color:"#a0bda6",fontSize:"1.05rem"}}> Set new password</span>
-        <button onClick={onClose} style={{background:"none",border:"none",color:"#7d9483",cursor:"pointer",fontSize:"1.1rem"}}></button>
+        <span style={{color:"#3a4e48",fontSize:"1.05rem"}}> Set new password</span>
+        <button onClick={onClose} style={{background:"none",border:"none",color:"#5a6868",cursor:"pointer",fontSize:"1.1rem"}}></button>
       </div>
-      {err&&<div style={{color:"#f09090",fontSize:".82rem",marginBottom:12,padding:"9px 13px",background:"rgba(200,60,60,.1)",borderRadius:9,border:"1px solid rgba(200,60,60,.2)"}}>{err}</div>}
+      {err&&<div style={{color:"#c84040",fontSize:".82rem",marginBottom:12,padding:"9px 13px",background:"rgba(192,57,43,.08)",borderRadius:9,border:"1px solid rgba(200,60,60,.2)"}}>{err}</div>}
       <div style={{display:"flex",flexDirection:"column",gap:10}}>
-        <div style={{color:"#6a7e6e",fontSize:".82rem"}}>Enter your new password below.</div>
+        <div style={{color:"#4a5858",fontSize:".82rem"}}>Enter your new password below.</div>
         <div style={pw}><input value={pass} onChange={e=>setPass(e.target.value)} placeholder="New password (min 6 characters)" type={showPass?"text":"password"} onKeyDown={e=>e.key==="Enter"&&updatePassword()} style={{...inp,paddingRight:40}}/><button onClick={()=>setShowPass(p=>!p)} style={eb}><EyeIcon open={showPass}/></button></div>
-        <button onClick={updatePassword} disabled={loading} className="cta-btn" style={{background:"linear-gradient(135deg,#3db876,#2a7a50)",border:"none",borderRadius:11,padding:"13px",color:"#eaf0eb",fontSize:".9rem",cursor:"pointer",fontWeight:600}}>{loading?"Updating":"Set new password "}</button>
+        <button onClick={updatePassword} disabled={loading} className="cta-btn" style={{background:"linear-gradient(135deg,#2d8a50,#1e6038)",border:"none",borderRadius:11,padding:"13px",color:"#1a2018",fontSize:".9rem",cursor:"pointer",fontWeight:600}}>{loading?"Updating":"Set new password "}</button>
       </div>
     </Modal>
   );
@@ -501,22 +501,22 @@ function AuthModal({ onClose, onAuth, defaultMode="login" }) {
   if(mode==="forgot")return(
     <Modal onClose={onClose}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
-        <span style={{color:"#a0bda6",fontSize:"1.05rem"}}> Reset password</span>
-        <button onClick={onClose} style={{background:"none",border:"none",color:"#7d9483",cursor:"pointer",fontSize:"1.1rem"}}></button>
+        <span style={{color:"#3a4e48",fontSize:"1.05rem"}}> Reset password</span>
+        <button onClick={onClose} style={{background:"none",border:"none",color:"#5a6868",cursor:"pointer",fontSize:"1.1rem"}}></button>
       </div>
-      {err&&<div style={{color:"#f09090",fontSize:".82rem",marginBottom:12,padding:"9px 13px",background:"rgba(200,60,60,.1)",borderRadius:9,border:"1px solid rgba(200,60,60,.2)"}}>{err}</div>}
+      {err&&<div style={{color:"#c84040",fontSize:".82rem",marginBottom:12,padding:"9px 13px",background:"rgba(192,57,43,.08)",borderRadius:9,border:"1px solid rgba(200,60,60,.2)"}}>{err}</div>}
       {resetSent
         ?<div style={{textAlign:"center",padding:"16px 0"}}>
           <div style={{fontSize:32,marginBottom:12}}></div>
-          <div style={{color:"#a0bda6",fontSize:".95rem",marginBottom:8}}>Check your email</div>
-          <div style={{color:"#7d9483",fontSize:".88rem",lineHeight:1.7}}>A password reset link has been sent to <strong style={{color:"#6fcf97"}}>{email}</strong>. Check your inbox.</div>
-          <button onClick={()=>{setMode("login");setResetSent(false);}} style={{marginTop:16,background:"none",border:"none",color:"#7d9483",fontSize:".82rem",cursor:"pointer"}}> Back to sign in</button>
+          <div style={{color:"#3a4e48",fontSize:".95rem",marginBottom:8}}>Check your email</div>
+          <div style={{color:"#5a6868",fontSize:".88rem",lineHeight:1.7}}>A password reset link has been sent to <strong style={{color:"#1e7040"}}>{email}</strong>. Check your inbox.</div>
+          <button onClick={()=>{setMode("login");setResetSent(false);}} style={{marginTop:16,background:"none",border:"none",color:"#5a6868",fontSize:".82rem",cursor:"pointer"}}> Back to sign in</button>
         </div>
         :<div style={{display:"flex",flexDirection:"column",gap:10}}>
-          <div style={{color:"#6a7e6e",fontSize:".82rem"}}>Enter your account email and we will send a reset link.</div>
+          <div style={{color:"#4a5858",fontSize:".82rem"}}>Enter your account email and we will send a reset link.</div>
           <input ref={emailRef} value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email address" type="email" onKeyDown={e=>e.key==="Enter"&&sendReset()} style={inp}/>
-          <button onClick={sendReset} disabled={loading} className="cta-btn" style={{background:"linear-gradient(135deg,#3db876,#2a7a50)",border:"none",borderRadius:11,padding:"13px",color:"#eaf0eb",fontSize:".9rem",cursor:"pointer",fontWeight:600}}>{loading?"Sending":"Send reset link "}</button>
-          <button onClick={()=>{setMode("login");setErr("");}} style={{background:"none",border:"none",color:"#7d9483",fontSize:".82rem",cursor:"pointer",textAlign:"center",paddingTop:4}}> Back to sign in</button>
+          <button onClick={sendReset} disabled={loading} className="cta-btn" style={{background:"linear-gradient(135deg,#2d8a50,#1e6038)",border:"none",borderRadius:11,padding:"13px",color:"#1a2018",fontSize:".9rem",cursor:"pointer",fontWeight:600}}>{loading?"Sending":"Send reset link "}</button>
+          <button onClick={()=>{setMode("login");setErr("");}} style={{background:"none",border:"none",color:"#5a6868",fontSize:".82rem",cursor:"pointer",textAlign:"center",paddingTop:4}}> Back to sign in</button>
         </div>
       }
     </Modal>
@@ -525,23 +525,23 @@ function AuthModal({ onClose, onAuth, defaultMode="login" }) {
   return(
     <Modal onClose={onClose}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:22}}>
-        <span style={{color:"#a0bda6",fontSize:"1.05rem"}}>{mode==="login"?"Welcome back ":"Join foodnfitness.ai "}</span>
-        <button onClick={onClose} style={{background:"none",border:"none",color:"#7d9483",cursor:"pointer",fontSize:"1.1rem",lineHeight:1}}></button>
+        <span style={{color:"#3a4e48",fontSize:"1.05rem"}}>{mode==="login"?"Welcome back ":"Join foodnfitness.ai "}</span>
+        <button onClick={onClose} style={{background:"none",border:"none",color:"#5a6868",cursor:"pointer",fontSize:"1.1rem",lineHeight:1}}></button>
       </div>
-      {err&&<div style={{color:"#f09090",fontSize:".82rem",marginBottom:12,padding:"9px 13px",background:"rgba(200,60,60,.1)",borderRadius:9,border:"1px solid rgba(200,60,60,.2)"}}>{err}</div>}
+      {err&&<div style={{color:"#c84040",fontSize:".82rem",marginBottom:12,padding:"9px 13px",background:"rgba(192,57,43,.08)",borderRadius:9,border:"1px solid rgba(200,60,60,.2)"}}>{err}</div>}
       <div style={{display:"flex",flexDirection:"column",gap:10}}>
         {mode==="signup"&&<input value={name} onChange={e=>setName(e.target.value)} placeholder="Your name" style={inp}/>}
         <input ref={emailRef} value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email address" type="email" style={inp}/>
         <div style={pw}><input value={pass} onChange={e=>setPass(e.target.value)} placeholder="Password" type={showPass?"text":"password"} onKeyDown={e=>e.key==="Enter"&&submit()} style={{...inp,paddingRight:40}}/><button onClick={()=>setShowPass(p=>!p)} style={eb}><EyeIcon open={showPass}/></button></div>
         {mode==="signup"&&<div>
-          <div style={{color:"#6a7e6e",fontSize:".78rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>Food allergies</div>
-          <div style={{display:"flex",flexWrap:"wrap",gap:6}}>{ALLERGIES.map(a=><button key={a} onClick={()=>toggleAllergy(a)} style={{background:allergies.includes(a)?"rgba(61,184,118,.22)":"rgba(255,255,255,.04)",border:"1px solid "+(allergies.includes(a)?"rgba(61,184,118,.55)":"rgba(255,255,255,.1)"),borderRadius:20,padding:"4px 11px",color:allergies.includes(a)?"#6fcf97":"#6a7e6e",fontSize:".84rem",cursor:"pointer",transition:"all .14s"}}>{a}</button>)}</div>
-          <div style={{color:"#2d3236",fontSize:".78rem",marginTop:6,fontStyle:"italic"}}>Editable anytime in your profile.</div>
+          <div style={{color:"#4a5858",fontSize:".78rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>Food allergies</div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:6}}>{ALLERGIES.map(a=><button key={a} onClick={()=>toggleAllergy(a)} style={{background:allergies.includes(a)?"rgba(45,138,80,.22)":"#f5f2ee",border:"1px solid "+(allergies.includes(a)?"rgba(45,138,80,.55)":"rgba(0,0,0,.08)"),borderRadius:20,padding:"4px 11px",color:allergies.includes(a)?"#1e7040":"#5a6868",fontSize:".84rem",cursor:"pointer",transition:"all .14s"}}>{a}</button>)}</div>
+          <div style={{color:"#4a5858",fontSize:".78rem",marginTop:6,fontStyle:"italic"}}>Editable anytime in your profile.</div>
         </div>}
-        <button onClick={submit} disabled={loading} className="cta-btn" style={{background:"linear-gradient(135deg,#3db876,#2a7a50)",border:"none",borderRadius:11,padding:"13px",color:"#eaf0eb",fontSize:".9rem",cursor:"pointer",fontWeight:600,marginTop:2}}>{loading?"Please wait":(mode==="login"?"Sign In ":"Create Free Account ")}</button>
+        <button onClick={submit} disabled={loading} className="cta-btn" style={{background:"linear-gradient(135deg,#2d8a50,#1e6038)",border:"none",borderRadius:11,padding:"13px",color:"#fff",fontSize:".9rem",cursor:"pointer",fontWeight:600,marginTop:2}}>{loading?"Please wait":(mode==="login"?"Sign In ":"Create Free Account ")}</button>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",paddingTop:2}}>
-          <button onClick={()=>{setMode(m=>m==="login"?"signup":"login");setErr("");}} style={{background:"none",border:"none",color:"#7d9483",fontSize:".82rem",cursor:"pointer",fontFamily:"'Georgia',serif"}}>{mode==="login"?"No account? Sign up free":"Already have an account?"}</button>
-          {mode==="login"&&<button onClick={()=>{setMode("forgot");setErr("");}} style={{background:"none",border:"none",color:"#2d3236",fontSize:".78rem",cursor:"pointer",fontFamily:"'Georgia',serif",fontStyle:"italic"}}>Forgot password?</button>}
+          <button onClick={()=>{setMode(m=>m==="login"?"signup":"login");setErr("");}} style={{background:"none",border:"none",color:"#5a6868",fontSize:".82rem",cursor:"pointer",fontFamily:"'Georgia',serif"}}>{mode==="login"?"No account? Sign up free":"Already have an account?"}</button>
+          {mode==="login"&&<button onClick={()=>{setMode("forgot");setErr("");}} style={{background:"none",border:"none",color:"#4a5858",fontSize:".78rem",cursor:"pointer",fontFamily:"'Georgia',serif",fontStyle:"italic"}}>Forgot password?</button>}
         </div>
       </div>
     </Modal>
@@ -588,31 +588,31 @@ function ProfileModal({ user, onClose, onUpdate, onLogout, onUpgrade }) {
   const SEX=[{value:"female",label:"Female",icon:"♀️"},{value:"male",label:"Male",icon:"♂️"}];
   return(
     <Modal onClose={onClose}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}><span style={{color:"#a0bda6",fontSize:"1.05rem"}}> {user.name}</span><button onClick={onClose} style={{background:"none",border:"none",color:"#7d9483",cursor:"pointer",fontSize:"1.1rem"}}></button></div>
-      <div style={{color:"#2d3236",fontSize:".85rem",marginBottom:20}}>{user.email}  {user.history?.length||0} searches</div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}><span style={{color:"#3a4e48",fontSize:"1.05rem"}}> {user.name}</span><button onClick={onClose} style={{background:"none",border:"none",color:"#5a6868",cursor:"pointer",fontSize:"1.1rem"}}></button></div>
+      <div style={{color:"#4a5858",fontSize:".85rem",marginBottom:20}}>{user.email}  {user.history?.length||0} searches</div>
       <div style={{marginBottom:20}}>
         <div style={{display:"flex",gap:12,marginBottom:20}}>
           <div style={{flex:1}}>
-            <div style={{color:"#6a7e6e",fontSize:".78rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>Age</div>
+            <div style={{color:"#4a5858",fontSize:".78rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>Age</div>
             <input type="number" min="10" max="100" value={age} onChange={e=>setAge(e.target.value)} placeholder="e.g. 34"
-              style={{width:"100%",background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.12)",borderRadius:10,padding:"10px 12px",color:"#dde8df",fontSize:".95rem",fontFamily:"Georgia,serif",boxSizing:"border-box",outline:"none"}}/>
+              style={{width:"100%",background:"#f5f2ee",border:"1px solid rgba(0,0,0,.1)",borderRadius:10,padding:"10px 12px",color:"#1a2018",fontSize:".95rem",fontFamily:"Georgia,serif",boxSizing:"border-box",outline:"none"}}/>
           </div>
           <div style={{flex:1}}>
-            <div style={{color:"#6a7e6e",fontSize:".78rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>Weight <span style={{textTransform:"none",letterSpacing:0,fontSize:".72rem"}}>(kg)</span></div>
+            <div style={{color:"#4a5858",fontSize:".78rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>Weight <span style={{textTransform:"none",letterSpacing:0,fontSize:".72rem"}}>(kg)</span></div>
             <input type="number" min="30" max="300" step="0.5" value={weight} onChange={e=>setWeight(e.target.value)} placeholder="e.g. 75"
-              style={{width:"100%",background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.12)",borderRadius:10,padding:"10px 12px",color:"#dde8df",fontSize:".95rem",fontFamily:"Georgia,serif",boxSizing:"border-box",outline:"none"}}/>
+              style={{width:"100%",background:"#f5f2ee",border:"1px solid rgba(0,0,0,.1)",borderRadius:10,padding:"10px 12px",color:"#1a2018",fontSize:".95rem",fontFamily:"Georgia,serif",boxSizing:"border-box",outline:"none"}}/>
           </div>
         </div>
-        <div style={{color:"#6a7e6e",fontSize:".78rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:10}}>Biological sex <span style={{color:"#2d3236",fontStyle:"italic",letterSpacing:0,textTransform:"none",fontSize:".74rem"}}>(personalises results)</span></div>
-        <div style={{display:"flex",gap:8}}>{SEX.map(opt=>{const active=sex===opt.value;return<button key={opt.value} onClick={()=>setSex(active?"":opt.value)} style={{flex:1,background:active?"rgba(61,184,118,.18)":"rgba(255,255,255,.04)",border:"1.5px solid "+(active?"rgba(61,184,118,.55)":"rgba(255,255,255,.1)"),borderRadius:14,padding:"12px 8px",cursor:"pointer",transition:"all .16s",display:"flex",flexDirection:"column",alignItems:"center",gap:5}}><span style={{fontSize:20}}>{opt.icon}</span><span style={{color:active?"#6fcf97":"#6a7e6e",fontSize:".84rem",fontFamily:"'Georgia',serif"}}>{opt.label}</span></button>;})}</div>
-        {!sex&&<div style={{color:"#242829",fontSize:".74rem",marginTop:7,fontStyle:"italic"}}>Optional  tailors hormone, iron & nutrient advice.</div>}
-        {sex&&<div style={{color:"#7d9483",fontSize:".74rem",marginTop:7,fontStyle:"italic"}}> Personalised for {sex} biology.</div>}
+        <div style={{color:"#4a5858",fontSize:".78rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:10}}>Biological sex <span style={{color:"#4a5858",fontStyle:"italic",letterSpacing:0,textTransform:"none",fontSize:".74rem"}}>(personalises results)</span></div>
+        <div style={{display:"flex",gap:8}}>{SEX.map(opt=>{const active=sex===opt.value;return<button key={opt.value} onClick={()=>setSex(active?"":opt.value)} style={{flex:1,background:active?"rgba(45,138,80,.18)":"#f5f2ee",border:"1.5px solid "+(active?"rgba(45,138,80,.55)":"rgba(0,0,0,.08)"),borderRadius:14,padding:"12px 8px",cursor:"pointer",transition:"all .16s",display:"flex",flexDirection:"column",alignItems:"center",gap:5}}><span style={{fontSize:20}}>{opt.icon}</span><span style={{color:active?"#1e7040":"#5a6868",fontSize:".84rem",fontFamily:"'Georgia',serif"}}>{opt.label}</span></button>;})}</div>
+        {!sex&&<div style={{color:"#5a6868",fontSize:".74rem",marginTop:7,fontStyle:"italic"}}>Optional  tailors hormone, iron & nutrient advice.</div>}
+        {sex&&<div style={{color:"#5a6868",fontSize:".74rem",marginTop:7,fontStyle:"italic"}}> Personalised for {sex} biology.</div>}
       </div>
       <div style={{marginBottom:20}}>
-        <div style={{color:"#6a7e6e",fontSize:".78rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>Food allergies</div>
-        <div style={{display:"flex",flexWrap:"wrap",gap:6}}>{ALLERGIES.map(a=><button key={a} onClick={()=>toggle(a)} style={{background:allergies.includes(a)?"rgba(61,184,118,.22)":"rgba(255,255,255,.04)",border:"1px solid "+(allergies.includes(a)?"rgba(61,184,118,.55)":"rgba(255,255,255,.1)"),borderRadius:20,padding:"4px 11px",color:allergies.includes(a)?"#6fcf97":"#6a7e6e",fontSize:".84rem",cursor:"pointer",transition:"all .14s"}}>{a}</button>)}</div>
+        <div style={{color:"#4a5858",fontSize:".78rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>Food allergies</div>
+        <div style={{display:"flex",flexWrap:"wrap",gap:6}}>{ALLERGIES.map(a=><button key={a} onClick={()=>toggle(a)} style={{background:allergies.includes(a)?"rgba(45,138,80,.22)":"#f5f2ee",border:"1px solid "+(allergies.includes(a)?"rgba(45,138,80,.55)":"rgba(0,0,0,.08)"),borderRadius:20,padding:"4px 11px",color:allergies.includes(a)?"#1e7040":"#5a6868",fontSize:".84rem",cursor:"pointer",transition:"all .14s"}}>{a}</button>)}</div>
       </div>
-      <div style={{display:"flex",gap:9,marginBottom:9}}><button onClick={save} disabled={saving} className="cta-btn" style={{flex:1,background:"linear-gradient(135deg,#3db876,#2a7a50)",border:"none",borderRadius:10,padding:"11px",color:"#eaf0eb",fontSize:".85rem",cursor:"pointer",fontWeight:600}}>{saving?"Saving...":(saved?"Saved!":"Save changes")}</button><button onClick={logout} style={{background:"rgba(220,80,80,.08)",border:"1px solid rgba(220,80,80,.22)",borderRadius:10,padding:"11px 16px",color:"#f09090",fontSize:".85rem",cursor:"pointer"}}>Sign out</button></div>
+      <div style={{display:"flex",gap:9,marginBottom:9}}><button onClick={save} disabled={saving} className="cta-btn" style={{flex:1,background:"linear-gradient(135deg,#2d8a50,#1e6038)",border:"none",borderRadius:10,padding:"11px",color:"#1a2018",fontSize:".85rem",cursor:"pointer",fontWeight:600}}>{saving?"Saving...":(saved?"Saved!":"Save changes")}</button><button onClick={logout} style={{background:"rgba(220,80,80,.08)",border:"1px solid rgba(220,80,80,.22)",borderRadius:10,padding:"11px 16px",color:"#c84040",fontSize:".85rem",cursor:"pointer"}}>Sign out</button></div>
 
 
     </Modal>
@@ -624,10 +624,10 @@ function NoCreditsModal({ onClose, onViewPlans }) {
     <Modal onClose={onClose} maxWidth={360}>
       <div style={{textAlign:"center"}}>
         <div style={{fontSize:38,marginBottom:12}}></div>
-        <div style={{color:"#c8a96e",fontSize:"1rem",marginBottom:8}}>Out of credits</div>
-        <div style={{color:"#5a5040",fontSize:".92rem",lineHeight:1.7,marginBottom:20}}>Top up to keep unlocking your wellness plan.<br/><span style={{color:"#7a6030",fontSize:".78rem"}}>1 credit per search</span></div>
-        <button onClick={onViewPlans} className="cta-btn" style={{width:"100%",background:"linear-gradient(135deg,#c8a96e,#a07840)",border:"none",borderRadius:11,padding:"12px",color:"#1a1c1e",fontSize:".9rem",cursor:"pointer",fontWeight:700,marginBottom:8}}>View plans </button>
-        <button onClick={onClose} style={{background:"none",border:"none",color:"#5a5040",fontSize:".78rem",cursor:"pointer"}}>Maybe later</button>
+        <div style={{color:"#a07020",fontSize:"1rem",marginBottom:8}}>Out of credits</div>
+        <div style={{color:"#7a5a18",fontSize:".92rem",lineHeight:1.7,marginBottom:20}}>Top up to keep unlocking your wellness plan.<br/><span style={{color:"#7a6030",fontSize:".78rem"}}>1 credit per search</span></div>
+        <button onClick={onViewPlans} className="cta-btn" style={{width:"100%",background:"linear-gradient(135deg,#c8a96e,#a07840)",border:"none",borderRadius:11,padding:"12px",color:"#ffffff",fontSize:".9rem",cursor:"pointer",fontWeight:700,marginBottom:8}}>View plans </button>
+        <button onClick={onClose} style={{background:"none",border:"none",color:"#7a5a18",fontSize:".78rem",cursor:"pointer"}}>Maybe later</button>
       </div>
     </Modal>
   );
@@ -638,15 +638,15 @@ function SignUpPrompt({ onClose, onSignUp }) {
     <Modal onClose={onClose} maxWidth={360}>
       <div style={{textAlign:"center"}}>
         <div style={{fontSize:42,marginBottom:12,display:"inline-block",animation:"float 3s ease-in-out infinite"}}></div>
-        <div style={{color:"#a0bda6",fontSize:"1rem",marginBottom:8}}>You have used all 3 free searches</div>
-        <div style={{color:"#7d9483",fontSize:".92rem",lineHeight:1.7,marginBottom:16}}>Sign up free  food, fitness, breathwork and sleep. No card needed.</div>
-        <div style={{display:"flex",justifyContent:"center",gap:20,marginBottom:20,padding:"12px 16px",background:"rgba(61,184,118,.06)",border:"1px solid rgba(61,184,118,.15)",borderRadius:12}}>
+        <div style={{color:"#3a4e48",fontSize:"1rem",marginBottom:8}}>You have used all 3 free searches</div>
+        <div style={{color:"#5a6868",fontSize:".92rem",lineHeight:1.7,marginBottom:16}}>Sign up free  food, fitness, breathwork and sleep. No card needed.</div>
+        <div style={{display:"flex",justifyContent:"center",gap:20,marginBottom:20,padding:"12px 16px",background:"rgba(45,138,80,.06)",border:"1px solid rgba(45,138,80,.15)",borderRadius:12}}>
           {[["4","Pillars"],["3","Free credits"],["Free","To join"]].map(([val,lbl],i)=>(
-            <div key={i} style={{textAlign:"center"}}><div style={{color:"#6fcf97",fontSize:"1.1rem",fontWeight:600}}>{val}</div><div style={{color:"#2d3236",fontSize:".74rem",letterSpacing:".06em",textTransform:"uppercase"}}>{lbl}</div></div>
+            <div key={i} style={{textAlign:"center"}}><div style={{color:"#1e7040",fontSize:"1.1rem",fontWeight:600}}>{val}</div><div style={{color:"#4a5858",fontSize:".74rem",letterSpacing:".06em",textTransform:"uppercase"}}>{lbl}</div></div>
           ))}
         </div>
-        <button onClick={onSignUp} className="cta-btn" style={{width:"100%",background:"linear-gradient(135deg,#3db876,#2a7a50)",border:"none",borderRadius:11,padding:"13px",color:"#eaf0eb",fontSize:".9rem",cursor:"pointer",fontWeight:600,marginBottom:8,boxShadow:"0 4px 20px rgba(61,184,118,.25)"}}>Create free account </button>
-        <button onClick={onClose} style={{background:"none",border:"none",color:"#2d3236",fontSize:".74rem",cursor:"pointer"}}>Maybe later</button>
+        <button onClick={onSignUp} className="cta-btn" style={{width:"100%",background:"linear-gradient(135deg,#2d8a50,#1e6038)",border:"none",borderRadius:11,padding:"13px",color:"#1a2018",fontSize:".9rem",cursor:"pointer",fontWeight:600,marginBottom:8,boxShadow:"0 4px 20px rgba(45,138,80,.25)"}}>Create free account </button>
+        <button onClick={onClose} style={{background:"none",border:"none",color:"#4a5858",fontSize:".74rem",cursor:"pointer"}}>Maybe later</button>
       </div>
     </Modal>
   );
@@ -884,23 +884,23 @@ function WeekPlan({ plan }) {
   const rows=[["","food","Food"],["","move","Move"],["","breathe","Breathe"],["","sleep","Sleep"]];
   return(
     <div style={{marginTop:28}}>
-      <div style={{color:"#78967e",fontSize:".85rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:6}}> Your 7-day wellness plan</div>
-      <div style={{color:"#6a7e70",fontSize:".82rem",marginBottom:14,fontStyle:"italic"}}>Tap any day to expand</div>
+      <div style={{color:"#5a6868",fontSize:".85rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:6}}> Your 7-day wellness plan</div>
+      <div style={{color:"#4a5858",fontSize:".82rem",marginBottom:14,fontStyle:"italic"}}>Tap any day to expand</div>
       <div className="np-week-grid" style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:6}}>
         {plan.map((d,i)=>(
-          <div key={i} className="day-card" onClick={()=>setActive(active===i?null:i)} style={{background:active===i?"rgba(61,184,118,.18)":"rgba(61,184,118,.07)",border:"1px solid "+(active===i?"rgba(61,184,118,.45)":"rgba(61,184,118,.16)"),borderRadius:12,padding:"10px 5px",textAlign:"center"}}>
-            <div style={{color:"#78967e",fontSize:".82rem",letterSpacing:".06em",textTransform:"uppercase",marginBottom:4}}>{d.day?.slice(0,3)||"Day"}</div>
-            <div style={{color:"#a0bda6",fontSize:".78rem",lineHeight:1.3,fontStyle:"italic"}}>{d.focus||""}</div>
+          <div key={i} className="day-card" onClick={()=>setActive(active===i?null:i)} style={{background:active===i?"rgba(45,138,80,.18)":"rgba(45,138,80,.07)",border:"1px solid "+(active===i?"rgba(42,138,82,.45)":"rgba(45,138,80,.16)"),borderRadius:12,padding:"10px 5px",textAlign:"center"}}>
+            <div style={{color:"#5a6868",fontSize:".82rem",letterSpacing:".06em",textTransform:"uppercase",marginBottom:4}}>{d.day?.slice(0,3)||"Day"}</div>
+            <div style={{color:"#3a4e48",fontSize:".78rem",lineHeight:1.3,fontStyle:"italic"}}>{d.focus||""}</div>
           </div>
         ))}
       </div>
       {active!==null&&plan[active]&&(
-        <div style={{background:"rgba(61,184,118,.05)",border:"1px solid rgba(61,184,118,.18)",borderRadius:14,padding:"20px",marginTop:10,animation:"fadeUp .22s ease"}}>
-          <div style={{color:"#6fcf97",fontSize:"1rem",fontWeight:600,marginBottom:14}}>{plan[active].day}  <em style={{color:"#78967e",fontWeight:400}}>{plan[active].focus}</em></div>
+        <div style={{background:"rgba(42,138,82,.05)",border:"1px solid rgba(45,138,80,.18)",borderRadius:14,padding:"20px",marginTop:10,animation:"fadeUp .22s ease"}}>
+          <div style={{color:"#1e7040",fontSize:"1rem",fontWeight:600,marginBottom:14}}>{plan[active].day}  <em style={{color:"#5a6868",fontWeight:400}}>{plan[active].focus}</em></div>
           {rows.map(([icon,key,lbl])=>(
             <div key={key} style={{display:"flex",gap:12,marginBottom:12,alignItems:"flex-start"}}>
-              <span style={{minWidth:100,color:"#2d3236",fontSize:".9rem",flexShrink:0,paddingTop:2}}>{icon} {lbl}</span>
-              <span style={{color:"#9eb8a4",fontSize:".95rem",lineHeight:1.6}}>{plan[active][key]||""}</span>
+              <span style={{minWidth:100,color:"#4a5858",fontSize:".9rem",flexShrink:0,paddingTop:2}}>{icon} {lbl}</span>
+              <span style={{color:"#3a4e48",fontSize:".95rem",lineHeight:1.6}}>{plan[active][key]||""}</span>
             </div>
           ))}
         </div>
@@ -912,10 +912,10 @@ function WeekPlan({ plan }) {
 
 function AckBubble({ text, label="A note for you" }) {
   try { if(!text) return <></>; return(
-    <div style={{background:"linear-gradient(135deg,rgba(61,184,118,.1),rgba(20,80,40,.07))",border:"1px solid rgba(61,184,118,.22)",borderRadius:18,padding:"20px 24px",marginBottom:18,position:"relative",overflow:"hidden"}}>
+    <div style={{background:"linear-gradient(135deg,rgba(45,138,80,.1),rgba(20,80,40,.07))",border:"1px solid rgba(45,138,80,.22)",borderRadius:18,padding:"20px 24px",marginBottom:18,position:"relative",overflow:"hidden"}}>
       <div style={{position:"absolute",top:14,right:16,fontSize:28,opacity:.08}}></div>
-      <div style={{color:"#78967e",fontSize:".8rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>{label}</div>
-      <p style={{color:"#b5ccb9",fontSize:"clamp(1.05rem,1.8vw,1.2rem)",lineHeight:1.85,margin:0,fontStyle:"italic"}}>{text}</p>
+      <div style={{color:"#5a6868",fontSize:".8rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>{label}</div>
+      <p style={{color:"#3a4e38",fontSize:"clamp(1.05rem,1.8vw,1.2rem)",lineHeight:1.85,margin:0,fontStyle:"italic"}}>{text}</p>
     </div>
   ); } catch(e) { console.error("AckBubble crash",e); return null; }
 }
@@ -924,11 +924,11 @@ function TipRow({ tip }) {
   try {
   if(!tip)return null;
   return(
-    <div style={{background:"linear-gradient(135deg,rgba(61,184,118,.1),rgba(20,100,55,.05))",border:"1px solid rgba(61,184,118,.22)",borderRadius:14,padding:"16px 20px",display:"flex",gap:12,alignItems:"flex-start",marginBottom:16}}>
+    <div style={{background:"linear-gradient(135deg,rgba(45,138,80,.1),rgba(20,100,55,.05))",border:"1px solid rgba(45,138,80,.22)",borderRadius:14,padding:"16px 20px",display:"flex",gap:12,alignItems:"flex-start",marginBottom:16}}>
       <span style={{fontSize:22,marginTop:2,flexShrink:0}}></span>
       <div>
-        <div style={{color:"#78967e",fontSize:".78rem",letterSpacing:".08em",textTransform:"uppercase",marginBottom:5}}>Pro tip</div>
-        <span style={{color:"#9eb8a4",fontSize:"clamp(1rem,1.6vw,1.1rem)",lineHeight:1.7}}>{tip}</span>
+        <div style={{color:"#5a6868",fontSize:".78rem",letterSpacing:".08em",textTransform:"uppercase",marginBottom:5}}>Pro tip</div>
+        <span style={{color:"#3a4e48",fontSize:"clamp(1rem,1.6vw,1.1rem)",lineHeight:1.7}}>{tip}</span>
       </div>
     </div>
   );
@@ -968,13 +968,13 @@ function ItemDetailModal({ item, meta, pillarType, onClose, onDeepDive }) {
 
   return (
     <div className="modal-wrap" onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",zIndex:400,display:"flex",alignItems:"flex-end",justifyContent:"center",padding:"0"}}>
-      <div className="modal-box" onClick={e=>e.stopPropagation()} style={{background:"#1c1f22",borderRadius:"24px 24px 0 0",width:"100%",maxWidth:640,maxHeight:"90vh",overflowY:"auto",animation:"slideUp .3s ease"}}>
+      <div className="modal-box" onClick={e=>e.stopPropagation()} style={{background:"#f0ece6",borderRadius:"24px 24px 0 0",width:"100%",maxWidth:640,maxHeight:"90vh",overflowY:"auto",animation:"slideUp .3s ease"}}>
         {/* Hero - emoji + colour, no photo */}
         <div style={{width:"100%",background:"linear-gradient(160deg,"+safeMeta.bg+",rgba(0,0,0,.3))",padding:"28px 24px 20px",position:"relative",flexShrink:0,borderBottom:"1px solid "+safeMeta.border}}>
           <button onClick={onClose} style={{position:"absolute",top:16,right:16,background:"rgba(0,0,0,.4)",border:"none",borderRadius:"50%",width:34,height:34,color:"#fff",fontSize:16,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>&times;</button>
           <div style={{fontSize:52,marginBottom:10,lineHeight:1}}>{item.emoji||""}</div>
           <div style={{color:safeMeta.color,fontSize:".72rem",letterSpacing:".12em",textTransform:"uppercase",marginBottom:4}}>{safeMeta.label}</div>
-          <div style={{color:"#eaf0eb",fontSize:"1.4rem",fontWeight:700,lineHeight:1.25}}>{item.name}</div>
+          <div style={{color:"#1a2018",fontSize:"1.4rem",fontWeight:700,lineHeight:1.25}}>{item.name}</div>
           {item.when&&<div style={{marginTop:8,display:"inline-block",background:safeMeta.bg,border:"0.5px solid "+safeMeta.border,borderRadius:20,padding:"3px 12px",color:safeMeta.color,fontSize:".78rem"}}>{item.when}</div>}
         </div>
 
@@ -982,21 +982,21 @@ function ItemDetailModal({ item, meta, pillarType, onClose, onDeepDive }) {
         <div style={{padding:"24px 24px 40px"}}>
           {loading && (
             <div style={{textAlign:"center",padding:"40px 0"}}>
-              <div style={{width:32,height:32,border:"3px solid rgba(61,184,118,.2)",borderTop:"3px solid #6fcf97",borderRadius:"50%",animation:"spin 1s linear infinite",margin:"0 auto 12px"}}/>
-              <div style={{color:"#7d9483",fontSize:".9rem"}}>Loading deep dive...</div>
+              <div style={{width:32,height:32,border:"3px solid rgba(45,138,80,.2)",borderTop:"3px solid #2d8a50",borderRadius:"50%",animation:"spin 1s linear infinite",margin:"0 auto 12px"}}/>
+              <div style={{color:"#5a6868",fontSize:".9rem"}}>Loading deep dive...</div>
             </div>
           )}
           {detail && !loading && (
             <div style={{display:"flex",flexDirection:"column",gap:20}}>
               {/* Science */}
-              <div style={{background:"rgba(61,184,118,.07)",border:"1px solid rgba(61,184,118,.2)",borderRadius:14,padding:"18px 20px"}}>
+              <div style={{background:"rgba(45,138,80,.07)",border:"1px solid rgba(45,138,80,.2)",borderRadius:14,padding:"18px 20px"}}>
                 <div style={{color:meta.color,fontSize:".75rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}> The science</div>
-                <p style={{color:"#b5ccb9",fontSize:"1rem",lineHeight:1.8,margin:0}}>{detail.science}</p>
+                <p style={{color:"#3a4e38",fontSize:"1rem",lineHeight:1.8,margin:0}}>{detail.science}</p>
               </div>
               {/* How to use */}
-              <div style={{background:"rgba(61,184,118,.07)",border:"1px solid rgba(61,184,118,.2)",borderRadius:14,padding:"18px 20px"}}>
+              <div style={{background:"rgba(45,138,80,.07)",border:"1px solid rgba(45,138,80,.2)",borderRadius:14,padding:"18px 20px"}}>
                 <div style={{color:meta.color,fontSize:".75rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}> How to use it</div>
-                <p style={{color:"#b5ccb9",fontSize:"1rem",lineHeight:1.8,margin:0}}>{detail.howToUse}</p>
+                <p style={{color:"#3a4e38",fontSize:"1rem",lineHeight:1.8,margin:0}}>{detail.howToUse}</p>
               </div>
               {/* Best for */}
               {detail.bestFor?.length > 0 && (
@@ -1004,29 +1004,29 @@ function ItemDetailModal({ item, meta, pillarType, onClose, onDeepDive }) {
                   <div style={{color:meta.color,fontSize:".75rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:10}}> Best for</div>
                   <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
                     {detail.bestFor.map((b,i) => (
-                      <span key={i} style={{background:meta.bg,border:"1px solid "+meta.border,borderRadius:20,padding:"6px 14px",color:"#a0bda6",fontSize:".88rem"}}>{b}</span>
+                      <span key={i} style={{background:meta.bg,border:"1px solid "+meta.border,borderRadius:20,padding:"6px 14px",color:"#3a4e48",fontSize:".88rem"}}>{b}</span>
                     ))}
                   </div>
                 </div>
               )}
               {/* Combinations */}
               {detail.combinations?.length > 0 && (
-                <div style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.08)",borderRadius:14,padding:"18px 20px"}}>
+                <div style={{background:"#fff",border:"1px solid rgba(0,0,0,.07)",borderRadius:14,padding:"18px 20px"}}>
                   <div style={{color:meta.color,fontSize:".75rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:10}}> Combinations</div>
                   {detail.combinations.map((c,i) => (
-                    <div key={i} style={{color:"#96ad9c",fontSize:".92rem",lineHeight:1.6,marginBottom:i<detail.combinations.length-1?8:0}}> {c}</div>
+                    <div key={i} style={{color:"#5a6e58",fontSize:".92rem",lineHeight:1.6,marginBottom:i<detail.combinations.length-1?8:0}}> {c}</div>
                   ))}
                 </div>
               )}
               {/* Quick tip */}
               {detail.quickTip && (
-                <div style={{background:"linear-gradient(135deg,rgba(61,184,118,.12),rgba(20,100,55,.06))",border:"1px solid rgba(61,184,118,.25)",borderRadius:14,padding:"16px 20px",display:"flex",gap:12}}>
+                <div style={{background:"linear-gradient(135deg,rgba(45,138,80,.12),rgba(20,100,55,.06))",border:"1px solid rgba(45,138,80,.25)",borderRadius:14,padding:"16px 20px",display:"flex",gap:12}}>
                   <span style={{fontSize:22,flexShrink:0}}></span>
-                  <p style={{color:"#9eb8a4",fontSize:"1rem",lineHeight:1.7,margin:0}}>{detail.quickTip}</p>
+                  <p style={{color:"#3a4e48",fontSize:"1rem",lineHeight:1.7,margin:0}}>{detail.quickTip}</p>
                 </div>
               )}
               {/* Ask follow-up */}
-              <button onClick={()=>onDeepDive(item.name)} style={{background:"linear-gradient(135deg,#3db876,#2a7a50)",border:"none",borderRadius:12,padding:"14px",color:"#eaf0eb",fontSize:"1rem",cursor:"pointer",fontWeight:600,width:"100%",marginTop:4}}>
+              <button onClick={()=>onDeepDive(item.name)} style={{background:"linear-gradient(135deg,#2d8a50,#1e6038)",border:"none",borderRadius:12,padding:"14px",color:"#fff",fontSize:"1rem",cursor:"pointer",fontWeight:600,width:"100%",marginTop:4}}>
                 Ask a follow-up about {item.name} 
               </button>
             </div>
@@ -1041,11 +1041,11 @@ function ProtocolItem({ item, pillarType, meta, onExpand, index }) {
   try {
   if (!item || !item.name) return null;
   const C = {
-    food:     { dot:"#3db876", tagBg:"rgba(61,184,118,.15)",   tagColor:"#6fcf97",  line:"rgba(61,184,118,.2)",   headerBg:"#1e2226" },
-    exercise: { dot:"#4a9fd4", tagBg:"rgba(74,159,212,.15)",  tagColor:"#6ab4e8",  line:"rgba(74,159,212,.2)",  headerBg:"#1a2030" },
-    breath:   { dot:"#9b7fe8", tagBg:"rgba(155,127,232,.15)", tagColor:"#b89ef0",  line:"rgba(155,127,232,.2)", headerBg:"#1a1630" },
-    sleep:    { dot:"#5b9bd5", tagBg:"rgba(91,155,213,.15)",  tagColor:"#7ab0e0",  line:"rgba(91,155,213,.2)",  headerBg:"#141c2c" },
-  }[pillarType] || { dot:"#3db876", tagBg:"rgba(61,184,118,.15)", tagColor:"#6fcf97", line:"rgba(61,184,118,.2)", headerBg:"#1e2226" };
+    food:     { dot:"#1e7040", tagBg:"rgba(45,138,80,.15)",   tagColor:"#1e7040",  line:"rgba(45,138,80,.2)",   headerBg:"#edf5f0" },
+    exercise: { dot:"#1a7abf", tagBg:"rgba(26,122,191,.12)",  tagColor:"#1a7abf",  line:"rgba(26,122,191,.18)",  headerBg:"#eaf0f5" },
+    breath:   { dot:"#6b48c8", tagBg:"rgba(107,72,200,.12)", tagColor:"#6b48c8",  line:"rgba(107,72,200,.18)", headerBg:"#f0edf8" },
+    sleep:    { dot:"#2a6ab0", tagBg:"rgba(42,106,176,.12)",  tagColor:"#2a6ab0",  line:"rgba(42,106,176,.18)",  headerBg:"#eaf0f8" },
+  }[pillarType] || { dot:"#1e7040", tagBg:"rgba(45,138,80,.15)", tagColor:"#1e7040", line:"rgba(45,138,80,.2)", headerBg:"#edf5f0" };
 
   return (
     <div onClick={()=>onExpand(item, pillarType)} className="item-card"
@@ -1059,13 +1059,13 @@ function ProtocolItem({ item, pillarType, meta, onExpand, index }) {
       </div>
 
       {/* Card */}
-      <div style={{flex:1,background:"rgba(255,255,255,.02)",border:"0.5px solid "+C.line,borderRadius:14,overflow:"hidden",marginBottom:4}}>
+      <div style={{flex:1,background:"rgba(255,255,255,1)",border:"0.5px solid "+C.line,borderRadius:14,overflow:"hidden",marginBottom:4}}>
 
         {/* Coloured header: emoji + name + WHEN pill */}
         <div style={{background:C.headerBg,padding:"10px 14px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
           <div style={{display:"flex",alignItems:"center",gap:9,minWidth:0}}>
             <span style={{fontSize:20,lineHeight:1,flexShrink:0}}>{item.emoji||meta.icon}</span>
-            <span style={{color:"#dde8df",fontSize:".93rem",fontWeight:600,lineHeight:1.25}}>{item.name}</span>
+            <span style={{color:"#1a2018",fontSize:".93rem",fontWeight:600,lineHeight:1.25}}>{item.name}</span>
           </div>
           {item.when&&(
             <span style={{background:C.tagBg,color:C.tagColor,fontSize:".65rem",fontWeight:700,
@@ -1077,7 +1077,7 @@ function ProtocolItem({ item, pillarType, meta, onExpand, index }) {
         </div>
 
         {/* Benefit text */}
-        <div style={{padding:"10px 14px 0",color:"#829a88",fontSize:".87rem",lineHeight:1.65}}>
+        <div style={{padding:"10px 14px 0",color:"#5a6868",fontSize:".87rem",lineHeight:1.65}}>
           {item.benefit}
         </div>
 
@@ -1085,9 +1085,9 @@ function ProtocolItem({ item, pillarType, meta, onExpand, index }) {
         {(item.outcome||item.struggle)&&(
           <div style={{padding:"10px 14px 12px",display:"flex",alignItems:"stretch",gap:6,marginTop:6}}>
             {/* Before */}
-            <div style={{flex:"0 0 42%",background:"rgba(180,50,50,.07)",border:"0.5px solid rgba(180,60,60,.18)",borderRadius:8,padding:"7px 10px"}}>
-              <div style={{color:"rgba(220,100,100,.6)",fontSize:".6rem",fontWeight:700,textTransform:"uppercase",letterSpacing:".08em",marginBottom:3}}>Right now</div>
-              <div style={{color:"#c08888",fontSize:".8rem",lineHeight:1.4,fontStyle:"italic"}}>
+            <div style={{flex:"0 0 42%",background:"#fdf0f0",border:"0.5px solid #f0c8c8",borderRadius:8,padding:"7px 10px"}}>
+              <div style={{color:"rgba(192,57,43,.7)",fontSize:".6rem",fontWeight:700,textTransform:"uppercase",letterSpacing:".08em",marginBottom:3}}>Right now</div>
+              <div style={{color:"#a85050",fontSize:".8rem",lineHeight:1.4,fontStyle:"italic"}}>
                 {item.struggle||"Dealing with this issue"}
               </div>
             </div>
@@ -1098,7 +1098,7 @@ function ProtocolItem({ item, pillarType, meta, onExpand, index }) {
               <div style={{color:C.tagColor,fontSize:".6rem",fontWeight:700,textTransform:"uppercase",letterSpacing:".08em",marginBottom:3}}>
                 {item.timeframe||"With consistency"}
               </div>
-              <div style={{color:"#c8d9cb",fontSize:".8rem",lineHeight:1.4,fontWeight:500}}>
+              <div style={{color:"#2a3838",fontSize:".8rem",lineHeight:1.4,fontWeight:500}}>
                 {item.outcome||"You will feel the difference"}
               </div>
             </div>
@@ -1162,24 +1162,24 @@ function RecipeList({ recipes, activeRecipe, setActiveRecipe, msgIdx }) {
   if(!recipes?.length||!Array.isArray(recipes))return null;
   return(
     <div style={{marginBottom:18}}>
-      <div style={{color:"#78967e",fontSize:".85rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:12}}> Recipes & protocols</div>
+      <div style={{color:"#5a6868",fontSize:".85rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:12}}> Recipes & protocols</div>
       {recipes.map((r,i)=>{
         const rid=msgIdx+"-"+i;
         const open=activeRecipe===rid;
         return(
-          <div key={i} className="rc" style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(61,184,118,.18)",borderRadius:14,overflow:"hidden",marginBottom:10,transition:"border-color .18s"}}>
+          <div key={i} className="rc" style={{background:"#fff",border:"1px solid rgba(45,138,80,.18)",borderRadius:14,overflow:"hidden",marginBottom:10,transition:"border-color .18s"}}>
             <button onClick={()=>setActiveRecipe(open?null:rid)} style={{width:"100%",textAlign:"left",background:"transparent",border:"none",padding:"16px 18px",cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <span style={{color:"#c2d4c5",fontSize:"clamp(1rem,1.6vw,1.12rem)",fontWeight:600}}>{r.emoji||""} {r.name}</span>
-              <span style={{color:"#7d9483",fontSize:".88rem",transform:open?"rotate(180deg)":"rotate(0deg)",transition:"transform .2s",display:"inline-block"}}></span>
+              <span style={{color:"#2a3838",fontSize:"clamp(1rem,1.6vw,1.12rem)",fontWeight:600}}>{r.emoji||""} {r.name}</span>
+              <span style={{color:"#5a6868",fontSize:".88rem",transform:open?"rotate(180deg)":"rotate(0deg)",transition:"transform .2s",display:"inline-block"}}></span>
             </button>
             {open&&(
-              <div style={{padding:"0 18px 18px",borderTop:"1px solid rgba(61,184,118,.1)"}}>
-                {r.ingredients?.length>0&&<div style={{marginTop:14,marginBottom:12}}><div style={{color:"#7d9483",fontSize:".78rem",letterSpacing:".08em",textTransform:"uppercase",marginBottom:8}}>Ingredients</div><div style={{display:"flex",flexWrap:"wrap",gap:6}}>{r.ingredients.map((g,j)=><span key={j} style={{background:"rgba(61,184,118,.1)",border:"1px solid rgba(61,184,118,.2)",borderRadius:20,padding:"5px 12px",color:"#9eb8a4",fontSize:".9rem"}}>{g}</span>)}</div></div>}
-                <div style={{color:"#7d9483",fontSize:".78rem",letterSpacing:".08em",textTransform:"uppercase",marginBottom:8}}>Steps</div>
+              <div style={{padding:"0 18px 18px",borderTop:"1px solid rgba(45,138,80,.1)"}}>
+                {r.ingredients?.length>0&&<div style={{marginTop:14,marginBottom:12}}><div style={{color:"#5a6868",fontSize:".78rem",letterSpacing:".08em",textTransform:"uppercase",marginBottom:8}}>Ingredients</div><div style={{display:"flex",flexWrap:"wrap",gap:6}}>{r.ingredients.map((g,j)=><span key={j} style={{background:"rgba(45,138,80,.1)",border:"1px solid rgba(45,138,80,.2)",borderRadius:20,padding:"5px 12px",color:"#3a4e48",fontSize:".9rem"}}>{g}</span>)}</div></div>}
+                <div style={{color:"#5a6868",fontSize:".78rem",letterSpacing:".08em",textTransform:"uppercase",marginBottom:8}}>Steps</div>
                 {(r.steps||[]).map((s,j)=>(
                   <div key={j} style={{display:"flex",gap:12,marginBottom:10,alignItems:"flex-start"}}>
-                    <span style={{minWidth:26,height:26,borderRadius:"50%",background:"rgba(61,184,118,.2)",color:"#6fcf97",display:"flex",alignItems:"center",justifyContent:"center",fontSize:".82rem",fontWeight:700,flexShrink:0,marginTop:2}}>{j+1}</span>
-                    <span style={{color:"#9eb8a4",fontSize:"clamp(.92rem,1.4vw,1rem)",lineHeight:1.65}}>{s}</span>
+                    <span style={{minWidth:26,height:26,borderRadius:"50%",background:"rgba(45,138,80,.2)",color:"#1e7040",display:"flex",alignItems:"center",justifyContent:"center",fontSize:".82rem",fontWeight:700,flexShrink:0,marginTop:2}}>{j+1}</span>
+                    <span style={{color:"#3a4e48",fontSize:"clamp(.92rem,1.4vw,1rem)",lineHeight:1.65}}>{s}</span>
                   </div>
                 ))}
               </div>
@@ -1235,7 +1235,7 @@ function ResultCard({ result, isLast, onGetMore, activeRecipe, setActiveRecipe, 
   // If truly nothing  show a soft fallback instead of blank green
   if (!ack && !pillars.length && !cards.length && !recipes.length && !tip) {
     return (
-      <div style={{padding:"16px 20px",background:"rgba(61,184,118,.06)",borderRadius:12,border:"1px solid rgba(61,184,118,.15)",color:"#88a88e",fontSize:".95rem",lineHeight:1.6}}>
+      <div style={{padding:"16px 20px",background:"rgba(45,138,80,.06)",borderRadius:12,border:"1px solid rgba(45,138,80,.15)",color:"#5a6e58",fontSize:".95rem",lineHeight:1.6}}>
         Your wellness plan is ready  scroll up to see your results.
       </div>
     );
@@ -1319,9 +1319,9 @@ function ResultCard({ result, isLast, onGetMore, activeRecipe, setActiveRecipe, 
     } catch(renderErr) {
       console.error("ResultCard render error:", renderErr);
       return (
-        <div style={{padding:"16px 20px",background:"rgba(61,184,118,.06)",borderRadius:12,border:"1px solid rgba(61,184,118,.2)"}}>
-          <div style={{color:"#9eb8a4",fontSize:".95rem",marginBottom:4}}> Could not display this result.</div>
-          {ack && <div style={{color:"#7d9483",fontSize:".9rem",lineHeight:1.6,fontStyle:"italic"}}>{ack}</div>}
+        <div style={{padding:"16px 20px",background:"rgba(45,138,80,.06)",borderRadius:12,border:"1px solid rgba(45,138,80,.2)"}}>
+          <div style={{color:"#3a4e48",fontSize:".95rem",marginBottom:4}}> Could not display this result.</div>
+          {ack && <div style={{color:"#5a6868",fontSize:".9rem",lineHeight:1.6,fontStyle:"italic"}}>{ack}</div>}
         </div>
       );
     }
@@ -1367,41 +1367,41 @@ function PricingPage({ onBack, user, onCreditsAdded }) {
     }
   };;
   return(
-    <div style={{minHeight:"100vh",background:"#16181a",color:"#dde3de",fontFamily:"'Georgia',serif"}}>
+    <div style={{minHeight:"100vh",background:"#faf8f5",color:"#1a2018",fontFamily:"'Georgia',serif"}}>
       <div style={{position:"relative",zIndex:1,maxWidth:1060,margin:"0 auto",padding:"0 22px 90px"}}>
         <div style={{padding:"24px 0",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-          <button onClick={onBack} style={{background:"none",border:"none",color:"#6a7e6e",fontSize:".82rem",cursor:"pointer"}}> Back</button>
+          <button onClick={onBack} style={{background:"none",border:"none",color:"#4a5858",fontSize:".82rem",cursor:"pointer"}}> Back</button>
 
         </div>
         <div style={{textAlign:"center",padding:"52px 0 60px",animation:"fadeUp .6s ease"}}>
-          <div style={{display:"inline-block",background:"rgba(61,184,118,.1)",border:"1px solid rgba(61,184,118,.22)",borderRadius:40,padding:"5px 17px",fontSize:".7rem",letterSpacing:".18em",textTransform:"uppercase",color:"#6fcf97",marginBottom:22}}>Simple, honest pricing</div>
-          <h1 style={{fontSize:"clamp(2.2rem,5.5vw,3.6rem)",fontWeight:400,color:"#c8d9cb",lineHeight:1.15,letterSpacing:"-.02em",marginBottom:14}}>Eat well. Move well.<br/><em style={{color:"#6fcf97"}}>Start for 3.</em></h1>
-          <p style={{color:"#7d9483",fontSize:"clamp(.88rem,2vw,.98rem)",maxWidth:440,margin:"0 auto",lineHeight:1.8}}>Food, fitness, breathwork and sleep  all in one place.</p>
+          <div style={{display:"inline-block",background:"rgba(45,138,80,.1)",border:"1px solid rgba(45,138,80,.22)",borderRadius:40,padding:"5px 17px",fontSize:".7rem",letterSpacing:".18em",textTransform:"uppercase",color:"#1e7040",marginBottom:22}}>Simple, honest pricing</div>
+          <h1 style={{fontSize:"clamp(2.2rem,5.5vw,3.6rem)",fontWeight:400,color:"#2a3838",lineHeight:1.15,letterSpacing:"-.02em",marginBottom:14}}>Eat well. Move well.<br/><em style={{color:"#1e7040"}}>Start for 3.</em></h1>
+          <p style={{color:"#5a6868",fontSize:"clamp(.88rem,2vw,.98rem)",maxWidth:440,margin:"0 auto",lineHeight:1.8}}>Food, fitness, breathwork and sleep  all in one place.</p>
         </div>
         <div className="np-tier-grid" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(270px,1fr))",gap:18,animation:"fadeUp .6s ease .1s both"}}>
           {TIERS.map((t,i)=>(
-            <div key={t.name} className="tier-card" style={{position:"relative",background:t.highlight?"linear-gradient(155deg,rgba(61,184,118,.13),rgba(15,55,28,.18))":"rgba(255,255,255,.03)",border:t.highlight?"1px solid rgba(61,184,118,.38)":"1px solid rgba(255,255,255,.07)",borderRadius:22,padding:"34px 28px",display:"flex",flexDirection:"column",animation:"fadeUp .5s ease "+(.1+i*.09)+"s both"}}>
-              {t.badge&&<div style={{position:"absolute",top:-13,left:"50%",transform:"translateX(-50%)",background:"linear-gradient(135deg,#3db876,#2a7a50)",borderRadius:40,padding:"4px 16px",fontSize:".76rem",letterSpacing:".11em",textTransform:"uppercase",color:"#eaf0eb",fontWeight:600,whiteSpace:"nowrap",animation:"pulseRing 2.5s ease infinite"}}> {t.badge}</div>}
-              {user&&user.tier&&(user.tier.toLowerCase()===t.name.toLowerCase()||user.tier===t.name)&&<div style={{position:"absolute",top:-13,left:"50%",transform:"translateX(-50%)",background:"rgba(61,184,118,.18)",border:"1px solid rgba(61,184,118,.4)",borderRadius:40,padding:"4px 16px",fontSize:".76rem",letterSpacing:".11em",textTransform:"uppercase",color:"#6fcf97",fontWeight:600,whiteSpace:"nowrap"}}> Current plan</div>}
-              <div style={{fontSize:".78rem",letterSpacing:".14em",textTransform:"uppercase",color:t.highlight?"#6fcf97":"#2d3236",marginBottom:16}}>{t.name}</div>
-              <div style={{marginBottom:4}}><span style={{fontSize:"clamp(2.6rem,5vw,3.2rem)",fontWeight:400,color:"#c8d9cb",letterSpacing:"-.03em",lineHeight:1}}>{t.price}</span><span style={{color:"#2d3236",fontSize:".78rem",marginLeft:5}}>{t.per}</span></div>
-              <div style={{color:"#a0bda6",fontSize:".92rem",marginBottom:4}}>{t.searches}</div>
-              <div style={{display:"inline-block",background:"rgba(61,184,118,.07)",border:"1px solid rgba(61,184,118,.14)",borderRadius:20,padding:"3px 12px",fontSize:".8rem",color:"#7d9483",marginBottom:20,alignSelf:"flex-start"}}>{t.rate}</div>
-              <p style={{color:"#2d3236",fontSize:".9rem",lineHeight:1.7,marginBottom:22,fontStyle:"italic"}}>{t.desc}</p>
-              <div style={{display:"flex",flexDirection:"column",gap:9,marginBottom:28,flex:1}}>{t.features.map((f,j)=><div key={j} style={{display:"flex",gap:8,alignItems:"flex-start"}}><span style={{color:"#3db876",fontSize:".82rem",marginTop:1,flexShrink:0}}></span><span style={{color:"#88a88e",fontSize:".9rem",lineHeight:1.55}}>{f}</span></div>)}</div>
-              <button className="cta-btn" onClick={()=>openCheckout(t)} disabled={processing===t.stripeId||(user&&user.tier&&user.tier.toLowerCase()===t.name.toLowerCase())} style={{background:t.highlight?"linear-gradient(135deg,#3db876,#2a7a50)":"rgba(255,255,255,.05)",border:t.highlight?"none":"1px solid rgba(61,184,118,.22)",borderRadius:12,padding:"13px 20px",color:t.highlight?"#eaf0eb":"#78967e",fontSize:".86rem",cursor:processing===t.stripeId?"wait":"pointer",fontWeight:t.highlight?600:400,width:"100%",boxShadow:t.highlight?"0 4px 20px rgba(61,184,118,.22)":"none",opacity:processing&&processing!==t.paddleId?.6:1}}>{processing===t.stripeId?"Processing":(user&&user.tier&&user.tier.toLowerCase()===t.name.toLowerCase()?"Current plan ":t.cta+" ")}</button>
+            <div key={t.name} className="tier-card" style={{position:"relative",background:t.highlight?"linear-gradient(155deg,rgba(45,138,80,.13),rgba(15,55,28,.18))":"#fff",border:t.highlight?"1px solid rgba(42,138,82,.38)":"1px solid rgba(0,0,0,.06)",borderRadius:22,padding:"34px 28px",display:"flex",flexDirection:"column",animation:"fadeUp .5s ease "+(.1+i*.09)+"s both"}}>
+              {t.badge&&<div style={{position:"absolute",top:-13,left:"50%",transform:"translateX(-50%)",background:"linear-gradient(135deg,#2d8a50,#1e6038)",borderRadius:40,padding:"4px 16px",fontSize:".76rem",letterSpacing:".11em",textTransform:"uppercase",color:"#1a2018",fontWeight:600,whiteSpace:"nowrap",animation:"pulseRing 2.5s ease infinite"}}> {t.badge}</div>}
+              {user&&user.tier&&(user.tier.toLowerCase()===t.name.toLowerCase()||user.tier===t.name)&&<div style={{position:"absolute",top:-13,left:"50%",transform:"translateX(-50%)",background:"rgba(45,138,80,.18)",border:"1px solid rgba(45,138,80,.4)",borderRadius:40,padding:"4px 16px",fontSize:".76rem",letterSpacing:".11em",textTransform:"uppercase",color:"#1e7040",fontWeight:600,whiteSpace:"nowrap"}}> Current plan</div>}
+              <div style={{fontSize:".78rem",letterSpacing:".14em",textTransform:"uppercase",color:t.highlight?"#1e7040":"#ddd9d3",marginBottom:16}}>{t.name}</div>
+              <div style={{marginBottom:4}}><span style={{fontSize:"clamp(2.6rem,5vw,3.2rem)",fontWeight:400,color:"#2a3838",letterSpacing:"-.03em",lineHeight:1}}>{t.price}</span><span style={{color:"#4a5858",fontSize:".78rem",marginLeft:5}}>{t.per}</span></div>
+              <div style={{color:"#3a4e48",fontSize:".92rem",marginBottom:4}}>{t.searches}</div>
+              <div style={{display:"inline-block",background:"rgba(45,138,80,.07)",border:"1px solid rgba(42,138,82,.14)",borderRadius:20,padding:"3px 12px",fontSize:".8rem",color:"#5a6868",marginBottom:20,alignSelf:"flex-start"}}>{t.rate}</div>
+              <p style={{color:"#4a5858",fontSize:".9rem",lineHeight:1.7,marginBottom:22,fontStyle:"italic"}}>{t.desc}</p>
+              <div style={{display:"flex",flexDirection:"column",gap:9,marginBottom:28,flex:1}}>{t.features.map((f,j)=><div key={j} style={{display:"flex",gap:8,alignItems:"flex-start"}}><span style={{color:"#1e7040",fontSize:".82rem",marginTop:1,flexShrink:0}}></span><span style={{color:"#5a6e58",fontSize:".9rem",lineHeight:1.55}}>{f}</span></div>)}</div>
+              <button className="cta-btn" onClick={()=>openCheckout(t)} disabled={processing===t.stripeId||(user&&user.tier&&user.tier.toLowerCase()===t.name.toLowerCase())} style={{background:t.highlight?"linear-gradient(135deg,#2d8a50,#1e6038)":"#f5f2ee",border:t.highlight?"none":"1px solid rgba(45,138,80,.22)",borderRadius:12,padding:"13px 20px",color:t.highlight?"#1a2018":"#5a6868",fontSize:".86rem",cursor:processing===t.stripeId?"wait":"pointer",fontWeight:t.highlight?600:400,width:"100%",boxShadow:t.highlight?"0 4px 20px rgba(45,138,80,.22)":"none",opacity:processing&&processing!==t.paddleId?.6:1}}>{processing===t.stripeId?"Processing":(user&&user.tier&&user.tier.toLowerCase()===t.name.toLowerCase()?"Current plan ":t.cta+" ")}</button>
             </div>
           ))}
         </div>
         <div style={{textAlign:"center",marginTop:42,display:"flex",justifyContent:"center",gap:24,flexWrap:"wrap"}}>
-          {[" Secure via Stripe"," Cancel anytime"," Food   Fitness   Breath   Sleep"].map((s,i)=><span key={i} style={{color:"#242829",fontSize:".86rem"}}>{s}</span>)}
+          {[" Secure via Stripe"," Cancel anytime"," Food   Fitness   Breath   Sleep"].map((s,i)=><span key={i} style={{color:"#5a6868",fontSize:".86rem"}}>{s}</span>)}
         </div>
         <div style={{maxWidth:580,margin:"64px auto 0"}}>
-          <h2 style={{textAlign:"center",fontSize:"1.45rem",fontWeight:400,color:"#a0bda6",marginBottom:32}}>Questions</h2>
+          <h2 style={{textAlign:"center",fontSize:"1.45rem",fontWeight:400,color:"#3a4e48",marginBottom:32}}>Questions</h2>
           {[["What does one search cover?","Each search returns food recommendations, exercises, breathwork techniques and sleep tips  all relevant to your query. 1 credit covers all pillars."],["Do credits roll over?","Starter credits never expire. Monthly plan credits reset on your billing date."],["Can I switch plans?","Yes  upgrade or downgrade any time. Upgrading between monthly plans (Thrive  Optimise) is prorated automatically. Upgrading from the one-time Starter pack to a monthly plan charges the full monthly price."],["How do I cancel?","One click in your account settings. No calls, no forms, no guilt."]].map(([q,a],i)=>(
-            <div key={i} style={{borderBottom:"1px solid rgba(61,184,118,.09)",padding:"18px 0"}}>
-              <div style={{color:"#a0bda6",fontSize:"1rem",marginBottom:6}}>{q}</div>
-              <div style={{color:"#2d3236",fontSize:".9rem",lineHeight:1.75}}>{a}</div>
+            <div key={i} style={{borderBottom:"1px solid rgba(42,138,82,.09)",padding:"18px 0"}}>
+              <div style={{color:"#3a4e48",fontSize:"1rem",marginBottom:6}}>{q}</div>
+              <div style={{color:"#4a5858",fontSize:".9rem",lineHeight:1.75}}>{a}</div>
             </div>
           ))}
         </div>
@@ -1412,10 +1412,10 @@ function PricingPage({ onBack, user, onCreditsAdded }) {
 
 function SearchBar({ value, onChange, onSubmit, loading, hasConvo, placeholder }) {
   return(
-    <div className="search-ring" style={{background:"rgba(255,255,255,.055)",border:"1.5px solid rgba(61,184,118,.28)",borderRadius:28,padding:"clamp(6px,1vw,10px) clamp(6px,1vw,10px) clamp(6px,1vw,10px) clamp(18px,2vw,26px)",display:"flex",alignItems:"center",gap:10,transition:"border-color .2s, box-shadow .2s",boxShadow:"0 2px 24px rgba(61,184,118,.07)"}}>
+    <div className="search-ring" style={{background:"rgba(255,255,255,.055)",border:"1.5px solid rgba(42,138,82,.28)",borderRadius:28,padding:"clamp(6px,1vw,10px) clamp(6px,1vw,10px) clamp(6px,1vw,10px) clamp(18px,2vw,26px)",display:"flex",alignItems:"center",gap:10,transition:"border-color .2s, box-shadow .2s",boxShadow:"0 2px 24px rgba(45,138,80,.07)"}}>
       <span style={{fontSize:16,opacity:.4,flexShrink:0}}></span>
-      <input value={value} onChange={e=>onChange(e.target.value)} onKeyDown={e=>e.key==="Enter"&&!loading&&onSubmit(value)} placeholder={placeholder||"How are you feeling? What do you want to improve?"} style={{flex:1,background:"transparent",border:"none",outline:"none",color:"#c2d4c5",fontSize:"clamp(1rem,1.7vw,1.15rem)",padding:"clamp(12px,1.5vw,17px) 0",caretColor:"#6fcf97",minWidth:0}}/>
-      <button onClick={()=>onSubmit(value)} disabled={!value.trim()||loading} style={{background:value.trim()&&!loading?"linear-gradient(135deg,#3db876,#2a7a50)":"rgba(61,184,118,.13)",border:"none",borderRadius:"clamp(14px,1.5vw,20px)",padding:"clamp(10px,1.2vw,15px) clamp(18px,2.5vw,32px)",color:"#eaf0eb",fontSize:"clamp(.96rem,1.5vw,1.1rem)",cursor:value.trim()&&!loading?"pointer":"default",fontWeight:600,whiteSpace:"nowrap",transition:"background .18s",flexShrink:0}}>
+      <input value={value} onChange={e=>onChange(e.target.value)} onKeyDown={e=>e.key==="Enter"&&!loading&&onSubmit(value)} placeholder={placeholder||"How are you feeling? What do you want to improve?"} style={{flex:1,background:"transparent",border:"none",outline:"none",color:"#2a3838",fontSize:"clamp(1rem,1.7vw,1.15rem)",padding:"clamp(12px,1.5vw,17px) 0",caretColor:"#1e7040",minWidth:0}}/>
+      <button onClick={()=>onSubmit(value)} disabled={!value.trim()||loading} style={{background:value.trim()&&!loading?"linear-gradient(135deg,#2d8a50,#1e6038)":"rgba(45,138,80,.13)",border:"none",borderRadius:"clamp(14px,1.5vw,20px)",padding:"clamp(10px,1.2vw,15px) clamp(18px,2.5vw,32px)",color:"#1a2018",fontSize:"clamp(.96rem,1.5vw,1.1rem)",cursor:value.trim()&&!loading?"pointer":"default",fontWeight:600,whiteSpace:"nowrap",transition:"background .18s",flexShrink:0}}>
         {loading?<span style={{display:"inline-block",animation:"spin 1s linear infinite"}}></span>:(hasConvo?"Ask ":"Search")}
       </button>
     </div>
@@ -1431,7 +1431,7 @@ function ChipSection({ onQuery }) {
     <div>
       <div style={{display:"flex",gap:6,justifyContent:"center",marginBottom:14,flexWrap:"wrap",padding:"0 20px"}}>
         {pillars.map(p=>{const m=PILLAR_META[p];const active=activePillar===p;return(
-          <button key={p} className="pillar-tab" onClick={()=>setActivePillar(p)} style={{background:active?m.bg:"rgba(255,255,255,.04)",border:"1px solid "+(active?m.border:"rgba(255,255,255,.1)"),borderRadius:30,padding:"7px 16px",color:active?m.color:"#2d3236",fontSize:".84rem",cursor:"pointer",display:"flex",alignItems:"center",gap:6,transition:"all .18s"}}>
+          <button key={p} className="pillar-tab" onClick={()=>setActivePillar(p)} style={{background:active?m.bg:"#f5f2ee",border:"1px solid "+(active?m.border:"rgba(0,0,0,.08)"),borderRadius:30,padding:"7px 16px",color:active?m.color:"#4a5858",fontSize:".84rem",cursor:"pointer",display:"flex",alignItems:"center",gap:6,transition:"all .18s"}}>
             <span>{m.icon}</span><span>{m.label}</span>
           </button>
         );})}
@@ -1466,29 +1466,29 @@ function HistoryModal({ onClose, onLoad, user }) {
   return (
     <Modal onClose={onClose} maxWidth={480}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
-        <span style={{color:"#a0bda6",fontSize:"1.05rem"}}> Conversation history</span>
-        <button onClick={onClose} style={{background:"none",border:"none",color:"#7d9483",cursor:"pointer",fontSize:"1.1rem"}}></button>
+        <span style={{color:"#3a4e48",fontSize:"1.05rem"}}> Conversation history</span>
+        <button onClick={onClose} style={{background:"none",border:"none",color:"#5a6868",cursor:"pointer",fontSize:"1.1rem"}}></button>
       </div>
       {convs.length===0
-        ? <div style={{color:"#2d3236",fontSize:".9rem",textAlign:"center",padding:"30px 0",fontStyle:"italic"}}>No saved conversations yet.<br/>Complete a search and it will appear here.</div>
+        ? <div style={{color:"#4a5858",fontSize:".9rem",textAlign:"center",padding:"30px 0",fontStyle:"italic"}}>No saved conversations yet.<br/>Complete a search and it will appear here.</div>
         : <div style={{display:"flex",flexDirection:"column",gap:7,maxHeight:400,overflowY:"auto"}}>
             {convs.map(c=>(
               <div key={c.id} onClick={()=>{onLoad(c.messages);onClose();}}
-                style={{background:"rgba(61,184,118,.06)",border:"1px solid rgba(61,184,118,.16)",borderRadius:12,padding:"12px 14px",cursor:"pointer",transition:"all .15s",display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}}
-                onMouseEnter={e=>e.currentTarget.style.background="rgba(61,184,118,.12)"}
-                onMouseLeave={e=>e.currentTarget.style.background="rgba(61,184,118,.06)"}>
+                style={{background:"rgba(45,138,80,.06)",border:"1px solid rgba(45,138,80,.16)",borderRadius:12,padding:"12px 14px",cursor:"pointer",transition:"all .15s",display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}}
+                onMouseEnter={e=>e.currentTarget.style.background="rgba(30,112,64,.1)"}
+                onMouseLeave={e=>e.currentTarget.style.background="rgba(45,138,80,.06)"}>
                 <div style={{flex:1,minWidth:0}}>
-                  <div style={{color:"#c2d4c5",fontSize:".88rem",lineHeight:1.5,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.title}</div>
-                  <div style={{color:"#2d3236",fontSize:".74rem",marginTop:3}}>{fmt(c.date)}  {c.messages.filter(m=>m.role==="user").length} search{c.messages.filter(m=>m.role==="user").length!==1?"es":""}</div>
+                  <div style={{color:"#2a3838",fontSize:".88rem",lineHeight:1.5,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.title}</div>
+                  <div style={{color:"#4a5858",fontSize:".74rem",marginTop:3}}>{fmt(c.date)}  {c.messages.filter(m=>m.role==="user").length} search{c.messages.filter(m=>m.role==="user").length!==1?"es":""}</div>
                 </div>
-                <button onClick={(e)=>del(c.id,e)} style={{background:"none",border:"none",color:"#2d3236",cursor:"pointer",fontSize:".82rem",padding:"2px 4px",flexShrink:0,borderRadius:6,transition:"color .15s"}}
-                  onMouseEnter={e=>e.currentTarget.style.color="#f09090"}
-                  onMouseLeave={e=>e.currentTarget.style.color="#2d3236"}></button>
+                <button onClick={(e)=>del(c.id,e)} style={{background:"none",border:"none",color:"#4a5858",cursor:"pointer",fontSize:".82rem",padding:"2px 4px",flexShrink:0,borderRadius:6,transition:"color .15s"}}
+                  onMouseEnter={e=>e.currentTarget.style.color="#c84040"}
+                  onMouseLeave={e=>e.currentTarget.style.color="#ddd9d3"}></button>
               </div>
             ))}
           </div>
       }
-      {convs.length>0&&<div style={{color:"#242829",fontSize:".74rem",textAlign:"center",marginTop:14,fontStyle:"italic"}}>Click any conversation to restore it</div>}
+      {convs.length>0&&<div style={{color:"#5a6868",fontSize:".74rem",textAlign:"center",marginTop:14,fontStyle:"italic"}}>Click any conversation to restore it</div>}
     </Modal>
   );
 }
@@ -1505,36 +1505,36 @@ function FnfLogo({ size = 40, animated = false }) {
       <path
         d="M50 88 C28 72 14 56 14 40 C14 26 24 18 36 20 C41 21 46 24 50 28 C54 24 59 21 64 20 C76 18 86 26 86 40 C86 56 72 72 50 88Z"
         fill="none"
-        stroke="#3db876"
+        stroke="#1e7040"
         strokeWidth="5"
         strokeLinejoin="round"
       />
 
       {/* -- Leaf -- */}
-      <ellipse cx="44" cy="13" rx="6" ry="10" transform="rotate(-30 44 13)" fill="#3db876" opacity="0.9"/>
+      <ellipse cx="44" cy="13" rx="6" ry="10" transform="rotate(-30 44 13)" fill="#1e7040" opacity="0.9"/>
 
       {/* -- Stem -- */}
-      <path d="M50 20 C50 17 48 13 46 11" stroke="#6a7e6e" strokeWidth="2.5" strokeLinecap="round"/>
+      <path d="M50 20 C50 17 48 13 46 11" stroke="#5a6868" strokeWidth="2.5" strokeLinecap="round"/>
 
       {/* -- Fork (left) -- */}
       {/* tines */}
-      <line x1="33" y1="34" x2="33" y2="42" stroke="#6fcf97" strokeWidth="2" strokeLinecap="round"/>
-      <line x1="36" y1="34" x2="36" y2="42" stroke="#6fcf97" strokeWidth="2" strokeLinecap="round"/>
-      <line x1="39" y1="34" x2="39" y2="42" stroke="#6fcf97" strokeWidth="2" strokeLinecap="round"/>
+      <line x1="33" y1="34" x2="33" y2="42" stroke="#1e7040" strokeWidth="2" strokeLinecap="round"/>
+      <line x1="36" y1="34" x2="36" y2="42" stroke="#1e7040" strokeWidth="2" strokeLinecap="round"/>
+      <line x1="39" y1="34" x2="39" y2="42" stroke="#1e7040" strokeWidth="2" strokeLinecap="round"/>
       {/* neck */}
-      <path d="M33 42 Q36 46 36 50 L36 62" stroke="#6fcf97" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+      <path d="M33 42 Q36 46 36 50 L36 62" stroke="#1e7040" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
 
       {/* -- Dumbbell (right) -- */}
       {/* bar */}
-      <line x1="55" y1="48" x2="72" y2="48" stroke="#a0bda6" strokeWidth="3" strokeLinecap="round"/>
+      <line x1="55" y1="48" x2="72" y2="48" stroke="#3a4e48" strokeWidth="3" strokeLinecap="round"/>
       {/* left weight plate */}
       <rect x="52" y="42" width="6" height="12" rx="2" fill="#7d9483"/>
       {/* right weight plate */}
       <rect x="69" y="42" width="6" height="12" rx="2" fill="#7d9483"/>
       {/* left collar */}
-      <rect x="57" y="44" width="3" height="8" rx="1" fill="#3db876"/>
+      <rect x="57" y="44" width="3" height="8" rx="1" fill="#1e7040"/>
       {/* right collar */}
-      <rect x="67" y="44" width="3" height="8" rx="1" fill="#3db876"/>
+      <rect x="67" y="44" width="3" height="8" rx="1" fill="#1e7040"/>
     </svg>
   );
 }
@@ -1544,29 +1544,29 @@ function SignupGateModal({ onSignup, onLogin, onClose }) {
   return (
     <div style={{position:"fixed",inset:0,zIndex:500,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px"}}>
       <div style={{position:"absolute",inset:0,background:"rgba(5,14,7,.92)",backdropFilter:"blur(12px)"}} onClick={onClose}/>
-      <div style={{position:"relative",width:"100%",maxWidth:420,background:"linear-gradient(160deg,#0d2010,#091509)",border:"1px solid rgba(61,184,118,.3)",borderRadius:24,overflow:"hidden",boxShadow:"0 32px 80px rgba(0,0,0,.7)"}}>
+      <div style={{position:"relative",width:"100%",maxWidth:420,background:"linear-gradient(160deg,#0d2010,#091509)",border:"1px solid rgba(45,138,80,.3)",borderRadius:24,overflow:"hidden",boxShadow:"0 32px 80px rgba(0,0,0,.7)"}}>
         <div style={{height:4,background:"linear-gradient(90deg,#3db876,#6fcf97,#3db876)"}}/>
         <div style={{padding:"36px 32px 40px"}}>
           <div style={{textAlign:"center",marginBottom:24}}>
-            <div style={{width:64,height:64,borderRadius:"50%",background:"rgba(61,184,118,.15)",border:"1px solid rgba(61,184,118,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,margin:"0 auto 16px"}}></div>
-            <div style={{color:"#eaf0eb",fontSize:"1.5rem",fontWeight:700,fontFamily:"Georgia,serif",marginBottom:8}}>You have used your 3 free searches</div>
-            <div style={{color:"#7d9483",fontSize:".95rem",lineHeight:1.7}}>Create a free account to keep going  unlimited searches, saved history, and personalised plans.</div>
+            <div style={{width:64,height:64,borderRadius:"50%",background:"rgba(45,138,80,.15)",border:"1px solid rgba(45,138,80,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,margin:"0 auto 16px"}}></div>
+            <div style={{color:"#1a2018",fontSize:"1.5rem",fontWeight:700,fontFamily:"Georgia,serif",marginBottom:8}}>You have used your 3 free searches</div>
+            <div style={{color:"#5a6868",fontSize:".95rem",lineHeight:1.7}}>Create a free account to keep going  unlimited searches, saved history, and personalised plans.</div>
           </div>
           <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:28}}>
             {[["v","Unlimited searches - always free"],["v","Saved conversation history"],["v","Personalised to your profile"],["v","Weekly wellness plans"]].map(([icon,text],i)=>(
-              <div key={i} style={{display:"flex",alignItems:"center",gap:12,background:"rgba(61,184,118,.07)",border:"1px solid rgba(61,184,118,.15)",borderRadius:12,padding:"12px 16px"}}>
+              <div key={i} style={{display:"flex",alignItems:"center",gap:12,background:"rgba(45,138,80,.07)",border:"1px solid rgba(45,138,80,.15)",borderRadius:12,padding:"12px 16px"}}>
                 <span style={{fontSize:20}}>{icon}</span>
-                <span style={{color:"#9eb8a4",fontSize:".95rem"}}>{text}</span>
+                <span style={{color:"#3a4e48",fontSize:".95rem"}}>{text}</span>
               </div>
             ))}
           </div>
-          <button onClick={onSignup} style={{width:"100%",padding:"16px",background:"linear-gradient(135deg,#3db876,#2a7a50)",border:"none",borderRadius:14,color:"#eaf0eb",fontSize:"1.05rem",fontWeight:700,cursor:"pointer",marginBottom:12,fontFamily:"Georgia,serif"}}>
+          <button onClick={onSignup} style={{width:"100%",padding:"16px",background:"linear-gradient(135deg,#2d8a50,#1e6038)",border:"none",borderRadius:14,color:"#1a2018",fontSize:"1.05rem",fontWeight:700,cursor:"pointer",marginBottom:12,fontFamily:"Georgia,serif"}}>
             Create free account 
           </button>
-          <button onClick={onLogin} style={{width:"100%",padding:"14px",background:"transparent",border:"1px solid rgba(61,184,118,.25)",borderRadius:14,color:"#7d9483",fontSize:".95rem",cursor:"pointer",fontFamily:"Georgia,serif"}}>
+          <button onClick={onLogin} style={{width:"100%",padding:"14px",background:"transparent",border:"1px solid rgba(45,138,80,.25)",borderRadius:14,color:"#5a6868",fontSize:".95rem",cursor:"pointer",fontFamily:"Georgia,serif"}}>
             I already have an account
           </button>
-          <div style={{textAlign:"center",marginTop:16,color:"#2d3236",fontSize:".8rem"}}>Free forever  No card required</div>
+          <div style={{textAlign:"center",marginTop:16,color:"#4a5858",fontSize:".8rem"}}>Free forever  No card required</div>
         </div>
       </div>
     </div>
@@ -1582,11 +1582,11 @@ class SafeResult extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{padding:"16px 20px",background:"rgba(61,184,118,.06)",borderRadius:12,border:"1px solid rgba(61,184,118,.2)",display:"flex",alignItems:"center",gap:12}}>
+        <div style={{padding:"16px 20px",background:"rgba(45,138,80,.06)",borderRadius:12,border:"1px solid rgba(45,138,80,.2)",display:"flex",alignItems:"center",gap:12}}>
           <span style={{fontSize:20}}></span>
           <div>
-            <div style={{color:"#9eb8a4",fontSize:".95rem",marginBottom:4}}>Something went wrong displaying this result.</div>
-            <button onClick={()=>this.setState({hasError:false,errorMsg:""})} style={{background:"none",border:"none",color:"#6fcf97",fontSize:".85rem",cursor:"pointer",padding:0,textDecoration:"underline"}}>Try again</button>
+            <div style={{color:"#3a4e48",fontSize:".95rem",marginBottom:4}}>Something went wrong displaying this result.</div>
+            <button onClick={()=>this.setState({hasError:false,errorMsg:""})} style={{background:"none",border:"none",color:"#1e7040",fontSize:".85rem",cursor:"pointer",padding:0,textDecoration:"underline"}}>Try again</button>
           </div>
         </div>
       );
@@ -1603,13 +1603,13 @@ class AppErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{minHeight:"100vh",background:"#16181a",display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
+        <div style={{minHeight:"100vh",background:"#faf8f5",display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
           <div style={{textAlign:"center",maxWidth:400}}>
             <div style={{fontSize:48,marginBottom:16}}></div>
-            <div style={{color:"#c8d9cb",fontSize:"1.2rem",fontWeight:600,marginBottom:8,fontFamily:"Georgia,serif"}}>Something went wrong</div>
-            <div style={{color:"#7d9483",fontSize:".95rem",marginBottom:24,lineHeight:1.6}}>The app hit an unexpected error. Your search history is safe.</div>
+            <div style={{color:"#2a3838",fontSize:"1.2rem",fontWeight:600,marginBottom:8,fontFamily:"Georgia,serif"}}>Something went wrong</div>
+            <div style={{color:"#5a6868",fontSize:".95rem",marginBottom:24,lineHeight:1.6}}>The app hit an unexpected error. Your search history is safe.</div>
             <button onClick={()=>{ this.setState({hasError:false}); window.location.reload(); }}
-              style={{background:"linear-gradient(135deg,#3db876,#2a7a50)",border:"none",borderRadius:12,padding:"12px 28px",color:"#eaf0eb",fontSize:"1rem",cursor:"pointer",fontFamily:"Georgia,serif",fontWeight:600}}>
+              style={{background:"linear-gradient(135deg,#2d8a50,#1e6038)",border:"none",borderRadius:12,padding:"12px 28px",color:"#1a2018",fontSize:"1rem",cursor:"pointer",fontFamily:"Georgia,serif",fontWeight:600}}>
               Reload app
             </button>
           </div>
@@ -1821,7 +1821,34 @@ function App() {
     };
 
     const attemptQuery = async (attempt=1) => {
-      const res=await fetch("/.netlify/functions/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:6000,system:buildPrompt(userRef.current,isFollowUp),messages:apiMessages})});
+      // attempt 1: Sonnet, 2800 tokens, 26s timeout
+      // attempt 2: Haiku,  2000 tokens, 22s timeout (faster, cheaper)
+      // attempt 3: Haiku,  1600 tokens, 20s timeout (minimal)
+      const timeouts = [26000, 22000, 20000];
+      const models   = ["claude-sonnet-4-20250514","claude-haiku-4-5-20251001","claude-haiku-4-5-20251001"];
+      const tokens   = [2800, 2000, 1600];
+      const idx = Math.min(attempt-1, 2);
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), timeouts[idx]);
+      let res;
+      try {
+        res = await fetch("/.netlify/functions/chat", {
+          method: "POST",
+          signal: ctrl.signal,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: models[idx],
+            max_tokens: tokens[idx],
+            system: buildPrompt(userRef.current, isFollowUp),
+            messages: apiMessages
+          })
+        });
+      } catch(fetchErr) {
+        clearTimeout(timer);
+        if (fetchErr.name === "AbortError") throw new Error("TIMEOUT");
+        throw fetchErr;
+      }
+      clearTimeout(timer);
       const text=await res.text();
       if(!res.ok)throw new Error("Server error "+res.status+": "+text.slice(0,180));
       let data; try { data=JSON.parse(text); } catch(_){ if(attempt<3) return attemptQuery(attempt+1); throw new Error("Invalid server response"); }
@@ -1857,7 +1884,12 @@ function App() {
       fetchWeekPlan(q);
     }catch(e){
       // Network/server hard failure  show inline error but keep prior results visible
-      setError("Took too long to respond - tap Ask again to retry.");
+      const msg = e.message === "TIMEOUT"
+        ? "Taking longer than usual - tap Ask to try again."
+        : e.message?.includes("504") || e.message?.includes("503")
+          ? "Server is busy - tap Ask to retry."
+          : "Something went wrong - tap Ask to try again.";
+      setError(msg);
     }finally{setLoading(false);}
   };
 
@@ -1867,7 +1899,7 @@ function App() {
 
 
   try { return(
-    <div style={{minHeight:"100vh",background:"#16181a",color:"#dde3de"}}>
+    <div style={{minHeight:"100vh",background:"#faf8f5",color:"#1a2018"}}>
       <style>{CSS}</style>
       {showAuth&&<AuthModal key={authMode} onClose={()=>setShowAuth(false)} onAuth={handleAuth} defaultMode={authMode}/>}
       {showSignupGate&&!user&&<SignupGateModal
@@ -1879,25 +1911,25 @@ function App() {
 
       {showSignUp&&<SignUpPrompt onClose={()=>setShowSignUp(false)} onSignUp={()=>{setShowSignUp(false);setAuthMode("signup");setShowAuth(true);if(window.tlTrack)window.tlTrack("signup_started");}}/>}
       {showHistory && <HistoryModal onClose={()=>setShowHistory(false)} onLoad={(msgs)=>{setMessages(msgs);setInput("");setError(null);}} user={user}/>}
-      <div style={{position:"fixed",inset:0,background:"#16181a",zIndex:0,pointerEvents:"none"}}/>
+      <div style={{position:"fixed",inset:0,background:"#faf8f5",zIndex:0,pointerEvents:"none"}}/>
       <div style={{position:"relative",zIndex:1,maxWidth:1100,margin:"0 auto",padding:"0 0 80px",overflowX:"hidden",minHeight:"100vh"}}>
 
         {/* NAV */}
-        <nav style={{padding:"14px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",borderBottom:"1px solid rgba(61,184,118,.07)"}}>
+        <nav style={{padding:"14px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",borderBottom:"1px solid rgba(45,138,80,.07)"}}>
           <button onClick={reset} style={{background:"none",border:"none",cursor:"pointer",display:"flex",alignItems:"center",gap:10}}>
             <FnfLogo size={36} animated={!hasConvo}/>
-            <span style={{color:"#7d9483",fontSize:"clamp(.9rem,1.4vw,1.05rem)",letterSpacing:".03em",fontWeight:600}}>foodnfitness<span style={{color:"#3db876"}}>.ai</span></span>
+            <span style={{color:"#5a6868",fontSize:"clamp(.9rem,1.4vw,1.05rem)",letterSpacing:".03em",fontWeight:600}}>foodnfitness<span style={{color:"#1e7040"}}>.ai</span></span>
           </button>
           <div style={{display:"flex",gap:7,alignItems:"center"}}>
 
             
-            {user && <button onClick={()=>setShowHistory(true)} style={{background:"none",border:"1px solid rgba(61,184,118,.17)",borderRadius:20,padding:"clamp(6px,.7vw,9px) clamp(14px,1.6vw,22px)",color:"#2d3236",fontSize:"clamp(.82rem,1.2vw,.95rem)",cursor:"pointer"}}>History</button>}
+            {user && <button onClick={()=>setShowHistory(true)} style={{background:"none",border:"1px solid rgba(42,138,82,.17)",borderRadius:20,padding:"clamp(6px,.7vw,9px) clamp(14px,1.6vw,22px)",color:"#4a5858",fontSize:"clamp(.82rem,1.2vw,.95rem)",cursor:"pointer"}}>History</button>}
             {user
-              ?<button onClick={()=>setShowProfile(true)} style={{background:"rgba(61,184,118,.1)",border:"1px solid rgba(61,184,118,.24)",borderRadius:20,padding:"4px 12px",color:"#6fcf97",fontSize:".78rem",cursor:"pointer",display:"flex",alignItems:"center",gap:6}}>
+              ?<button onClick={()=>setShowProfile(true)} style={{background:"rgba(45,138,80,.1)",border:"1px solid rgba(42,138,82,.24)",borderRadius:20,padding:"4px 12px",color:"#1e7040",fontSize:".78rem",cursor:"pointer",display:"flex",alignItems:"center",gap:6}}>
                 <span> {user.name.split(" ")[0]}</span>
                 
               </button>
-              :<button onClick={()=>{setAuthMode("login");setShowAuth(true);}} style={{background:"linear-gradient(135deg,#3db876,#2a7a50)",border:"none",borderRadius:20,padding:"5px 15px",color:"#eaf0eb",fontSize:".78rem",cursor:"pointer",fontWeight:600}}>Sign in</button>
+              :<button onClick={()=>{setAuthMode("login");setShowAuth(true);}} style={{background:"linear-gradient(135deg,#2d8a50,#1e6038)",border:"none",borderRadius:20,padding:"5px 15px",color:"#1a2018",fontSize:".78rem",cursor:"pointer",fontWeight:600}}>Sign in</button>
             }
           </div>
         </nav>
@@ -1908,13 +1940,13 @@ function App() {
               <div style={{display:"flex",justifyContent:"center",marginBottom:18}}>
                 <FnfLogo size={80} animated={true}/>
               </div>
-              <h1 style={{fontSize:"clamp(2.2rem,5vw,4.2rem)",fontWeight:400,color:"#a0bda6",margin:"0 0 10px",letterSpacing:"-.02em"}}>How are you feeling today?</h1>
-              <p style={{color:"#7d9483",fontSize:"clamp(1rem,1.9vw,1.2rem)",fontStyle:"italic",margin:"0 0 6px"}}>Food  Fitness  Breathwork  Sleep</p>
-              <p style={{color:"#2d3236",fontSize:"clamp(.88rem,1.5vw,1.02rem)",lineHeight:1.75,margin:"0 0 14px"}}>Describe what you are going through  we will build your personalised wellness plan</p>
+              <h1 style={{fontSize:"clamp(2.2rem,5vw,4.2rem)",fontWeight:400,color:"#3a4e48",margin:"0 0 10px",letterSpacing:"-.02em"}}>How are you feeling today?</h1>
+              <p style={{color:"#5a6868",fontSize:"clamp(1rem,1.9vw,1.2rem)",fontStyle:"italic",margin:"0 0 6px"}}>Food  Fitness  Breathwork  Sleep</p>
+              <p style={{color:"#4a5858",fontSize:"clamp(.88rem,1.5vw,1.02rem)",lineHeight:1.75,margin:"0 0 14px"}}>Describe what you are going through  we will build your personalised wellness plan</p>
               <div style={{display:"flex",flexWrap:"wrap",justifyContent:"center",gap:8,marginTop:6,marginBottom:4}}>
-                {user?.allergies?.length>0&&<div style={{display:"inline-flex",alignItems:"center",gap:5,background:"rgba(200,70,70,.07)",border:"1px solid rgba(200,70,70,.17)",borderRadius:20,padding:"3px 12px"}}><span style={{color:"#8a5050",fontSize:".82rem"}}> Avoiding: {user.allergies.join(", ")}</span></div>}
-                {user?.sex&&<div style={{display:"inline-flex",alignItems:"center",gap:5,background:"rgba(61,184,118,.07)",border:"1px solid rgba(61,184,118,.18)",borderRadius:20,padding:"3px 12px"}}><span style={{color:"#6a7e6e",fontSize:".82rem"}}>{user.sex==="female"?" Female profile":" Male profile"}</span></div>}
-                {user&&(!user.sex||!user.age||!user.weight)&&<button onClick={()=>setShowProfile(true)} style={{background:"none",border:"1px dashed rgba(61,184,118,.25)",borderRadius:20,padding:"3px 12px",color:"#2d3236",fontSize:".78rem",cursor:"pointer",fontFamily:"'Georgia',serif",fontStyle:"italic"}}>
+                {user?.allergies?.length>0&&<div style={{display:"inline-flex",alignItems:"center",gap:5,background:"rgba(200,70,70,.07)",border:"1px solid rgba(200,70,70,.17)",borderRadius:20,padding:"3px 12px"}}><span style={{color:"#c04040",fontSize:".82rem"}}> Avoiding: {user.allergies.join(", ")}</span></div>}
+                {user?.sex&&<div style={{display:"inline-flex",alignItems:"center",gap:5,background:"rgba(45,138,80,.07)",border:"1px solid rgba(45,138,80,.18)",borderRadius:20,padding:"3px 12px"}}><span style={{color:"#4a5858",fontSize:".82rem"}}>{user.sex==="female"?" Female profile":" Male profile"}</span></div>}
+                {user&&(!user.sex||!user.age||!user.weight)&&<button onClick={()=>setShowProfile(true)} style={{background:"none",border:"1px dashed rgba(45,138,80,.25)",borderRadius:20,padding:"3px 12px",color:"#4a5858",fontSize:".78rem",cursor:"pointer",fontFamily:"'Georgia',serif",fontStyle:"italic"}}>
   + {[!user.sex&&"sex",!user.age&&"age",!user.weight&&"weight"].filter(Boolean).join(", ")}  personalise results
 </button>}
               </div>
@@ -1924,18 +1956,18 @@ function App() {
             </div>
             <div style={{margin:"0 clamp(20px,5vw,80px) 20px",background:"rgba(255,200,70,.04)",border:"1px solid rgba(255,200,70,.12)",borderRadius:12,padding:"10px 14px",display:"flex",gap:9,alignItems:"flex-start"}}>
               <span style={{fontSize:13,flexShrink:0,marginTop:1,opacity:.7}}></span>
-              <p style={{margin:0,color:"#6a5e2a",fontSize:"clamp(.8rem,1.2vw,.92rem)",lineHeight:1.65}}><strong style={{color:"#8a7a30"}}>Disclaimer:</strong> foodnfitness.ai provides general wellness suggestions only. Always consult a healthcare professional before making changes to diet, exercise or medication.</p>
+              <p style={{margin:0,color:"#966010",fontSize:"clamp(.8rem,1.2vw,.92rem)",lineHeight:1.65}}><strong style={{color:"#8a7a30"}}>Disclaimer:</strong> foodnfitness.ai provides general wellness suggestions only. Always consult a healthcare professional before making changes to diet, exercise or medication.</p>
             </div>
             <div style={{padding:"0 0 10px"}}>
               <div style={{display:"flex",alignItems:"center",gap:11,padding:"0 20px",marginBottom:14}}>
-                <div style={{flex:1,height:1,background:"rgba(61,184,118,.09)"}}/>
-                <span style={{color:"#242829",fontSize:"clamp(.8rem,1.2vw,.92rem)",letterSpacing:".1em",whiteSpace:"nowrap"}}>or pick a topic</span>
-                <div style={{flex:1,height:1,background:"rgba(61,184,118,.09)"}}/>
+                <div style={{flex:1,height:1,background:"rgba(42,138,82,.09)"}}/>
+                <span style={{color:"#5a6868",fontSize:"clamp(.8rem,1.2vw,.92rem)",letterSpacing:".1em",whiteSpace:"nowrap"}}>or pick a topic</span>
+                <div style={{flex:1,height:1,background:"rgba(42,138,82,.09)"}}/>
               </div>
               <ChipSection onQuery={handleQuery}/>
             </div>
             {!user&&<div style={{textAlign:"center",padding:"12px 0 8px"}}>
-              <button onClick={()=>{setAuthMode("signup");setShowAuth(true);if(window.tlTrack)window.tlTrack("signup_started");}} style={{background:"linear-gradient(135deg,rgba(61,184,118,.15),rgba(61,184,118,.06))",border:"1px solid rgba(61,184,118,.4)",borderRadius:24,padding:"10px 28px",color:"#6fcf97",fontSize:".95rem",cursor:"pointer",fontFamily:"'Georgia',serif",fontWeight:600,letterSpacing:".02em",boxShadow:"0 2px 16px rgba(61,184,118,.15)",transition:"all .18s"}}>
+              <button onClick={()=>{setAuthMode("signup");setShowAuth(true);if(window.tlTrack)window.tlTrack("signup_started");}} style={{background:"linear-gradient(135deg,rgba(45,138,80,.15),rgba(45,138,80,.06))",border:"1px solid rgba(45,138,80,.4)",borderRadius:24,padding:"10px 28px",color:"#1e7040",fontSize:".95rem",cursor:"pointer",fontFamily:"'Georgia',serif",fontWeight:600,letterSpacing:".02em",boxShadow:"0 2px 16px rgba(45,138,80,.15)",transition:"all .18s"}}>
                  Sign up free  unlimited searches
               </button>
             </div>}
@@ -1949,7 +1981,7 @@ function App() {
                 if(!msg) return null;
                 return (
                   <div key={idx} style={{marginBottom:msg.role==="user"?8:24,minHeight:0}}>
-                    {msg.role==="user"&&<div style={{display:"flex",justifyContent:"flex-end"}}><div style={{display:"inline-block",background:"rgba(61,184,118,.16)",border:"1px solid rgba(61,184,118,.28)",borderRadius:"20px 20px 5px 20px",padding:"14px 20px",maxWidth:"82%",color:"#dde8df",fontSize:"1.05rem",lineHeight:1.7,fontWeight:500}}>{msg.content}</div></div>}
+                    {msg.role==="user"&&<div style={{display:"flex",justifyContent:"flex-end"}}><div style={{display:"inline-block",background:"rgba(45,138,80,.16)",border:"1px solid rgba(42,138,82,.28)",borderRadius:"20px 20px 5px 20px",padding:"14px 20px",maxWidth:"82%",color:"#1a2018",fontSize:"1.05rem",lineHeight:1.7,fontWeight:500}}>{msg.content}</div></div>}
                     {msg.role==="assistant"&&<SafeResult><ResultCard result={msg.result} isLast={idx===messages.length-1} onGetMore={()=>{}} activeRecipe={activeRecipe} setActiveRecipe={setActiveRecipe} msgIdx={idx} onAskFollowUp={(q)=>{setInput(q);setTimeout(()=>handleQuery(q),100);}}/></SafeResult>}
                   </div>
                 );
@@ -1958,29 +1990,29 @@ function App() {
   {/* Animated loading message */}
   <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:20}}>
     <span style={{fontSize:20,display:"inline-block",animation:"spin 1.6s linear infinite"}}>🌿</span>
-    <span style={{color:"#78967e",fontSize:".95rem",fontStyle:"italic"}}>Personalising your plan...</span>
+    <span style={{color:"#5a6868",fontSize:".95rem",fontStyle:"italic"}}>Personalising your plan...</span>
   </div>
   {/* Skeleton cards - shows structure while loading */}
   {["🥗 Food & Nutrition","💪 Exercise","🌬️ Breathwork","🌙 Sleep"].map((label,pi)=>(
     <div key={pi} style={{marginBottom:22,animation:"fadeUp .3s ease both",animationDelay:(pi*0.1)+"s"}}>
-      <div style={{display:"flex",alignItems:"center",gap:8,padding:"8px 12px",background:"rgba(255,255,255,.03)",border:"0.5px solid rgba(255,255,255,.06)",borderRadius:10,marginBottom:10}}>
+      <div style={{display:"flex",alignItems:"center",gap:8,padding:"8px 12px",background:"#fff",border:"0.5px solid rgba(0,0,0,.07)",borderRadius:10,marginBottom:10}}>
         <span style={{fontSize:16}}>{label.split(" ")[0]}</span>
         <span style={{color:"rgba(255,255,255,.2)",fontSize:".75rem",letterSpacing:".08em",textTransform:"uppercase"}}>{label.split(" ").slice(1).join(" ")}</span>
       </div>
       {[1,2,3].map(i=>(
         <div key={i} style={{display:"flex",gap:0,marginBottom:8}}>
           <div style={{display:"flex",flexDirection:"column",alignItems:"center",flexShrink:0,paddingTop:6,marginRight:12}}>
-            <div style={{width:9,height:9,borderRadius:"50%",background:"rgba(255,255,255,.08)"}}/>
-            <div style={{width:1.5,height:40,background:"rgba(255,255,255,.04)",marginTop:4}}/>
+            <div style={{width:9,height:9,borderRadius:"50%",background:"rgba(0,0,0,.07)"}}/>
+            <div style={{width:1.5,height:40,background:"#f5f2ee",marginTop:4}}/>
           </div>
-          <div style={{flex:1,background:"rgba(255,255,255,.02)",border:"0.5px solid rgba(255,255,255,.05)",borderRadius:12,overflow:"hidden"}}>
-            <div style={{background:"rgba(255,255,255,.03)",padding:"10px 14px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <div style={{width:120+(i*20),height:12,background:"rgba(255,255,255,.07)",borderRadius:6,animation:"pulse 1.8s ease infinite",animationDelay:(i*0.15)+"s"}}/>
-              <div style={{width:60,height:10,background:"rgba(255,255,255,.05)",borderRadius:20}}/>
+          <div style={{flex:1,background:"rgba(255,255,255,1)",border:"0.5px solid #f5f2ee",borderRadius:12,overflow:"hidden"}}>
+            <div style={{background:"#fff",padding:"10px 14px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div style={{width:120+(i*20),height:12,background:"#f8f5f0",borderRadius:6,animation:"pulse 1.8s ease infinite",animationDelay:(i*0.15)+"s"}}/>
+              <div style={{width:60,height:10,background:"#f5f2ee",borderRadius:20}}/>
             </div>
             <div style={{padding:"10px 14px 14px"}}>
-              <div style={{width:"90%",height:10,background:"rgba(255,255,255,.05)",borderRadius:6,marginBottom:6,animation:"pulse 1.8s ease infinite",animationDelay:".2s"}}/>
-              <div style={{width:"70%",height:10,background:"rgba(255,255,255,.04)",borderRadius:6,animation:"pulse 1.8s ease infinite",animationDelay:".35s"}}/>
+              <div style={{width:"90%",height:10,background:"#f5f2ee",borderRadius:6,marginBottom:6,animation:"pulse 1.8s ease infinite",animationDelay:".2s"}}/>
+              <div style={{width:"70%",height:10,background:"#f5f2ee",borderRadius:6,animation:"pulse 1.8s ease infinite",animationDelay:".35s"}}/>
             </div>
           </div>
         </div>
@@ -1988,18 +2020,18 @@ function App() {
     </div>
   ))}
 </div>}
-              {error&&<div style={{background:"rgba(200,60,60,.08)",border:"1px solid rgba(200,60,60,.18)",borderRadius:10,padding:"11px 15px",color:"#f09090",fontSize:".82rem",marginBottom:12,lineHeight:1.6}}> {error}<button onClick={()=>setError(null)} style={{background:"none",border:"none",color:"#f09090",cursor:"pointer",float:"right",fontSize:".82rem"}}></button></div>}
+              {error&&<div style={{background:"rgba(200,60,60,.08)",border:"1px solid rgba(200,60,60,.18)",borderRadius:10,padding:"11px 15px",color:"#c84040",fontSize:".82rem",marginBottom:12,lineHeight:1.6}}> {error}<button onClick={()=>setError(null)} style={{background:"none",border:"none",color:"#c84040",cursor:"pointer",float:"right",fontSize:".82rem"}}></button></div>}
               <div ref={bottomRef}/>
             </div>
-            <div style={{padding:"10px clamp(16px,3vw,32px) clamp(16px,2vw,24px)",borderTop:"1px solid rgba(61,184,118,.07)",marginTop:4}}>
+            <div style={{padding:"10px clamp(16px,3vw,32px) clamp(16px,2vw,24px)",borderTop:"1px solid rgba(45,138,80,.07)",marginTop:4}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:8,marginBottom:8,flexWrap:"wrap"}}>
-                <button onClick={reset} style={{background:"none",border:"none",color:"#7d9483",fontSize:".82rem",cursor:"pointer",flexShrink:0}}> Start over</button>
-                <span style={{color:"#1e2226",fontSize:".75rem",textAlign:"right",minWidth:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                <button onClick={reset} style={{background:"none",border:"none",color:"#5a6868",fontSize:".82rem",cursor:"pointer",flexShrink:0}}> Start over</button>
+                <span style={{color:"#5a6868",fontSize:".75rem",textAlign:"right",minWidth:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
                   {(()=>{
                     if(user){const searches=messages.filter(m=>m.role==="user").length;const credDisplay=user.tier==="optimise"?" unlimited":(user.credits??0)+" cr left";return searches+" search"+(searches!==1?"es":"")+"  "+credDisplay;}
                     const g=getGuestCount();
                     const rem=Math.max(0,3-g);
-                    if(rem===0)return <span style={{color:"#f09090",fontWeight:500,fontSize:".75rem"}}>3 free searches used  <button onClick={()=>{setAuthMode("signup");setShowAuth(true);if(window.tlTrack)window.tlTrack("signup_started");}} style={{background:"none",border:"none",color:"#6fcf97",cursor:"pointer",fontFamily:"'Georgia',serif",fontSize:"inherit",padding:0,textDecoration:"underline"}}>sign up free to continue</button></span>;
+                    if(rem===0)return <span style={{color:"#c84040",fontWeight:500,fontSize:".75rem"}}>3 free searches used  <button onClick={()=>{setAuthMode("signup");setShowAuth(true);if(window.tlTrack)window.tlTrack("signup_started");}} style={{background:"none",border:"none",color:"#1e7040",cursor:"pointer",fontFamily:"'Georgia',serif",fontSize:"inherit",padding:0,textDecoration:"underline"}}>sign up free to continue</button></span>;
                     return rem+" of 3 free search"+(rem!==1?"es":"")+" used";
                   })()}
                 </span>
@@ -2009,18 +2041,18 @@ function App() {
           </div>
         </div>
 
-        <div style={{display: hasConvo ? "none" : "block", textAlign:"center",padding:"24px 0 8px"}}><div style={{color:"#7d9483",fontSize:".82rem",letterSpacing:".06em",marginBottom:8}}>foodnfitness.ai  Eat well. Move well. Live well.  Not medical advice</div><div style={{display:"flex",justifyContent:"center",gap:20}}><a href="/terms.html" style={{color:"#6e8474",fontSize:".75rem",textDecoration:"none"}}>Terms</a><a href="/privacy.html" style={{color:"#6e8474",fontSize:".75rem",textDecoration:"none"}}>Privacy</a><a href="/refund.html" style={{color:"#6e8474",fontSize:".75rem",textDecoration:"none"}}>Refund Policy</a></div></div>
+        <div style={{display: hasConvo ? "none" : "block", textAlign:"center",padding:"24px 0 8px"}}><div style={{color:"#5a6868",fontSize:".82rem",letterSpacing:".06em",marginBottom:8}}>foodnfitness.ai  Eat well. Move well. Live well.  Not medical advice</div><div style={{display:"flex",justifyContent:"center",gap:20}}><a href="/terms.html" style={{color:"#5a6868",fontSize:".75rem",textDecoration:"none"}}>Terms</a><a href="/privacy.html" style={{color:"#5a6868",fontSize:".75rem",textDecoration:"none"}}>Privacy</a><a href="/refund.html" style={{color:"#5a6868",fontSize:".75rem",textDecoration:"none"}}>Refund Policy</a></div></div>
       </div>
     </div>
   );
   } catch(appRenderErr) {
     console.error("App render crash:", appRenderErr);
     return (
-      <div style={{minHeight:"100vh",background:"#16181a",display:"flex",alignItems:"center",justifyContent:"center"}}>
+      <div style={{minHeight:"100vh",background:"#faf8f5",display:"flex",alignItems:"center",justifyContent:"center"}}>
         <div style={{textAlign:"center",padding:24}}>
           <div style={{fontSize:48,marginBottom:16}}></div>
-          <div style={{color:"#c8d9cb",fontSize:"1.1rem",fontFamily:"Georgia,serif",marginBottom:16}}>Something went wrong. Please reload.</div>
-          <button onClick={()=>window.location.reload()} style={{background:"#3db876",border:"none",borderRadius:10,padding:"10px 24px",color:"#fff",fontSize:"1rem",cursor:"pointer"}}>Reload</button>
+          <div style={{color:"#2a3838",fontSize:"1.1rem",fontFamily:"Georgia,serif",marginBottom:16}}>Something went wrong. Please reload.</div>
+          <button onClick={()=>window.location.reload()} style={{background:"#1e7040",border:"none",borderRadius:10,padding:"10px 24px",color:"#fff",fontSize:"1rem",cursor:"pointer"}}>Reload</button>
         </div>
       </div>
     );
