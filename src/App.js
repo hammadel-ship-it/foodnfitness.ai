@@ -1021,76 +1021,76 @@ function ProtocolItem({ item, pillarType, meta, onExpand, index }) {
   try {
   if (!item || !item.name) return null;
   const C = {
-    food:     { dot:"#1e7040", tagBg:"rgba(61,184,118,.15)",   tagColor:"#1e7040",  line:"rgba(61,184,118,.2)",   headerBg:"#1e2226" },
-    exercise: { dot:"#1a7abf", tagBg:"rgba(26,122,191,.12)",  tagColor:"#1a7abf",  line:"rgba(26,122,191,.18)",  headerBg:"#eaf0f5" },
-    breath:   { dot:"#6b48c8", tagBg:"rgba(107,72,200,.12)", tagColor:"#6b48c8",  line:"rgba(107,72,200,.18)", headerBg:"#f0edf8" },
-    sleep:    { dot:"#2a6ab0", tagBg:"rgba(42,106,176,.12)",  tagColor:"#2a6ab0",  line:"rgba(42,106,176,.18)",  headerBg:"#eaf0f8" },
-  }[pillarType] || { dot:"#1e7040", tagBg:"rgba(61,184,118,.15)", tagColor:"#1e7040", line:"rgba(61,184,118,.2)", headerBg:"#1e2226" };
+    food:     { accent:"#6fcf97", tagBg:"rgba(111,207,151,.1)",  tagColor:"#6fcf97", border:"rgba(111,207,151,.15)", outcomeBg:"rgba(111,207,151,.07)", iconBg:"rgba(111,207,151,.12)" },
+    exercise: { accent:"#5aaee0", tagBg:"rgba(90,174,224,.1)",   tagColor:"#5aaee0", border:"rgba(90,174,224,.15)",  outcomeBg:"rgba(90,174,224,.07)",  iconBg:"rgba(90,174,224,.12)"  },
+    breath:   { accent:"#9b7fe8", tagBg:"rgba(155,127,232,.1)",  tagColor:"#9b7fe8", border:"rgba(155,127,232,.15)",outcomeBg:"rgba(155,127,232,.07)",iconBg:"rgba(155,127,232,.12)" },
+    sleep:    { accent:"#5b9bd5", tagBg:"rgba(91,155,213,.1)",   tagColor:"#5b9bd5", border:"rgba(91,155,213,.15)",  outcomeBg:"rgba(91,155,213,.07)",  iconBg:"rgba(91,155,213,.12)"  },
+  }[pillarType] || { accent:"#6fcf97", tagBg:"rgba(111,207,151,.1)", tagColor:"#6fcf97", border:"rgba(111,207,151,.15)", outcomeBg:"rgba(111,207,151,.07)", iconBg:"rgba(111,207,151,.12)" };
+
+  // Parse when into 3 stat chips if possible
+  const whenStr = item.when || "";
 
   return (
     <div onClick={()=>onExpand(item, pillarType)} className="item-card"
-      style={{cursor:"pointer",animation:"fadeUp .32s ease both",animationDelay:(index*0.08)+"s",
-              display:"flex",gap:0,marginBottom:10}}>
+      style={{cursor:"pointer",animation:"fadeUp .32s ease both",animationDelay:(index*0.08)+"s",marginBottom:10}}>
 
-      {/* Timeline spine */}
-      <div style={{display:"flex",flexDirection:"column",alignItems:"center",flexShrink:0,paddingTop:8,marginRight:12}}>
-        <div style={{width:10,height:10,borderRadius:"50%",background:C.dot,flexShrink:0,boxShadow:"0 0 0 3px "+C.tagBg,zIndex:1}}/>
-        <div style={{width:1.5,flex:1,background:C.line,marginTop:4,minHeight:20}}/>
-      </div>
+      <div style={{background:"#1e2226",borderRadius:14,overflow:"hidden",border:"0.5px solid rgba(255,255,255,.06)"}}>
 
-      {/* Card */}
-      <div style={{flex:1,background:"rgba(255,255,255,1)",border:"0.5px solid "+C.line,borderRadius:14,overflow:"hidden",marginBottom:4}}>
-
-        {/* Coloured header: emoji + name + WHEN pill */}
-        <div style={{background:C.headerBg,padding:"10px 14px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
-          <div style={{display:"flex",alignItems:"center",gap:9,minWidth:0}}>
-            <span style={{fontSize:20,lineHeight:1,flexShrink:0}}>{item.emoji||meta.icon}</span>
-            <span style={{color:"#dde8df",fontSize:".93rem",fontWeight:600,lineHeight:1.25}}>{item.name}</span>
+        {/* Header: icon box + name + when */}
+        <div style={{padding:"14px 16px 12px",display:"flex",alignItems:"flex-start",gap:12}}>
+          {/* Icon box */}
+          <div style={{width:42,height:42,borderRadius:10,background:C.iconBg,border:"0.5px solid "+C.border,
+                       display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>
+            {item.emoji||meta.icon}
           </div>
-          {item.when&&(
-            <span style={{background:C.tagBg,color:C.tagColor,fontSize:".65rem",fontWeight:700,
-                          padding:"3px 10px",borderRadius:20,letterSpacing:".04em",
-                          whiteSpace:"nowrap",flexShrink:0,border:"0.5px solid "+C.line}}>
-              {item.when}
-            </span>
-          )}
+          {/* Name + when */}
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontSize:".95rem",fontWeight:600,color:"#dde8df",lineHeight:1.3,marginBottom:4}}>
+              {item.name}
+            </div>
+            {whenStr&&(
+              <div style={{fontSize:".75rem",color:"#8ea898",fontFamily:"Georgia,serif"}}>
+                {whenStr}
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Benefit text */}
-        <div style={{padding:"10px 14px 0",color:"#8ea898",fontSize:".87rem",lineHeight:1.65}}>
+        {/* Stat chips row: when / dose or reps / relief speed */}
+        <div style={{display:"flex",gap:6,padding:"0 16px 12px"}}>
+          {[
+            {val: whenStr ? whenStr.split(",")[0] : "Daily", lbl:"When"},
+            {val: item.benefit ? item.benefit.split(" ").slice(0,2).join(" ") : "Consistent", lbl:"How"},
+            {val: item.timeframe || "1-2 weeks", lbl:"Relief"},
+          ].map((s,i)=>(
+            <div key={i} style={{flex:1,background:"rgba(255,255,255,.03)",borderRadius:8,padding:"7px 8px",textAlign:"center"}}>
+              <div style={{fontSize:".72rem",fontWeight:600,color:C.accent,fontFamily:"Georgia,serif",
+                           whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{s.val}</div>
+              <div style={{fontSize:".6rem",color:"#6a7e6e",textTransform:"uppercase",letterSpacing:".06em",marginTop:2}}>{s.lbl}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Benefit */}
+        <div style={{padding:"0 16px 12px",fontSize:".85rem",color:"#8ea898",lineHeight:1.65}}>
           {item.benefit}
         </div>
 
-        {/* Before → After strip */}
-        {(item.outcome||item.struggle)&&(
-          <div style={{padding:"10px 14px 12px",display:"flex",alignItems:"stretch",gap:6,marginTop:6}}>
-            {/* Before */}
-            <div style={{flex:"0 0 42%",background:"#fdf0f0",border:"0.5px solid #f0c8c8",borderRadius:8,padding:"7px 10px"}}>
-              <div style={{color:"rgba(192,57,43,.7)",fontSize:".6rem",fontWeight:700,textTransform:"uppercase",letterSpacing:".08em",marginBottom:3}}>Right now</div>
-              <div style={{color:"#a85050",fontSize:".8rem",lineHeight:1.4,fontStyle:"italic"}}>
-                {item.struggle||"Dealing with this issue"}
-              </div>
-            </div>
-            {/* Arrow */}
-            <div style={{display:"flex",alignItems:"center",color:C.tagColor,fontSize:18,flexShrink:0}}>></div>
-            {/* After */}
-            <div style={{flex:1,background:C.tagBg,border:"0.5px solid "+C.line,borderRadius:8,padding:"7px 10px"}}>
-              <div style={{color:C.tagColor,fontSize:".6rem",fontWeight:700,textTransform:"uppercase",letterSpacing:".08em",marginBottom:3}}>
-                {item.timeframe||"With consistency"}
-              </div>
-              <div style={{color:"#2a3838",fontSize:".8rem",lineHeight:1.4,fontWeight:500}}>
-                {item.outcome||"You will feel the difference"}
-              </div>
-            </div>
+        {/* Outcome strip - left border accent */}
+        {item.outcome&&(
+          <div style={{margin:"0 16px 14px",background:C.outcomeBg,borderLeft:"2.5px solid "+C.accent,
+                       borderRadius:"0 8px 8px 0",padding:"8px 12px"}}>
+            <div style={{fontSize:".62rem",color:C.accent,fontWeight:700,textTransform:"uppercase",
+                         letterSpacing:".07em",marginBottom:3}}>You will feel</div>
+            <div style={{fontSize:".85rem",color:"#c8d9cb",lineHeight:1.4}}>{item.outcome}</div>
           </div>
         )}
 
-        {!(item.outcome||item.struggle)&&<div style={{height:8}}/>}
-
-        {/* Tap to deep dive */}
-        <div style={{borderTop:"0.5px solid "+C.line,padding:"6px 14px",display:"flex",justifyContent:"flex-end",alignItems:"center",gap:4}}>
-          <span style={{color:C.tagColor,fontSize:".7rem",opacity:.6}}>Tap for deep dive</span>
-          <span style={{color:C.tagColor,fontSize:11,opacity:.6}}>></span>
+        {/* Footer */}
+        <div style={{borderTop:"0.5px solid rgba(255,255,255,.05)",padding:"7px 16px",
+                     display:"flex",justifyContent:"flex-end",alignItems:"center",gap:4}}>
+          <span style={{color:C.accent,fontSize:".68rem",opacity:.5}}>Tap to deep dive</span>
+          <span style={{color:C.accent,fontSize:10,opacity:.5}}>></span>
         </div>
       </div>
     </div>
@@ -1103,28 +1103,32 @@ function PillarGrid({ pillars, onExpand }) {
   try {
   if(!pillars?.length) return null;
   const ICONS = { food:"🥗", exercise:"💪", breath:"🌬️", sleep:"🌙" };
+  const COLORS = {
+    food:     { dot:"#6fcf97", line:"rgba(111,207,151,.2)" },
+    exercise: { dot:"#5aaee0", line:"rgba(90,174,224,.2)"  },
+    breath:   { dot:"#9b7fe8", line:"rgba(155,127,232,.2)" },
+    sleep:    { dot:"#5b9bd5", line:"rgba(91,155,213,.2)"  },
+  };
   return(
     <div style={{marginBottom:18}}>
       {pillars.map((pillar,pi)=>{
         if (!pillar || !Array.isArray(pillar.items)) return null;
         const pillarType = (pillar.type||"food").toLowerCase();
         const meta = PILLAR_META[pillarType]||PILLAR_META.food;
+        const col = COLORS[pillarType]||COLORS.food;
         const validItems = (pillar.items||[]).filter(i=>i&&i.name);
         if (!validItems.length) return null;
         return(
           <div key={pi} style={{marginBottom:pi<pillars.length-1?28:0}}>
-            {/* Pillar header */}
-            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12,padding:"10px 14px",
-                         background:meta.bg,border:"0.5px solid "+meta.border,borderRadius:12}}>
-              <span style={{fontSize:20}}>{ICONS[pillarType]||meta.icon}</span>
-              <span style={{color:meta.color,fontSize:".8rem",letterSpacing:".1em",textTransform:"uppercase",fontWeight:700,flex:1}}>{pillar.label||meta.label}</span>
-              <span style={{background:meta.bg,border:"0.5px solid "+meta.border,color:meta.color,
-                            fontSize:".65rem",fontWeight:700,padding:"2px 9px",borderRadius:20,opacity:.75}}>
-                {validItems.length} actions
-              </span>
+            {/* Minimal pillar header — dot + name + rule */}
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14}}>
+              <div style={{width:8,height:8,borderRadius:"50%",background:col.dot,flexShrink:0}}/>
+              <span style={{color:col.dot,fontSize:".75rem",letterSpacing:".12em",textTransform:"uppercase",fontWeight:700}}>{ICONS[pillarType]} {pillar.label||meta.label}</span>
+              <div style={{flex:1,height:"0.5px",background:col.line}}/>
+              <span style={{color:"rgba(255,255,255,.15)",fontSize:".68rem"}}>{validItems.length}</span>
             </div>
-            {/* Timeline items */}
-            <div style={{paddingLeft:4}}>
+            {/* Cards */}
+            <div>
               {validItems.map((item,i)=>(
                 <ProtocolItem key={i} item={item} meta={meta} pillarType={pillarType} onExpand={onExpand} index={i}/>
               ))}
