@@ -493,7 +493,7 @@ function AuthModal({ onClose, onAuth, defaultMode="login" }) {
         ?<div style={{textAlign:"center",padding:"16px 0"}}>
           <div style={{fontSize:32,marginBottom:12}}></div>
           <div style={{color:"#8ea898",fontSize:".95rem",marginBottom:8}}>Check your email</div>
-          <div style={{color:"#8ea898",fontSize:".88rem",lineHeight:1.7}}>A password reset link has been sent to <strong style={{color:"#6fcf97"}}>{email}</strong>. Check your inbox.</div>
+          <div style={{color:"#b5ccb9",fontSize:".88rem",lineHeight:1.7}}>A password reset link has been sent to <strong style={{color:"#6fcf97"}}>{email}</strong>. Check your inbox.</div>
           <button onClick={()=>{setMode("login");setResetSent(false);}} style={{marginTop:16,background:"none",border:"none",color:"#8ea898",fontSize:".82rem",cursor:"pointer"}}> Back to sign in</button>
         </div>
         :<div style={{display:"flex",flexDirection:"column",gap:10}}>
@@ -958,7 +958,7 @@ function ItemDetailModal({ item, meta, pillarType, onClose, onDeepDive }) {
           <button onClick={onClose} style={{position:"absolute",top:16,right:16,background:"rgba(0,0,0,.4)",border:"none",borderRadius:"50%",width:34,height:34,color:"#1e2226",fontSize:16,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>&times;</button>
           <div style={{fontSize:52,marginBottom:10,lineHeight:1}}>{item.emoji||""}</div>
           <div style={{color:safeMeta.color,fontSize:".72rem",letterSpacing:".12em",textTransform:"uppercase",marginBottom:4}}>{safeMeta.label}</div>
-          <div style={{color:"#dde8df",fontSize:"1.4rem",fontWeight:700,lineHeight:1.25}}>{item.name}</div>
+          <div style={{color:"#eaf0eb",fontSize:"1.1rem",fontWeight:600,lineHeight:1.25}}>{item.name}</div>
           {item.when&&<div style={{marginTop:8,display:"inline-block",background:safeMeta.bg,border:"0.5px solid "+safeMeta.border,borderRadius:20,padding:"3px 12px",color:safeMeta.color,fontSize:".78rem"}}>{item.when}</div>}
         </div>
 
@@ -973,14 +973,14 @@ function ItemDetailModal({ item, meta, pillarType, onClose, onDeepDive }) {
           {detail && !loading && (
             <div style={{display:"flex",flexDirection:"column",gap:20}}>
               {/* Science */}
-              <div style={{background:"rgba(61,184,118,.07)",border:"1px solid rgba(61,184,118,.2)",borderRadius:14,padding:"18px 20px"}}>
-                <div style={{color:meta.color,fontSize:".75rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}> The science</div>
-                <p style={{color:"#3a4e38",fontSize:"1rem",lineHeight:1.8,margin:0}}>{detail.science}</p>
+              <div style={{background:"rgba(255,255,255,.03)",border:"0.5px solid rgba(255,255,255,.08)",borderRadius:14,padding:"18px 20px"}}>
+                <div style={{color:meta.color,fontSize:".72rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8,opacity:1}}> The science</div>
+                <p style={{color:"#c8d9cb",fontSize:"1rem",lineHeight:1.8,margin:0}}>{detail.science}</p>
               </div>
               {/* How to use */}
-              <div style={{background:"rgba(61,184,118,.07)",border:"1px solid rgba(61,184,118,.2)",borderRadius:14,padding:"18px 20px"}}>
-                <div style={{color:meta.color,fontSize:".75rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}> How to use it</div>
-                <p style={{color:"#3a4e38",fontSize:"1rem",lineHeight:1.8,margin:0}}>{detail.howToUse}</p>
+              <div style={{background:"rgba(255,255,255,.03)",border:"0.5px solid rgba(255,255,255,.08)",borderRadius:14,padding:"18px 20px"}}>
+                <div style={{color:meta.color,fontSize:".72rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8,opacity:1}}> How to use it</div>
+                <p style={{color:"#c8d9cb",fontSize:"1rem",lineHeight:1.8,margin:0}}>{detail.howToUse}</p>
               </div>
               {/* Best for */}
               {detail.bestFor?.length > 0 && (
@@ -988,17 +988,17 @@ function ItemDetailModal({ item, meta, pillarType, onClose, onDeepDive }) {
                   <div style={{color:meta.color,fontSize:".75rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:10}}> Best for</div>
                   <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
                     {detail.bestFor.map((b,i) => (
-                      <span key={i} style={{background:meta.bg,border:"1px solid "+meta.border,borderRadius:20,padding:"6px 14px",color:"#8ea898",fontSize:".88rem"}}>{b}</span>
+                      <span key={i} style={{background:meta.bg,border:"1px solid "+meta.border,borderRadius:20,padding:"6px 14px",color:"#b5ccb9",fontSize:".88rem"}}>{b}</span>
                     ))}
                   </div>
                 </div>
               )}
               {/* Combinations */}
               {detail.combinations?.length > 0 && (
-                <div style={{background:"#1e2226",border:"1px solid rgba(0,0,0,.07)",borderRadius:14,padding:"18px 20px"}}>
+                <div style={{background:"rgba(255,255,255,.03)",border:"0.5px solid rgba(255,255,255,.07)",borderRadius:14,padding:"18px 20px"}}>
                   <div style={{color:meta.color,fontSize:".75rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:10}}> Combinations</div>
                   {detail.combinations.map((c,i) => (
-                    <div key={i} style={{color:"#8ea898",fontSize:".92rem",lineHeight:1.6,marginBottom:i<detail.combinations.length-1?8:0}}> {c}</div>
+                    <div key={i} style={{color:"#b5ccb9",fontSize:".92rem",lineHeight:1.6,marginBottom:i<detail.combinations.length-1?8:0}}> {c}</div>
                   ))}
                 </div>
               )}
@@ -1006,11 +1006,11 @@ function ItemDetailModal({ item, meta, pillarType, onClose, onDeepDive }) {
               {detail.quickTip && (
                 <div style={{background:"linear-gradient(135deg,rgba(61,184,118,.12),rgba(30,120,65,.06))",border:"1px solid rgba(61,184,118,.25)",borderRadius:14,padding:"16px 20px",display:"flex",gap:12}}>
                   <span style={{fontSize:22,flexShrink:0}}></span>
-                  <p style={{color:"#8ea898",fontSize:"1rem",lineHeight:1.7,margin:0}}>{detail.quickTip}</p>
+                  <p style={{color:"#c8d9cb",fontSize:"1rem",lineHeight:1.7,margin:0}}>{detail.quickTip}</p>
                 </div>
               )}
               {/* Ask follow-up */}
-              <button onClick={()=>onDeepDive(item.name)} style={{background:"linear-gradient(135deg,#2d8a50,#1e6038)",border:"none",borderRadius:12,padding:"14px",color:"#1e2226",fontSize:"1rem",cursor:"pointer",fontWeight:600,width:"100%",marginTop:4}}>
+              <button onClick={()=>onDeepDive(item.name)} style={{background:"linear-gradient(135deg,#2d8a50,#1e6038)",border:"none",borderRadius:12,padding:"14px",color:"#eaf0eb",fontSize:"1rem",cursor:"pointer",fontWeight:600,width:"100%",marginTop:4}}>
                 Ask a follow-up about {item.name} 
               </button>
             </div>
@@ -1143,7 +1143,7 @@ function RecipeList({ recipes, activeRecipe, setActiveRecipe, msgIdx }) {
           <div key={i} className="rc" style={{background:"#1e2226",border:"1px solid rgba(61,184,118,.18)",borderRadius:14,overflow:"hidden",marginBottom:10,transition:"border-color .18s"}}>
             <button onClick={()=>setActiveRecipe(open?null:rid)} style={{width:"100%",textAlign:"left",background:"transparent",border:"none",padding:"16px 18px",cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
               <span style={{color:"#2a3838",fontSize:"clamp(1rem,1.6vw,1.12rem)",fontWeight:600}}>{r.emoji||""} {r.name}</span>
-              <span style={{color:"#8ea898",fontSize:".88rem",transform:open?"rotate(180deg)":"rotate(0deg)",transition:"transform .2s",display:"inline-block"}}></span>
+              <span style={{color:"#b5ccb9",fontSize:".88rem",transform:open?"rotate(180deg)":"rotate(0deg)",transition:"transform .2s",display:"inline-block"}}></span>
             </button>
             {open&&(
               <div style={{padding:"0 18px 18px",borderTop:"1px solid rgba(61,184,118,.1)"}}>
