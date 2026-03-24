@@ -102,7 +102,7 @@ const buildPrompt = (user, isFollowUp) => {
     return "Holistic wellness coach. " + sexNote + " " + ageNote + " " + weightNote + " " + history + " " + timeCtx + "\n" +
       "Output ONLY valid JSON, no markdown, double quotes only, no newlines in strings.\n" +
       "{\"responseType\":\"initial\",\"acknowledgment\":\"1 warm sentence\",\"pillars\":[{\"type\":\"food\",\"label\":\"Food\",\"items\":[{\"emoji\":\"\",\"name\":\"item\",\"when\":\"when\",\"benefit\":\"mechanism\",\"struggle\":\"symptom now\",\"outcome\":\"result\",\"timeframe\":\"timing\"}]},{\"type\":\"exercise\",\"label\":\"Movement\",\"items\":[...]},{\"type\":\"breath\",\"label\":\"Breathwork\",\"items\":[...]},{\"type\":\"sleep\",\"label\":\"Sleep\",\"items\":[...]}],\"tip\":\"specific tip\"}\n" +
-      "Rules: 2 items per pillar. Specific names, mechanisms, timings. No recipes." +
+      "Rules: 2 items per pillar. Keep ALL strings under 10 words. No recipes." +
       (allergy ? " " + allergy : "");
   } else {
     return "Wellness coach follow-up. " + sexNote + " " + ageNote + "\n" +
@@ -428,10 +428,12 @@ function AuthModal({ onClose, onAuth, defaultMode="login" }) {
           credits:profile?.credits??3,
           tier:profile?.tier||"free",
           sex:profile?.sex||prefs.sex||"",
-          age:profile?.age??prefs.age??null,
-          weight:profile?.weight??prefs.weight??null,
+          age:(profile?.age!=null&&profile?.age!=""?Number(profile?.age):null)??prefs.age??null,
+          weight:(profile?.weight!=null&&profile?.weight!=""?Number(profile?.weight):null)??prefs.weight??null,
           history:profile?.history||[]
         };
+        // Always persist prefs by email so they survive sign-out/device changes
+        try { localStorage.setItem("np_prefs_" + u.email, JSON.stringify({age:u.age,weight:u.weight,sex:u.sex,allergies:u.allergies})); } catch(e) {}
         saveUser(u);onAuth(u);
       }
     }catch(e){setErr(e.message);}finally{setLoading(false);}
@@ -1657,10 +1659,12 @@ function App() {
             credits:profile.credits??cached?.credits??3,
             tier:profile.tier||cached?.tier||"free",
             sex:profile.sex||prefs.sex||cached?.sex||"",
-            age:profile.age??prefs.age??cached?.age??null,
-            weight:profile.weight??prefs.weight??cached?.weight??null,
+            age:(profile.age!=null&&profile.age!=""?Number(profile.age):null)??prefs.age??cached?.age??null,
+            weight:(profile.weight!=null&&profile.weight!=""?Number(profile.weight):null)??prefs.weight??cached?.weight??null,
             history:profile.history||cached?.history||[]
           };
+          // Persist prefs so they survive future sign-outs
+          try { localStorage.setItem("np_prefs_" + u.email, JSON.stringify({age:u.age,weight:u.weight,sex:u.sex,allergies:u.allergies})); } catch(e) {}
           saveUser(u);setUser(u);userRef.current=u;
           loadConversationsRemote(session.user.id).then(convs=>saveConversationsLocal(convs, session.user.id));
         }
@@ -1796,7 +1800,7 @@ function App() {
       // Attempt 1: Haiku fast (8s target), 2: Haiku minimal (6s), 3: Haiku tiny (5s)
       const timeouts = [25000, 22000, 20000];
       const models   = ["claude-haiku-4-5-20251001","claude-haiku-4-5-20251001","claude-haiku-4-5-20251001"];
-      const tokens   = [1200, 1000, 800];
+      const tokens   = [900, 700, 500];
       const idx = Math.min(attempt-1, 2);
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), timeouts[idx]);
