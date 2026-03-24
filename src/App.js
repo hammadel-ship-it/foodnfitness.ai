@@ -99,38 +99,18 @@ const buildPrompt = (user, isFollowUp) => {
     "5. No trailing commas.\n";
 
   if (!isFollowUp) {
-    return "You are a world-class holistic wellness coach with deep expertise across nutrition, movement, breathwork and sleep science. " +
-      seed + " " + timeCtx + " " + seasonCtx + " " + sexNote + " " + ageNote + " " + weightNote + " " + history + "\n\n" +
-      baseRules + "\n" +
-      "JSON format:\n" +
-      "{\"responseType\":\"initial\",\"acknowledgment\":\"2 warm empathetic sentences referencing their exact words\",\"pillars\":[{\"type\":\"food\",\"label\":\"Food and Nutrition\",\"items\":[{\"emoji\":\"\",\"name\":\"Specific food name\",\"when\":\"Best time of day e.g. Morning on empty stomach\",\"benefit\":\"Precise mechanism and quantity\",\"struggle\":\"What they feel RIGHT NOW e.g. Stomach cramping and gas\",\"outcome\":\"What they will feel after e.g. Bloating reduces noticeably\",\"timeframe\":\"Realistic expectation e.g. Within 20 minutes\"}]}],\"recipes\":[{\"name\":\"Recipe name\",\"emoji\":\"\",\"ingredients\":[\"amount + ingredient\"],\"steps\":[\"Precise step\"]}],\"tip\":\"One hyper-specific surprising tip\"}\n\n" +
-      "CONTENT RULES:\n" +
-      "- acknowledgment: warm, specific, never generic\n" +
-      "- pillars: always include ALL 4 types (food, exercise, breath, sleep)\n" +
-      "- items: 2 per pillar only. Be SPECIFIC and concise\n" +
-      "- when: time-anchored moment e.g. Morning before eating, 30 min post-workout, 90 min before bed\n" +
-      "- struggle: what the user feels RIGHT NOW e.g. Stomach tightens after eating, Lying awake anxious, Muscles aching\n" +
-      "- outcome: what they will physically feel e.g. Bloating reduces, Fall asleep faster, Energy sustained\n" +
-      "- timeframe: honest realistic window e.g. Within 20 min, After 3 days, In 1-2 weeks\n" +
-      "- recipes: 0 recipes on first response (omit recipes array entirely)\n" +
-      "- tip: surprising and hyper-specific\n" +
-      "- VARIETY: draw from different cultures and traditions\n" +
-      allergy;
+    return "Holistic wellness coach. " + sexNote + " " + ageNote + " " + weightNote + " " + history + " " + timeCtx + "\n" +
+      "Output ONLY valid JSON, no markdown, double quotes only, no newlines in strings.\n" +
+      "{\"responseType\":\"initial\",\"acknowledgment\":\"1 warm sentence\",\"pillars\":[{\"type\":\"food\",\"label\":\"Food\",\"items\":[{\"emoji\":\"\",\"name\":\"item\",\"when\":\"when\",\"benefit\":\"mechanism\",\"struggle\":\"symptom now\",\"outcome\":\"result\",\"timeframe\":\"timing\"}]},{\"type\":\"exercise\",\"label\":\"Movement\",\"items\":[...]},{\"type\":\"breath\",\"label\":\"Breathwork\",\"items\":[...]},{\"type\":\"sleep\",\"label\":\"Sleep\",\"items\":[...]}],\"tip\":\"specific tip\"}\n" +
+      "Rules: 2 items per pillar. Specific names, mechanisms, timings. No recipes." +
+      (allergy ? " " + allergy : "");
   } else {
-    return "You are a world-class holistic wellness coach continuing a conversation. " +
-      seed + " " + timeCtx + " " + sexNote + " " + ageNote + " " + weightNote + "\n\n" +
-      baseRules + "\n" +
-      "Pick the BEST response type for what the user asked:\n\n" +
-      "If they want more foods or practices: {\"responseType\":\"items\",\"acknowledgment\":\"1-2 specific sentences\",\"pillars\":[{\"type\":\"food\",\"label\":\"Foods\",\"items\":[{\"emoji\":\"\",\"name\":\"Specific name\",\"when\":\"Best time\",\"benefit\":\"Precise benefit\",\"struggle\":\"What they feel now\",\"outcome\":\"What they feel after\",\"timeframe\":\"When they notice it\"}]}],\"tip\":\"surprising tip\"}\n\n" +
-      "If they want a recipe or plan: {\"responseType\":\"recipe\",\"acknowledgment\":\"1-2 sentences\",\"recipes\":[{\"name\":\"Name\",\"emoji\":\"\",\"ingredients\":[\"amount + ingredient\"],\"steps\":[\"precise step\"]}],\"tip\":\"tip\"}\n\n" +
-      "If they want deeper understanding or science: {\"responseType\":\"insight\",\"acknowledgment\":\"1-2 sentences\",\"cards\":[{\"emoji\":\"\",\"title\":\"Short specific title\",\"image\":\"2-3 word photo search term e.g. turmeric root\",\"body\":\"Fascinating specific insight 2-3 sentences\",\"pillar\":\"food\"}],\"tip\":\"tip\"}\n\n" +
-      "If they have a specific question: {\"responseType\":\"answer\",\"acknowledgment\":\"1-2 sentences\",\"cards\":[{\"emoji\":\"\",\"title\":\"Short title\",\"image\":\"2-3 word photo search term\",\"body\":\"Precise answer 2-3 sentences\",\"pillar\":\"food\"}],\"tip\":\"tip\"}\n\n" +
-      "RULES:\n" +
-      "- 4 to 5 items or cards\n" +
-      "- pillar must be: food, exercise, breath, or sleep\n" +
-      "- Be specific, varied, and draw from different wellness traditions\n" +
-      "- Never repeat recommendations from earlier in the conversation\n" +
-      allergy;
+    return "Wellness coach follow-up. " + sexNote + " " + ageNote + "\n" +
+      "Output ONLY valid JSON, double quotes, no markdown.\n" +
+      "For more items: {\"responseType\":\"items\",\"acknowledgment\":\"1 sentence\",\"pillars\":[{\"type\":\"food\",\"label\":\"Foods\",\"items\":[{\"emoji\":\"\",\"name\":\"name\",\"when\":\"when\",\"benefit\":\"mechanism\",\"struggle\":\"now\",\"outcome\":\"result\",\"timeframe\":\"timing\"}]}],\"tip\":\"tip\"}\n" +
+      "For recipe: {\"responseType\":\"recipe\",\"acknowledgment\":\"1 sentence\",\"recipes\":[{\"name\":\"Name\",\"emoji\":\"\",\"ingredients\":[\"amount item\"],\"steps\":[\"step\"]}],\"tip\":\"tip\"}\n" +
+      "For science/insight: {\"responseType\":\"insight\",\"acknowledgment\":\"1 sentence\",\"cards\":[{\"emoji\":\"\",\"title\":\"title\",\"body\":\"2 sentences\",\"pillar\":\"food\"}],\"tip\":\"tip\"}\n" +
+      "3-4 items. Specific. " + (allergy ? allergy : "");
   }
 };
 
@@ -1827,7 +1807,7 @@ function App() {
       // Attempt 1: Haiku fast (8s target), 2: Haiku minimal (6s), 3: Haiku tiny (5s)
       const timeouts = [25000, 22000, 20000];
       const models   = ["claude-haiku-4-5-20251001","claude-haiku-4-5-20251001","claude-haiku-4-5-20251001"];
-      const tokens   = [2500, 2000, 1500];
+      const tokens   = [1200, 1000, 800];
       const idx = Math.min(attempt-1, 2);
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), timeouts[idx]);
