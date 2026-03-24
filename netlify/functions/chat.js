@@ -1,15 +1,25 @@
-export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+exports.handler = async (event) => {
+  if (event.httpMethod === "OPTIONS") {
+    return {
+      statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+      },
+      body: "",
+    };
+  }
 
-  if (req.method === "OPTIONS") return res.status(200).end();
-  if (req.method !== "POST") return res.status(405).end();
+  if (event.httpMethod !== "POST") {
+    return { statusCode: 405, body: "Method Not Allowed" };
+  }
 
   try {
-    const { model, max_tokens, system, messages } = req.body;
+    const body = JSON.parse(event.body);
+    const max_tokens = Math.min(body.max_tokens || 1200, 1200);
 
-    const upstream = await fetch("https://api.anthropic.com/v1/messages", {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -17,16 +27,27 @@ export default async function handler(req, res) {
         "x-api-key": process.env.ANTHROPIC_API_KEY,
       },
       body: JSON.stringify({
-        model: model || "claude-haiku-4-5-20251001",
-        max_tokens: Math.min(max_tokens || 1800, 2000),
-        system,
-        messages,
+        model: "claude-haiku-4-5-20251001",
+        max_tokens,
+        system: body.system,
+        messages: body.messages,
       }),
     });
 
-    const data = await upstream.json();
-    return res.status(upstream.status).json(data);
+    const text = await response.text();
+    return {
+      statusCode: response.status,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Content-Type": "application/json",
+      },
+      body: text,
+    };
   } catch (e) {
-    return res.status(500).json({ error: e.message });
+    return {
+      statusCode: 500,
+      headers: { "Access-Control-Allow-Origin": "*" },
+      body: JSON.stringify({ error: e.message }),
+    };
   }
-}
+};
