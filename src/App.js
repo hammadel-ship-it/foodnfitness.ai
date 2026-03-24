@@ -99,10 +99,12 @@ const buildPrompt = (user, isFollowUp) => {
     "5. No trailing commas.\n";
 
   if (!isFollowUp) {
-    return "Holistic wellness coach. " + sexNote + " " + ageNote + " " + weightNote + " " + history + " " + timeCtx + "\n" +
-      "Output ONLY valid JSON, no markdown, double quotes only, no newlines in strings.\n" +
-      "{\"responseType\":\"initial\",\"acknowledgment\":\"1 warm sentence\",\"pillars\":[{\"type\":\"food\",\"label\":\"Food\",\"items\":[{\"emoji\":\"\",\"name\":\"item\",\"when\":\"when\",\"benefit\":\"mechanism\",\"struggle\":\"symptom now\",\"outcome\":\"result\",\"timeframe\":\"timing\"}]},{\"type\":\"exercise\",\"label\":\"Movement\",\"items\":[...]},{\"type\":\"breath\",\"label\":\"Breathwork\",\"items\":[...]},{\"type\":\"sleep\",\"label\":\"Sleep\",\"items\":[...]}],\"tip\":\"specific tip\"}\n" +
-      "Rules: 2 items per pillar. Keep ALL strings under 10 words. No recipes." +
+    const item = '{"emoji":"","name":"","when":"","benefit":"","outcome":"","timeframe":""}';
+    const pillar = (type,label) => `{"type":"${type}","label":"${label}","items":[${item},${item}]}`;
+    return "Wellness coach. " + sexNote + " " + ageNote + " " + weightNote + " " + timeCtx + "\n" +
+      "Reply with ONLY this JSON structure, filled in. No markdown, no extra text.\n" +
+      `{"responseType":"initial","acknowledgment":"1 sentence","pillars":[${pillar("food","Food")},${pillar("exercise","Movement")},${pillar("breath","Breathwork")},${pillar("sleep","Sleep")}],"tip":"1 tip"}` + "\n" +
+      "Rules: every string max 10 words. Be specific." +
       (allergy ? " " + allergy : "");
   } else {
     return "Wellness coach follow-up. " + sexNote + " " + ageNote + "\n" +
@@ -1253,7 +1255,7 @@ function ResultCard({ result, isLast, onGetMore, activeRecipe, setActiveRecipe, 
           {recipes.length > 0 && <RecipeList recipes={recipes} activeRecipe={activeRecipe} setActiveRecipe={setActiveRecipe} msgIdx={msgIdx}/>}
           {cards.length  > 0 && <VisualCardGrid cards={cards} onExpand={handleExpand}/>}
           <TipRow tip={tip}/>
-          {type === "initial" && isLast && pillars.length > 0 && result.weekPlan && <WeekPlan plan={result.weekPlan}/>}
+          {/* WeekPlan disabled - re-enable when main query is reliable */}
         </div>
       );
 
@@ -1855,7 +1857,7 @@ function App() {
       }
       recordSuccess(isFollowUp,q);
       if(window.posthog)window.posthog.capture("search_completed",{query:q,is_follow_up:isFollowUp,pillar_count:(result.pillars||[]).length});if(window.tlTrack)window.tlTrack('feature_used',{feature:'search',is_follow_up:isFollowUp,pillar_count:(result.pillars||[]).length});
-      if(result.pillars?.length) fetchWeekPlan(q);
+      // fetchWeekPlan disabled - saves API call, prevents orphaned week plan display
     }catch(e){
       // Network/server hard failure  show inline error but keep prior results visible
       const msg = e.message === "TIMEOUT"
