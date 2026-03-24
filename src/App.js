@@ -1251,7 +1251,7 @@ function ResultCard({ result, isLast, onGetMore, activeRecipe, setActiveRecipe, 
           {recipes.length > 0 && <RecipeList recipes={recipes} activeRecipe={activeRecipe} setActiveRecipe={setActiveRecipe} msgIdx={msgIdx}/>}
           {cards.length  > 0 && <VisualCardGrid cards={cards} onExpand={handleExpand}/>}
           <TipRow tip={tip}/>
-          {type === "initial" && isLast && <WeekPlan plan={result.weekPlan}/>}
+          {type === "initial" && isLast && pillars.length > 0 && result.weekPlan && <WeekPlan plan={result.weekPlan}/>}
         </div>
       );
 
@@ -1851,7 +1851,7 @@ function App() {
       }
       recordSuccess(isFollowUp,q);
       if(window.posthog)window.posthog.capture("search_completed",{query:q,is_follow_up:isFollowUp,pillar_count:(result.pillars||[]).length});if(window.tlTrack)window.tlTrack('feature_used',{feature:'search',is_follow_up:isFollowUp,pillar_count:(result.pillars||[]).length});
-      fetchWeekPlan(q);
+      if(result.pillars?.length) fetchWeekPlan(q);
     }catch(e){
       // Network/server hard failure  show inline error but keep prior results visible
       const msg = e.message === "TIMEOUT"
