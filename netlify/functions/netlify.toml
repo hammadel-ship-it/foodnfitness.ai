@@ -5,10 +5,6 @@
 [functions]
   timeout = 10
 
-[[edge_functions]]
-  path = "/.netlify/functions/chat"
-  function = "chat"
-
 [[headers]]
   for = "/*"
   [headers.values]
