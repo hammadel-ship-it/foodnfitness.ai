@@ -278,6 +278,9 @@ const CSS = `
   .search-ring:focus-within{border-color:rgba(61,184,118,.6)!important;box-shadow:0 0 0 3px rgba(61,184,118,.12)!important;}
   .pillar-tab         {transition:all .18s;cursor:pointer;}
   .chip-btn:hover     {filter:brightness(1.15);}
+  input::placeholder  {color:rgba(255,255,255,.3)!important;}
+  input:focus         {outline:none;}
+  textarea::placeholder{color:rgba(255,255,255,.3)!important;}
   @media(max-width:480px){
     .np-week-grid{grid-template-columns:repeat(4,1fr)!important;}
     .np-item-grid{grid-template-columns:repeat(2,1fr)!important;}
@@ -463,7 +466,7 @@ function AuthModal({ onClose, onAuth, defaultMode="login" }) {
     }catch(e){setErr(e.message);}finally{setLoading(false);}
   };
 
-  const inp={background:"#1e2226",border:"1px solid rgba(0,0,0,.1)",borderRadius:10,padding:"11px 14px",color:"#2a3838",outline:"none",fontSize:".9rem",width:"100%",boxSizing:"border-box"};
+  const inp={background:"rgba(255,255,255,.06)",border:"0.5px solid rgba(255,255,255,.12)",borderRadius:10,padding:"11px 14px",color:"#eaf0eb",outline:"none",fontSize:".9rem",width:"100%",boxSizing:"border-box"};
   const pw={position:"relative",display:"flex",alignItems:"center"};
   const eb={position:"absolute",right:12,background:"none",border:"none",color:"#8ea898",cursor:"pointer",padding:2,display:"flex",alignItems:"center"};
 
@@ -579,12 +582,12 @@ function ProfileModal({ user, onClose, onUpdate, onLogout, onUpgrade }) {
           <div style={{flex:1}}>
             <div style={{color:"#8ea898",fontSize:".78rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>Age</div>
             <input type="number" min="10" max="100" value={age} onChange={e=>setAge(e.target.value)} placeholder="e.g. 34"
-              style={{width:"100%",background:"#1e2226",border:"1px solid rgba(0,0,0,.1)",borderRadius:10,padding:"10px 12px",color:"#dde8df",fontSize:".95rem",fontFamily:"Georgia,serif",boxSizing:"border-box",outline:"none"}}/>
+              style={{width:"100%",background:"rgba(255,255,255,.06)",border:"0.5px solid rgba(255,255,255,.15)",borderRadius:10,padding:"10px 12px",color:"#eaf0eb",fontSize:".95rem",fontFamily:"Georgia,serif",boxSizing:"border-box",outline:"none"}}/>
           </div>
           <div style={{flex:1}}>
             <div style={{color:"#8ea898",fontSize:".78rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>Weight <span style={{textTransform:"none",letterSpacing:0,fontSize:".72rem"}}>(kg)</span></div>
             <input type="number" min="30" max="300" step="0.5" value={weight} onChange={e=>setWeight(e.target.value)} placeholder="e.g. 75"
-              style={{width:"100%",background:"#1e2226",border:"1px solid rgba(0,0,0,.1)",borderRadius:10,padding:"10px 12px",color:"#dde8df",fontSize:".95rem",fontFamily:"Georgia,serif",boxSizing:"border-box",outline:"none"}}/>
+              style={{width:"100%",background:"rgba(255,255,255,.06)",border:"0.5px solid rgba(255,255,255,.15)",borderRadius:10,padding:"10px 12px",color:"#eaf0eb",fontSize:".95rem",fontFamily:"Georgia,serif",boxSizing:"border-box",outline:"none"}}/>
           </div>
         </div>
         <div style={{color:"#8ea898",fontSize:".78rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:10}}>Biological sex <span style={{color:"#8ea898",fontStyle:"italic",letterSpacing:0,textTransform:"none",fontSize:".74rem"}}>(personalises results)</span></div>
@@ -899,7 +902,7 @@ function AckBubble({ text, label="A note for you" }) {
     <div style={{background:"linear-gradient(135deg,rgba(61,184,118,.1),rgba(30,120,60,.07))",border:"1px solid rgba(61,184,118,.22)",borderRadius:18,padding:"20px 24px",marginBottom:18,position:"relative",overflow:"hidden"}}>
       <div style={{position:"absolute",top:14,right:16,fontSize:28,opacity:.08}}></div>
       <div style={{color:"#8ea898",fontSize:".8rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>{label}</div>
-      <p style={{color:"#3a4e38",fontSize:"clamp(1.05rem,1.8vw,1.2rem)",lineHeight:1.85,margin:0,fontStyle:"italic"}}>{text}</p>
+      <p style={{color:"#8ea898",fontSize:"clamp(1.05rem,1.8vw,1.2rem)",lineHeight:1.85,margin:0,fontStyle:"italic"}}>{text}</p>
     </div>
   ); } catch(e) { console.error("AckBubble crash",e); return null; }
 }
@@ -1142,7 +1145,7 @@ function RecipeList({ recipes, activeRecipe, setActiveRecipe, msgIdx }) {
         return(
           <div key={i} className="rc" style={{background:"#1e2226",border:"1px solid rgba(61,184,118,.18)",borderRadius:14,overflow:"hidden",marginBottom:10,transition:"border-color .18s"}}>
             <button onClick={()=>setActiveRecipe(open?null:rid)} style={{width:"100%",textAlign:"left",background:"transparent",border:"none",padding:"16px 18px",cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <span style={{color:"#2a3838",fontSize:"clamp(1rem,1.6vw,1.12rem)",fontWeight:600}}>{r.emoji||""} {r.name}</span>
+              <span style={{color:"#8ea898",fontSize:"clamp(1rem,1.6vw,1.12rem)",fontWeight:600}}>{r.emoji||""} {r.name}</span>
               <span style={{color:"#b5ccb9",fontSize:".88rem",transform:open?"rotate(180deg)":"rotate(0deg)",transition:"transform .2s",display:"inline-block"}}></span>
             </button>
             {open&&(
@@ -1348,7 +1351,7 @@ function PricingPage({ onBack, user, onCreditsAdded }) {
         </div>
         <div style={{textAlign:"center",padding:"52px 0 60px",animation:"fadeUp .6s ease"}}>
           <div style={{display:"inline-block",background:"rgba(61,184,118,.1)",border:"1px solid rgba(61,184,118,.22)",borderRadius:40,padding:"5px 17px",fontSize:".7rem",letterSpacing:".18em",textTransform:"uppercase",color:"#6fcf97",marginBottom:22}}>Simple, honest pricing</div>
-          <h1 style={{fontSize:"clamp(2.2rem,5.5vw,3.6rem)",fontWeight:400,color:"#2a3838",lineHeight:1.15,letterSpacing:"-.02em",marginBottom:14}}>Eat well. Move well.<br/><em style={{color:"#6fcf97"}}>Start for 3.</em></h1>
+          <h1 style={{fontSize:"clamp(2.2rem,5.5vw,3.6rem)",fontWeight:400,color:"#8ea898",lineHeight:1.15,letterSpacing:"-.02em",marginBottom:14}}>Eat well. Move well.<br/><em style={{color:"#6fcf97"}}>Start for 3.</em></h1>
           <p style={{color:"#8ea898",fontSize:"clamp(.88rem,2vw,.98rem)",maxWidth:440,margin:"0 auto",lineHeight:1.8}}>Food, fitness, breathwork and sleep  all in one place.</p>
         </div>
         <div className="np-tier-grid" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(270px,1fr))",gap:18,animation:"fadeUp .6s ease .1s both"}}>
@@ -1357,7 +1360,7 @@ function PricingPage({ onBack, user, onCreditsAdded }) {
               {t.badge&&<div style={{position:"absolute",top:-13,left:"50%",transform:"translateX(-50%)",background:"linear-gradient(135deg,#2d8a50,#1e6038)",borderRadius:40,padding:"4px 16px",fontSize:".76rem",letterSpacing:".11em",textTransform:"uppercase",color:"#dde8df",fontWeight:600,whiteSpace:"nowrap",animation:"pulseRing 2.5s ease infinite"}}> {t.badge}</div>}
               {user&&user.tier&&(user.tier.toLowerCase()===t.name.toLowerCase()||user.tier===t.name)&&<div style={{position:"absolute",top:-13,left:"50%",transform:"translateX(-50%)",background:"rgba(61,184,118,.18)",border:"1px solid rgba(61,184,118,.4)",borderRadius:40,padding:"4px 16px",fontSize:".76rem",letterSpacing:".11em",textTransform:"uppercase",color:"#6fcf97",fontWeight:600,whiteSpace:"nowrap"}}> Current plan</div>}
               <div style={{fontSize:".78rem",letterSpacing:".14em",textTransform:"uppercase",color:t.highlight?"#1e7040":"#ddd9d3",marginBottom:16}}>{t.name}</div>
-              <div style={{marginBottom:4}}><span style={{fontSize:"clamp(2.6rem,5vw,3.2rem)",fontWeight:400,color:"#2a3838",letterSpacing:"-.03em",lineHeight:1}}>{t.price}</span><span style={{color:"#8ea898",fontSize:".78rem",marginLeft:5}}>{t.per}</span></div>
+              <div style={{marginBottom:4}}><span style={{fontSize:"clamp(2.6rem,5vw,3.2rem)",fontWeight:400,color:"#8ea898",letterSpacing:"-.03em",lineHeight:1}}>{t.price}</span><span style={{color:"#8ea898",fontSize:".78rem",marginLeft:5}}>{t.per}</span></div>
               <div style={{color:"#8ea898",fontSize:".92rem",marginBottom:4}}>{t.searches}</div>
               <div style={{display:"inline-block",background:"rgba(61,184,118,.07)",border:"1px solid rgba(61,184,118,.14)",borderRadius:20,padding:"3px 12px",fontSize:".8rem",color:"#8ea898",marginBottom:20,alignSelf:"flex-start"}}>{t.rate}</div>
               <p style={{color:"#8ea898",fontSize:".9rem",lineHeight:1.7,marginBottom:22,fontStyle:"italic"}}>{t.desc}</p>
@@ -1385,9 +1388,9 @@ function PricingPage({ onBack, user, onCreditsAdded }) {
 
 function SearchBar({ value, onChange, onSubmit, loading, hasConvo, placeholder }) {
   return(
-    <div className="search-ring" style={{background:"rgba(255,255,255,.055)",border:"1.5px solid rgba(61,184,118,.28)",borderRadius:28,padding:"clamp(6px,1vw,10px) clamp(6px,1vw,10px) clamp(6px,1vw,10px) clamp(18px,2vw,26px)",display:"flex",alignItems:"center",gap:10,transition:"border-color .2s, box-shadow .2s",boxShadow:"0 2px 24px rgba(61,184,118,.07)"}}>
+    <div className="search-ring" style={{background:"rgba(255,255,255,.055)",border:"1.5px solid rgba(111,207,151,.35)",borderRadius:28,padding:"clamp(6px,1vw,10px) clamp(6px,1vw,10px) clamp(6px,1vw,10px) clamp(18px,2vw,26px)",display:"flex",alignItems:"center",gap:10,transition:"border-color .2s, box-shadow .2s",boxShadow:"0 2px 24px rgba(61,184,118,.07)"}}>
       <span style={{fontSize:16,opacity:.4,flexShrink:0}}></span>
-      <input value={value} onChange={e=>onChange(e.target.value)} onKeyDown={e=>e.key==="Enter"&&!loading&&onSubmit(value)} placeholder={placeholder||"How are you feeling? What do you want to improve?"} style={{flex:1,background:"transparent",border:"none",outline:"none",color:"#2a3838",fontSize:"clamp(1rem,1.7vw,1.15rem)",padding:"clamp(12px,1.5vw,17px) 0",caretColor:"#1e7040",minWidth:0}}/>
+      <input value={value} onChange={e=>onChange(e.target.value)} onKeyDown={e=>e.key==="Enter"&&!loading&&onSubmit(value)} placeholder={placeholder||"How are you feeling? What do you want to improve?"} style={{flex:1,background:"transparent",border:"none",outline:"none",color:"#eaf0eb",fontSize:"clamp(1rem,1.7vw,1.15rem)",padding:"clamp(12px,1.5vw,17px) 0",caretColor:"#6fcf97",minWidth:0}}/>
       <button onClick={()=>onSubmit(value)} disabled={!value.trim()||loading} style={{background:value.trim()&&!loading?"linear-gradient(135deg,#2d8a50,#1e6038)":"rgba(61,184,118,.13)",border:"none",borderRadius:"clamp(14px,1.5vw,20px)",padding:"clamp(10px,1.2vw,15px) clamp(18px,2.5vw,32px)",color:"#dde8df",fontSize:"clamp(.96rem,1.5vw,1.1rem)",cursor:value.trim()&&!loading?"pointer":"default",fontWeight:600,whiteSpace:"nowrap",transition:"background .18s",flexShrink:0}}>
         {loading?<span style={{display:"inline-block",animation:"spin 1s linear infinite"}}></span>:(hasConvo?"Ask ":"Search")}
       </button>
@@ -1451,7 +1454,7 @@ function HistoryModal({ onClose, onLoad, user }) {
                 onMouseEnter={e=>e.currentTarget.style.background="rgba(30,112,64,.1)"}
                 onMouseLeave={e=>e.currentTarget.style.background="rgba(61,184,118,.06)"}>
                 <div style={{flex:1,minWidth:0}}>
-                  <div style={{color:"#2a3838",fontSize:".88rem",lineHeight:1.5,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.title}</div>
+                  <div style={{color:"#8ea898",fontSize:".88rem",lineHeight:1.5,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.title}</div>
                   <div style={{color:"#8a9a8e",fontSize:".74rem",marginTop:3}}>{fmt(c.date)}  {c.messages.filter(m=>m.role==="user").length} search{c.messages.filter(m=>m.role==="user").length!==1?"es":""}</div>
                 </div>
                 <button onClick={(e)=>del(c.id,e)} style={{background:"none",border:"none",color:"#8ea898",cursor:"pointer",fontSize:".82rem",padding:"2px 4px",flexShrink:0,borderRadius:6,transition:"color .15s"}}
@@ -1579,7 +1582,7 @@ class AppErrorBoundary extends React.Component {
         <div style={{minHeight:"100vh",background:"#16181a",display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
           <div style={{textAlign:"center",maxWidth:400}}>
             <div style={{fontSize:48,marginBottom:16}}></div>
-            <div style={{color:"#2a3838",fontSize:"1.2rem",fontWeight:600,marginBottom:8,fontFamily:"Georgia,serif"}}>Something went wrong</div>
+            <div style={{color:"#8ea898",fontSize:"1.2rem",fontWeight:600,marginBottom:8,fontFamily:"Georgia,serif"}}>Something went wrong</div>
             <div style={{color:"#8ea898",fontSize:".95rem",marginBottom:24,lineHeight:1.6}}>The app hit an unexpected error. Your search history is safe.</div>
             <button onClick={()=>{ this.setState({hasError:false}); window.location.reload(); }}
               style={{background:"linear-gradient(135deg,#2d8a50,#1e6038)",border:"none",borderRadius:12,padding:"12px 28px",color:"#dde8df",fontSize:"1rem",cursor:"pointer",fontFamily:"Georgia,serif",fontWeight:600}}>
@@ -2027,7 +2030,7 @@ function App() {
       <div style={{minHeight:"100vh",background:"#16181a",display:"flex",alignItems:"center",justifyContent:"center"}}>
         <div style={{textAlign:"center",padding:24}}>
           <div style={{fontSize:48,marginBottom:16}}></div>
-          <div style={{color:"#2a3838",fontSize:"1.1rem",fontFamily:"Georgia,serif",marginBottom:16}}>Something went wrong. Please reload.</div>
+          <div style={{color:"#8ea898",fontSize:"1.1rem",fontFamily:"Georgia,serif",marginBottom:16}}>Something went wrong. Please reload.</div>
           <button onClick={()=>window.location.reload()} style={{background:"#1e7040",border:"none",borderRadius:10,padding:"10px 24px",color:"#1e2226",fontSize:"1rem",cursor:"pointer"}}>Reload</button>
         </div>
       </div>
