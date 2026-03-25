@@ -959,7 +959,7 @@ function ItemDetailModal({ item, meta, pillarType, onClose, onDeepDive }) {
         {/* Hero - emoji + colour, no photo */}
         <div style={{width:"100%",background:"linear-gradient(160deg,"+safeMeta.bg+",rgba(0,0,0,.3))",padding:"28px 24px 20px",position:"relative",flexShrink:0,borderBottom:"1px solid "+safeMeta.border}}>
           <button onClick={onClose} style={{position:"absolute",top:16,right:16,background:"rgba(0,0,0,.4)",border:"none",borderRadius:"50%",width:34,height:34,color:"#1e2226",fontSize:16,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>&times;</button>
-          <div style={{fontSize:52,marginBottom:10,lineHeight:1}}>{item.emoji||""}</div>
+          <div style={{fontSize:52,marginBottom:10,lineHeight:1}}>{getItemEmoji(item.name, pillarType)||item.emoji||""}</div>
           <div style={{color:safeMeta.color,fontSize:".72rem",letterSpacing:".12em",textTransform:"uppercase",marginBottom:4}}>{safeMeta.label}</div>
           <div style={{color:"#eaf0eb",fontSize:"1.1rem",fontWeight:600,lineHeight:1.25}}>{item.name}</div>
           {item.when&&<div style={{marginTop:8,display:"inline-block",background:safeMeta.bg,border:"0.5px solid "+safeMeta.border,borderRadius:20,padding:"3px 12px",color:safeMeta.color,fontSize:".78rem"}}>{item.when}</div>}
@@ -1024,6 +1024,89 @@ function ItemDetailModal({ item, meta, pillarType, onClose, onDeepDive }) {
   );
 }
 
+
+// Smart emoji matcher — maps item name keywords to correct emoji
+function getItemEmoji(name, pillarType) {
+  if (!name) return null;
+  const n = name.toLowerCase();
+  const map = [
+    // ── FOOD ──────────────────────────────────────────────────────────────
+    [["sardine","mackerel","anchovy","salmon","tuna","cod","fish","seafood","omega"], "🐟"],
+    [["turmeric","curcumin"], "🟡"],
+    [["ginger","ginger shot","ginger tea"], "🫚"],
+    [["garlic","black garlic"], "🧄"],
+    [["lemon","lime","citrus"], "🍋"],
+    [["blueberry","berry","acai"], "🫐"],
+    [["cherry","tart cherry","montmorency"], "🍒"],
+    [["avocado"], "🥑"],
+    [["broccoli","cauliflower","brussels"], "🥦"],
+    [["spinach","kale","leafy","watercress"], "🥬"],
+    [["beetroot","beet"], "🫚"],
+    [["sweet potato","yam"], "🍠"],
+    [["egg","eggs"], "🥚"],
+    [["oat","porridge","oatmeal","granola"], "🥣"],
+    [["walnut","almond","cashew","nut"], "🥜"],
+    [["olive oil","oil"], "🫒"],
+    [["mushroom","reishi","chaga","lion mane"], "🍄"],
+    [["quinoa","grain","millet"], "🌾"],
+    [["lentil","chickpea","bean","legume"], "🫘"],
+    [["apple cider vinegar","vinegar","acv"], "🍶"],
+    [["kombucha","kefir"], "🧃"],
+    [["yogurt","dairy"], "🥛"],
+    [["green tea","matcha"], "🍵"],
+    [["chamomile","herbal tea","fennel tea","peppermint tea","licorice tea","ginger tea"], "🍵"],
+    [["tea","infusion","brew","tonic","drink","water","juice","smoothie","shake"], "🥤"],
+    [["bone broth","broth","soup"], "🍲"],
+    [["pineapple","papaya","mango","tropical"], "🍍"],
+    [["pomegranate","fig","prune"], "🍎"],
+    [["dark chocolate","cacao"], "🍫"],
+    [["collagen","protein powder","supplement","capsule","vitamin","zinc","magnesium"], "💊"],
+    [["probiotic","prebiotic","fermented","kimchi","sauerkraut"], "🦠"],
+    [["ashwagandha","rhodiola","adaptogen","maca"], "🌿"],
+    // ── EXERCISE ──────────────────────────────────────────────────────────
+    [["yoga","stretch","flexibility","mobility","yin","nidra"], "🧘"],
+    [["run","jog","sprint","walk","hike"], "🏃"],
+    [["swim","pool","aquatic"], "🏊"],
+    [["cycle","bike","cycling"], "🚴"],
+    [["strength","weight","deadlift","squat","bench","barbell","dumbbell","resistance"], "🏋️"],
+    [["pilates"], "🤸"],
+    [["hiit","interval","circuit","burpee"], "⚡"],
+    [["plank","core","abdominal"], "💪"],
+    [["foam roll","massage","trigger","myofascial"], "🪄"],
+    [["neck roll","neck","shoulder roll","shoulder","joint","rotation","circle"], "🔄"],
+    [["tai chi","qigong","flow"], "☯️"],
+    [["cold shower","ice bath","cold plunge","contrast shower"], "🧊"],
+    [["sauna","steam","heat"], "🔥"],
+    [["jump","bounce","trampoline"], "⬆️"],
+    // ── BREATHWORK ────────────────────────────────────────────────────────
+    [["box breath","4-4-4","square breath"], "📦"],
+    [["4-7-8","478"], "😮"],
+    [["wim hof","power breath","bellows","bhastrika"], "💨"],
+    [["alternate nostril","nadi"], "👃"],
+    [["humming","bhramari"], "🎵"],
+    [["meditat","mindful","body scan","awareness"], "🧠"],
+    [["breath","breathing","pranayama","inhale","exhale","respir"], "🌬️"],
+    // ── SLEEP ─────────────────────────────────────────────────────────────
+    [["magnesium"], "💊"],
+    [["melatonin"], "🌙"],
+    [["blue light","screen"], "📵"],
+    [["sleep position","pillow","elevation"], "🛏️"],
+    [["temperature","cool room","thermostat"], "🌡️"],
+    [["lavender","aromatherapy","essential oil"], "💜"],
+    [["journal","gratitude","diary","write"], "📝"],
+    [["wind down","routine","bedtime"], "🌙"],
+    [["nap","rest","sleep","recovery"], "😴"],
+  ];
+
+  for (const [keywords, emoji] of map) {
+    if (keywords.some(k => n.includes(k))) return emoji;
+  }
+
+  // Pillar fallback
+  const fallbacks = { food:"🥗", exercise:"💪", breath:"🌬️", sleep:"🌙" };
+  return fallbacks[pillarType] || "✨";
+}
+
 function ProtocolItem({ item, pillarType, meta, onExpand, index }) {
   try {
   if (!item || !item.name) return null;
@@ -1044,7 +1127,7 @@ function ProtocolItem({ item, pillarType, meta, onExpand, index }) {
         <div style={{padding:"18px 18px 0",display:"flex",alignItems:"center",gap:14,marginBottom:14}}>
           <div style={{width:48,height:48,borderRadius:12,background:C.iconBg,border:"0.5px solid "+C.border,
                        display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>
-            {item.emoji||meta.icon}
+            {getItemEmoji(item.name, pillarType)||item.emoji||meta.icon}
           </div>
           <div style={{flex:1,minWidth:0}}>
             <div style={{fontSize:"1rem",fontWeight:600,color:"#eaf0eb",lineHeight:1.35,marginBottom:5}}>
