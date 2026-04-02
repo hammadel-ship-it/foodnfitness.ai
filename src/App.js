@@ -959,7 +959,7 @@ function ItemDetailModal({ item, meta, pillarType, onClose, onDeepDive }) {
         {/* Hero - emoji + colour, no photo */}
         <div style={{width:"100%",background:"linear-gradient(160deg,"+safeMeta.bg+",rgba(0,0,0,.3))",padding:"28px 24px 20px",position:"relative",flexShrink:0,borderBottom:"1px solid "+safeMeta.border}}>
           <button onClick={onClose} style={{position:"absolute",top:16,right:16,background:"rgba(0,0,0,.4)",border:"none",borderRadius:"50%",width:34,height:34,color:"#1e2226",fontSize:16,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>&times;</button>
-          <div style={{fontSize:52,marginBottom:10,lineHeight:1}}>{getItemEmoji(item.name, pillarType)||item.emoji||""}</div>
+          <div style={{fontSize:52,marginBottom:10,lineHeight:1}}>{getItemEmoji(item.name, pillarType)||meta.icon||""}</div>
           <div style={{color:safeMeta.color,fontSize:".72rem",letterSpacing:".12em",textTransform:"uppercase",marginBottom:4}}>{safeMeta.label}</div>
           <div style={{color:"#eaf0eb",fontSize:"1.1rem",fontWeight:600,lineHeight:1.25}}>{item.name}</div>
           {item.when&&<div style={{marginTop:8,display:"inline-block",background:safeMeta.bg,border:"0.5px solid "+safeMeta.border,borderRadius:20,padding:"3px 12px",color:safeMeta.color,fontSize:".78rem"}}>{item.when}</div>}
@@ -1030,82 +1030,207 @@ function getItemEmoji(name, pillarType) {
   if (!name) return null;
   const n = name.toLowerCase();
   const map = [
-    // ── FOOD ──────────────────────────────────────────────────────────────
-    [["sardine","mackerel","anchovy","salmon","tuna","cod","fish","seafood","omega"], "🐟"],
-    [["turmeric","curcumin"], "🟡"],
-    [["ginger","ginger shot","ginger tea"], "🫚"],
-    [["garlic","black garlic"], "🧄"],
-    [["lemon","lime","citrus"], "🍋"],
-    [["blueberry","berry","acai"], "🫐"],
-    [["cherry","tart cherry","montmorency"], "🍒"],
+
+    // ── FOOD: Fish & protein ───────────────────────────────────────────────
+    [["sardine","mackerel","anchovy","herring","tuna","cod","halibut","trout","seafood","fish oil","omega","roe"], "🐟"],
+    [["salmon","wild salmon","alaskan salmon"], "🐟"],
+    [["chicken","turkey","poultry"], "🍗"],
+    [["beef","venison","bison","lamb","red meat","steak","grass-fed"], "🥩"],
+    [["egg","eggs","duck egg"], "🥚"],
+    [["collagen","gelatin","peptide","bone broth","broth","stock"], "🍲"],
+    [["protein powder","protein shake","whey","casein"], "💪"],
+
+    // ── FOOD: Vegetables ──────────────────────────────────────────────────
+    [["spinach","kale","chard","watercress","arugula","leafy","greens"], "🥬"],
+    [["broccoli","cauliflower","brussels","crucifer"], "🥦"],
+    [["carrot","root veg"], "🥕"],
+    [["beetroot","beet juice","beet"], "🫚"],
+    [["sweet potato"], "🍠"],
+    [["cucumber","celery","fennel vegetable"], "🥒"],
+    [["garlic","black garlic","fermented garlic"], "🧄"],
+    [["onion","leek","shallot"], "🧅"],
+    [["tomato"], "🍅"],
+    [["pepper","capsicum","chilli","chili"], "🫑"],
     [["avocado"], "🥑"],
-    [["broccoli","cauliflower","brussels"], "🥦"],
-    [["spinach","kale","leafy","watercress"], "🥬"],
-    [["beetroot","beet"], "🫚"],
-    [["sweet potato","yam"], "🍠"],
-    [["egg","eggs"], "🥚"],
+    [["mushroom","reishi","lion mane","chaga","shiitake","cordyceps"], "🍄"],
+    [["kimchi","sauerkraut","fermented veg"], "🦠"],
+    [["olive oil","extra virgin"], "🫒"],
+
+    // ── FOOD: Fruit ───────────────────────────────────────────────────────
+    [["blueberry","blueberries","bilberry","acai"], "🫐"],
+    [["cherry","tart cherry","montmorency","sour cherry"], "🍒"],
+    [["pomegranate"], "🍎"],
+    [["apple","pear"], "🍎"],
+    [["banana"], "🍌"],
+    [["mango","papaya","pineapple","tropical fruit"], "🍍"],
+    [["orange","grapefruit","mandarin","citrus fruit"], "🍊"],
+    [["lemon","lime","lemon water","lemon juice"], "🍋"],
+    [["fig","prune","date","dried fruit"], "🍇"],
+    [["grape","raisin"], "🍇"],
+    [["strawberry","raspberry","blackberry"], "🍓"],
+    [["kiwi"], "🥝"],
+    [["watermelon","melon"], "🍉"],
+
+    // ── FOOD: Grains & seeds ──────────────────────────────────────────────
     [["oat","porridge","oatmeal","granola"], "🥣"],
-    [["walnut","almond","cashew","nut"], "🥜"],
-    [["olive oil","oil"], "🫒"],
-    [["mushroom","reishi","chaga","lion mane"], "🍄"],
-    [["quinoa","grain","millet"], "🌾"],
-    [["lentil","chickpea","bean","legume"], "🫘"],
-    [["apple cider vinegar","vinegar","acv"], "🍶"],
-    [["kombucha","kefir"], "🧃"],
-    [["yogurt","dairy"], "🥛"],
-    [["green tea","matcha"], "🍵"],
-    [["chamomile","herbal tea","fennel tea","peppermint tea","licorice tea","ginger tea"], "🍵"],
-    [["tea","infusion","brew","tonic","drink","water","juice","smoothie","shake"], "🥤"],
-    [["bone broth","broth","soup"], "🍲"],
-    [["pineapple","papaya","mango","tropical"], "🍍"],
-    [["pomegranate","fig","prune"], "🍎"],
-    [["dark chocolate","cacao"], "🍫"],
-    [["collagen","protein powder","supplement","capsule","vitamin","zinc","magnesium"], "💊"],
-    [["probiotic","prebiotic","fermented","kimchi","sauerkraut"], "🦠"],
-    [["ashwagandha","rhodiola","adaptogen","maca"], "🌿"],
-    // ── EXERCISE ──────────────────────────────────────────────────────────
-    [["yoga","stretch","flexibility","mobility","yin","nidra"], "🧘"],
-    [["run","jog","sprint","walk","hike"], "🏃"],
-    [["swim","pool","aquatic"], "🏊"],
-    [["cycle","bike","cycling"], "🚴"],
-    [["strength","weight","deadlift","squat","bench","barbell","dumbbell","resistance"], "🏋️"],
-    [["pilates"], "🤸"],
-    [["hiit","interval","circuit","burpee"], "⚡"],
-    [["plank","core","abdominal"], "💪"],
-    [["foam roll","massage","trigger","myofascial"], "🪄"],
-    [["neck roll","neck","shoulder roll","shoulder","joint","rotation","circle"], "🔄"],
-    [["tai chi","qigong","flow"], "☯️"],
-    [["cold shower","ice bath","cold plunge","contrast shower"], "🧊"],
-    [["sauna","steam","heat"], "🔥"],
-    [["jump","bounce","trampoline"], "⬆️"],
+    [["quinoa","millet","buckwheat","amaranth"], "🌾"],
+    [["rice","brown rice","white rice"], "🍚"],
+    [["bread","sourdough","whole grain","rye"], "🍞"],
+    [["psyllium","chia","flaxseed","flax","hemp seed","hemp heart","linseed"], "🌱"],
+    [["walnut","almond","cashew","pistachio","pecan","brazil nut","macadamia","mixed nut","nut butter","peanut"], "🥜"],
+
+    // ── FOOD: Legumes ─────────────────────────────────────────────────────
+    [["lentil","chickpea","bean","legume","pea"], "🫘"],
+
+    // ── FOOD: Dairy & fermented ───────────────────────────────────────────
+    [["yogurt","greek yogurt","dairy"], "🥛"],
+    [["kefir","milk kefir"], "🥛"],
+    [["kombucha","water kefir","jun"], "🧃"],
+    [["probiotic","prebiotic","kimchi","sauerkraut","miso","tempeh","natto","fermented"], "🦠"],
+
+    // ── FOOD: Drinks & teas ───────────────────────────────────────────────
+    [["green tea","matcha","ceremonial matcha"], "🍵"],
+    [["chamomile","chamomile tea"], "🍵"],
+    [["peppermint tea","spearmint tea","mint tea"], "🍵"],
+    [["fennel tea","fennel seed tea"], "🍵"],
+    [["ginger tea","ginger lemon tea","ginger shot","ginger root"], "🫚"],
+    [["turmeric tea","turmeric latte","golden milk","turmeric milk"], "🌟"],
+    [["bone broth drink","warm broth"], "🍲"],
+    [["lemon water","warm lemon","lemon ginger water"], "🍋"],
+    [["cucumber water","infused water","mineral water"], "🥤"],
+    [["beetroot juice","beet juice"], "🧃"],
+    [["celery juice","green juice","vegetable juice"], "🥤"],
+    [["apple cider vinegar","acv","raw vinegar"], "🍶"],
+    [["aloe vera juice","aloe drink"], "🌿"],
+    [["coconut water"], "🥥"],
+    [["coffee","espresso","cold brew"], "☕"],
+    [["tea","herbal tea","infusion","brew","tisane"], "🍵"],
+    [["smoothie","green smoothie","protein shake","shake","blend"], "🥤"],
+    [["water","hydrat"], "💧"],
+
+    // ── FOOD: Spices & herbs ──────────────────────────────────────────────
+    [["turmeric","curcumin"], "🟡"],
+    [["cinnamon","ceylon cinnamon"], "🪵"],
+    [["black pepper","piperine"], "🫚"],
+    [["ashwagandha","rhodiola","adaptogen","maca","ginseng","eleuthero"], "🌿"],
+    [["dandelion","nettle","burdock","milk thistle","licorice root","marshmallow root"], "🌿"],
+    [["lavender","chamomile herb","valerian"], "💜"],
+    [["saffron"], "🌼"],
+    [["oregano","thyme","rosemary","herb"], "🌿"],
+
+    // ── FOOD: Supplements ─────────────────────────────────────────────────
+    [["magnesium glycinate","magnesium citrate","magnesium","mag glyc"], "💊"],
+    [["vitamin d","vitamin d3","d3","sunshine vitamin"], "☀️"],
+    [["vitamin c","ascorbic"], "🍊"],
+    [["vitamin b","b12","b complex","folate"], "💊"],
+    [["zinc","selenium","iron supplement"], "💊"],
+    [["omega-3","fish oil","krill oil"], "💊"],
+    [["collagen supplement","collagen powder","marine collagen"], "💊"],
+    [["glutamine","creatine","bcaa","amino acid"], "💊"],
+    [["melatonin supplement"], "🌛"],
+    [["supplement","capsule","tablet","pill","powder"], "💊"],
+    [["dark chocolate","cacao","cocoa"], "🍫"],
+    [["olive oil","coconut oil","mct oil"], "🫒"],
+
+    // ── EXERCISE: Cardio ──────────────────────────────────────────────────
+    [["nature walk","outdoor walk","forest walk","grounding","earthing","barefoot","forest bath"], "🌳"],
+    [["walk","stroll","hike","hiking","steps","step count","10000 step"], "🚶"],
+    [["run","jog","sprint","jogging","running"], "🏃"],
+    [["swim","pool","aquatic","water aerobic"], "🏊"],
+    [["cycle","bike","cycling","spin","indoor bike"], "🚴"],
+    [["row","rowing","ergometer"], "🚣"],
+    [["jump rope","skipping"], "⚡"],
+    [["danc","zumba","dance"], "💃"],
+    [["elliptical","cross trainer","cardio machine"], "🏃"],
+
+    // ── EXERCISE: Strength ────────────────────────────────────────────────
+    [["deadlift","squat","bench press","barbell","powerlifting"], "🏋️"],
+    [["dumbbell","dumbbell curl","dumbbell press","dumbbell row"], "🏋️"],
+    [["kettlebell","turkish get-up","turkish getup","farmer walk","loaded carry","suitcase carry"], "🏋️"],
+    [["cluster set","cluster training","olympic lift","power clean","snatch"], "🏋️"],
+    [["resistance band","band work","cable"], "🏋️"],
+    [["push-up","pushup","push up","press-up","pressup"], "🤸"],
+    [["pull-up","pullup","chin-up","chinup"], "🤸"],
+    [["dip","tricep dip"], "🤸"],
+    [["plank","side plank","core","abdominal","crunch","sit-up","situp","ab work"], "🔥"],
+    [["box jump","jump squat","plyometric","explosive"], "⬆️"],
+    [["hiit","interval training","circuit training","tabata","amrap","emom"], "⚡"],
+    [["burpee","mountain climber"], "⚡"],
+    [["bodyweight","calisthenics"], "🤸"],
+
+    // ── EXERCISE: Flexibility & recovery ──────────────────────────────────
+    [["yoga","yin yoga","restorative yoga","yoga nidra","vinyasa","hatha","ashtanga"], "🧘"],
+    [["pilates","reformer"], "🤸"],
+    [["stretch","stretching","hip flexor","hamstring","quad stretch","calf stretch"], "🧘"],
+    [["mobility","joint mobility","range of motion"], "🔄"],
+    [["neck roll","neck stretch","neck","cervical"], "🔄"],
+    [["shoulder roll","shoulder stretch","shoulder circle","shoulder mobility"], "🔄"],
+    [["hip circle","hip mobility","hip opener","piriformis"], "🔄"],
+    [["ankle circle","wrist circle","joint rotation","joint circle"], "🔄"],
+    [["foam roll","foam roller","self-massage","trigger point","myofascial"], "🪄"],
+    [["massage","deep tissue","sports massage","thai massage"], "🪄"],
+    [["tai chi","qigong","bagua"], "☯️"],
+    [["cold shower","contrast shower","cold plunge","ice bath","cold immersion"], "🧊"],
+    [["sauna","infrared sauna","steam room","heat therapy"], "🔥"],
+    [["lymphatic drainage","lymph massage","rebounding","trampoline"], "🔄"],
+    [["inversion","handstand","headstand"], "🤸"],
+    [["progressive muscle relaxation","muscle relaxation"], "🧘"],
+
     // ── BREATHWORK ────────────────────────────────────────────────────────
-    [["box breath","4-4-4","square breath"], "📦"],
-    [["4-7-8","478"], "😮"],
-    [["wim hof","power breath","bellows","bhastrika"], "💨"],
-    [["alternate nostril","nadi"], "👃"],
-    [["humming","bhramari"], "🎵"],
-    [["meditat","mindful","body scan","awareness"], "🧠"],
-    [["breath","breathing","pranayama","inhale","exhale","respir"], "🌬️"],
+    [["box breath","box breathing","4-4-4","square breath"], "📦"],
+    [["4-7-8","4 7 8","478 breath","478 breathing"], "😮"],
+    [["wim hof","wim-hof","power breath","tummo"], "💨"],
+    [["bellows breath","bhastrika","kapalabhati","breath of fire"], "💨"],
+    [["alternate nostril","nadi shodhana","nadi shodhan"], "👃"],
+    [["humming bee","bhramari","humming"], "🎵"],
+    [["ujjayi","ocean breath","victorious breath"], "🌊"],
+    [["diaphragm","diaphragmatic","belly breath","abdominal breath"], "🫁"],
+    [["deep breath","deep breathing","slow breath","slow breathing"], "🫁"],
+    [["breath hold","breath retention","kumbhaka"], "🌬️"],
+    [["coherent breath","resonance breath","5.5","heart rate variability","hrv breath"], "💚"],
+    [["sighing","physiological sigh","double inhale"], "😮"],
+    [["chanting","om","mantra"], "🎵"],
+    [["breathwork","pranayama"], "💨"],
+    [["breath","breathing","inhale","exhale","respir"], "🌬️"],
+    [["meditat","mindfulness meditation","vipassana","transcendental","zen"], "🧠"],
+    [["mindful","body scan","awareness","present moment"], "🧠"],
+    [["visualisation","visualization","guided imagery"], "🧠"],
+    [["journaling","gratitude journal","morning pages","diary","write"], "📝"],
+    [["nature walk","grounding","earthing","barefoot"], "🌳"],
+    [["cold exposure","cold therapy"], "🧊"],
+
     // ── SLEEP ─────────────────────────────────────────────────────────────
-    [["magnesium"], "💊"],
-    [["melatonin"], "🌙"],
-    [["blue light","screen"], "📵"],
-    [["sleep position","pillow","elevation"], "🛏️"],
-    [["temperature","cool room","thermostat"], "🌡️"],
-    [["lavender","aromatherapy","essential oil"], "💜"],
-    [["journal","gratitude","diary","write"], "📝"],
-    [["wind down","routine","bedtime"], "🌙"],
-    [["nap","rest","sleep","recovery"], "😴"],
+    [["magnesium glycinate","magnesium threonate","magnesium malate","magnesium bisglycinate"], "💊"],
+    [["melatonin","melatonin supplement"], "🌛"],
+    [["5-htp","tryptophan","serotonin precursor"], "💊"],
+    [["valerian","passionflower","hops","sleep supplement","sleep capsule"], "💊"],
+    [["blue light","blue-light","screen time","screen before bed","no screen","phone before bed","device"], "📵"],
+    [["red light","amber light","dim light","candlelight"], "🕯️"],
+    [["sleep temperature","cool room","bedroom temp","thermostat","18 degree"], "🌡️"],
+    [["sleep position","left side","right side","pillow","elevation"], "🛏️"],
+    [["blackout","eye mask","dark room","curtain"], "🌑"],
+    [["white noise","pink noise","brown noise","sleep sound","binaural"], "🎵"],
+    [["sleep routine","bedtime routine","wind down","wind-down","night routine"], "🛌"],
+    [["no caffeine","caffeine curfew","avoid caffeine"], "☕"],
+    [["evening walk","evening stroll","night walk"], "🌙"],
+    [["bath","warm bath","epsom salt bath","magnesium bath"], "🛁"],
+    [["sleep hygiene","sleep schedule","consistent wake","same time"], "⏰"],
+    [["nap","power nap","rest","20 min nap"], "😴"],
+    [["lavender","lavender oil","aromatherapy","essential oil"], "💜"],
+    [["chamomile","passionflower tea","sleep tea","night tea"], "🍵"],
+    [["reading","read before bed","book"], "📖"],
+    [["sleep","deep sleep","rem sleep","slow wave"], "😴"],
   ];
 
   for (const [keywords, emoji] of map) {
     if (keywords.some(k => n.includes(k))) return emoji;
   }
 
-  // Pillar fallback
+  // Pillar fallback — always returns something, never empty
   const fallbacks = { food:"🥗", exercise:"💪", breath:"🌬️", sleep:"🌙" };
   return fallbacks[pillarType] || "✨";
 }
+
 
 function ProtocolItem({ item, pillarType, meta, onExpand, index }) {
   try {
@@ -1127,7 +1252,7 @@ function ProtocolItem({ item, pillarType, meta, onExpand, index }) {
         <div style={{padding:"18px 18px 0",display:"flex",alignItems:"center",gap:14,marginBottom:14}}>
           <div style={{width:48,height:48,borderRadius:12,background:C.iconBg,border:"0.5px solid "+C.border,
                        display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>
-            {getItemEmoji(item.name, pillarType)||item.emoji||meta.icon}
+            {getItemEmoji(item.name, pillarType)||meta.icon}
           </div>
           <div style={{flex:1,minWidth:0}}>
             <div style={{fontSize:"1rem",fontWeight:600,color:"#eaf0eb",lineHeight:1.35,marginBottom:5}}>
@@ -1844,7 +1969,7 @@ function App() {
           items: Array.isArray(p.items) ? p.items.filter(Boolean).map(item => ({
             name:      String(item.name      || ""),
             benefit:   String(item.benefit   || ""),
-            emoji:     String(item.emoji     || ""),
+            emoji:     "", // always use getItemEmoji client-side
             when:      String(item.when      || ""),
             struggle:  String(item.struggle  || ""),
             outcome:   String(item.outcome   || ""),
