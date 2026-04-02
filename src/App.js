@@ -178,6 +178,106 @@ const fetchUserWorkspace = async (userId) => {
   return data;
 };
 
+// Classify a search query into a wellness topic category
+const classifyTopic = (query) => {
+  const q = (query||"").toLowerCase();
+  if (/sleep|insomnia|tired|fatigue|wake|rest|nap/.test(q))        return "sleep";
+  if (/stress|anxiety|overwhelm|panic|nervous|calm|breath/.test(q)) return "stress";
+  if (/energy|focus|brain fog|concentration|productivity/.test(q))  return "energy";
+  if (/digest|bloat|gut|ibs|stomach|bowel|constip/.test(q))        return "digestion";
+  if (/inflam|joint|pain|arthrit|ache/.test(q))                     return "inflammation";
+  if (/immune|sick|cold|flu|infect|virus/.test(q))                  return "immunity";
+  if (/weight|fat|slim|diet|calorie|overweight/.test(q))            return "weight";
+  if (/muscle|strength|workout|gym|fitness|recover/.test(q))        return "fitness";
+  if (/skin|glow|acne|hair|nail|beauty/.test(q))                    return "skin";
+  if (/hormone|period|pms|menopause|testosterone/.test(q))          return "hormones";
+  if (/mood|depress|low|sad|emotion|mental/.test(q))                return "mood";
+  if (/posture|back|spine|neck|shoulder|hip/.test(q))               return "posture";
+  return "general";
+};
+
+const getAgeBand = (age) => {
+  if (!age) return null;
+  if (age < 25) return "18-24";
+  if (age < 35) return "25-34";
+  if (age < 45) return "35-44";
+  if (age < 55) return "45-54";
+  return "55+";
+};
+
+const logSearchEvent = async (user, query, pillars) => {
+  try {
+    if (!user?.workspace_id) return; // only log for B2B users
+    const now = new Date();
+    const weekNumber = Math.ceil((now - new Date(now.getFullYear(), 0, 1)) / 604800000);
+    await supabase.from("search_events").insert({
+      workspace_id:   user.workspace_id,
+      department:     user.department || null,
+      age_band:       getAgeBand(user.age),
+      pillars:        (pillars||[]).map(p=>p.type).filter(Boolean),
+      topic_category: classifyTopic(query),
+      week_number:    weekNumber,
+      year:           now.getFullYear(),
+    });
+  } catch(e) { /* fail silently — never block the user */ }
+};
+
+const fetchDashboardStats = async (workspaceId, department=null) => {
+  try {
+    // Member counts
+    let memQ = supabase.from("workspace_members").select("user_id, joined_at, status, department, role").eq("workspace_id", workspaceId);
+    if (department) memQ = memQ.eq("department", department);
+    const { data: members } = await memQ;
+
+    const total = members?.length || 0;
+    const weekAgo = new Date(Date.now()-7*24*60*60*1000).toISOString();
+    const activeThisWeek = members?.filter(m => m.joined_at > weekAgo).length || 0;
+    const departments = [...new Set((members||[]).map(m=>m.department).filter(Boolean))];
+
+    // Search events for this workspace
+    let evQ = supabase.from("search_events")
+      .select("topic_category, pillars, age_band, department, week_number, year, created_at")
+      .eq("workspace_id", workspaceId)
+      .order("created_at", { ascending: false })
+      .limit(500);
+    if (department) evQ = evQ.eq("department", department);
+    const { data: events } = await evQ;
+
+    // Aggregate topic categories
+    const topicCounts = {};
+    const pillarCounts = { food:0, exercise:0, breath:0, sleep:0 };
+    const weeklyActivity = {};
+    const ageBandCounts = {};
+    const deptCounts = {};
+
+    (events||[]).forEach(ev => {
+      if (ev.topic_category) topicCounts[ev.topic_category] = (topicCounts[ev.topic_category]||0)+1;
+      (ev.pillars||[]).forEach(p => { if(pillarCounts[p]!==undefined) pillarCounts[p]++; });
+      const wk = ev.year+"-W"+String(ev.week_number).padStart(2,"0");
+      weeklyActivity[wk] = (weeklyActivity[wk]||0)+1;
+      if (ev.age_band) ageBandCounts[ev.age_band] = (ageBandCounts[ev.age_band]||0)+1;
+      if (ev.department) deptCounts[ev.department] = (deptCounts[ev.department]||0)+1;
+    });
+
+    const topTopics = Object.entries(topicCounts).sort((a,b)=>b[1]-a[1]).slice(0,6);
+    const topPillars = Object.entries(pillarCounts).sort((a,b)=>b[1]-a[1]);
+
+    // Last 8 weeks
+    const last8Weeks = [];
+    for (let i=7; i>=0; i--) {
+      const d = new Date(Date.now() - i*7*24*60*60*1000);
+      const wn = Math.ceil((d - new Date(d.getFullYear(),0,1))/604800000);
+      const key = d.getFullYear()+"-W"+String(wn).padStart(2,"0");
+      last8Weeks.push({ label:"W-"+(i===0?"now":i), count: weeklyActivity[key]||0, key });
+    }
+    const maxWeek = Math.max(1, ...last8Weeks.map(w=>w.count));
+
+    return { total, activeThisWeek, activeMembers: members?.filter(m=>m.status==="active").length||0,
+             topTopics, topPillars, last8Weeks, maxWeek, ageBandCounts, deptCounts,
+             departments, totalEvents: events?.length||0 };
+  } catch(e) { console.error("fetchDashboardStats:", e); return { total:0, activeThisWeek:0, activeMembers:0, topTopics:[], topPillars:[], last8Weeks:[], maxWeek:1, ageBandCounts:{}, deptCounts:{}, departments:[], totalEvents:0 }; }
+};
+
 const fetchWorkspaceStats = async (workspaceId) => {
   try {
     const { data: members } = await supabase.from("workspace_members")
@@ -595,6 +695,7 @@ function ProfileModal({ user, onClose, onUpdate, onLogout, onUpgrade }) {
   const [sex,setSex]=useState(user.sex||"");
   const [age,setAge]=useState(user.age||"");
   const [weight,setWeight]=useState(user.weight||"");
+  const [department,setDepartment]=useState(user.department||"");
   const [saving,setSaving]=useState(false);
   const [portalLoading,setPortalLoading]=useState(false);
   const toggle=(a)=>setAllergies(p=>p.includes(a)?p.filter(x=>x!==a):[...p,a]);
@@ -603,11 +704,15 @@ function ProfileModal({ user, onClose, onUpdate, onLogout, onUpgrade }) {
     setSaving(true);setSaved(false);
     const ageNum = age ? parseInt(age) : null;
     const weightNum = weight ? parseFloat(weight) : null;
-    const u={...user,allergies,sex,age:ageNum,weight:weightNum};
+    const u={...user,allergies,sex,age:ageNum,weight:weightNum,department:department.trim()};
     saveUser(u);
     // Persist prefs under email key so they survive sign-out
     try { localStorage.setItem("np_prefs_" + u.email, JSON.stringify({age:ageNum,weight:weightNum,sex,allergies})); } catch(e) {}
-    if(user.id) await upsertProfile(user.id,{allergies,sex,age:ageNum,weight:weightNum});
+    if(user.id) await upsertProfile(user.id,{allergies,sex,age:ageNum,weight:weightNum,department:department.trim()});
+    // Also update workspace_members department
+    if(user.id && user.workspace_id && department.trim()) {
+      await supabase.from("workspace_members").update({department:department.trim()}).eq("user_id",user.id).eq("workspace_id",user.workspace_id);
+    }
     setSaving(false);setSaved(true);
     onUpdate(u);
     setTimeout(()=>setSaved(false),2000);
@@ -633,6 +738,14 @@ function ProfileModal({ user, onClose, onUpdate, onLogout, onUpgrade }) {
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}><span style={{color:"#8ea898",fontSize:"1.05rem"}}> {user.name}</span><button onClick={onClose} style={{background:"none",border:"none",color:"#8ea898",cursor:"pointer",fontSize:"1.1rem"}}></button></div>
       <div style={{color:"#8ea898",fontSize:".85rem",marginBottom:20}}>{user.email}  {user.history?.length||0} searches</div>
       <div style={{marginBottom:20}}>
+        {user.workspace_id && (
+          <div style={{marginBottom:16}}>
+            <div style={{color:"#8ea898",fontSize:".78rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>Department</div>
+            <input value={department} onChange={e=>setDepartment(e.target.value)} placeholder="e.g. Engineering, Sales, Marketing"
+              style={{width:"100%",background:"rgba(255,255,255,.06)",border:"0.5px solid rgba(255,255,255,.15)",borderRadius:10,padding:"10px 12px",color:"#eaf0eb",fontSize:".95rem",fontFamily:"Georgia,serif",boxSizing:"border-box",outline:"none"}}/>
+            <div style={{color:"#6a7e6e",fontSize:".72rem",marginTop:5,fontStyle:"italic"}}>Helps your HR team see anonymous wellness trends by department.</div>
+          </div>
+        )}
         <div style={{display:"flex",gap:12,marginBottom:20}}>
           <div style={{flex:1}}>
             <div style={{color:"#8ea898",fontSize:".78rem",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>Age</div>
@@ -1900,31 +2013,40 @@ function ChallengeBanner({ challenge }) {
 
 // --- HR ADMIN DASHBOARD ---
 function AdminDashboard({ user, onBack }) {
-  const [workspace, setWorkspace] = React.useState(null);
-  const [stats, setStats] = React.useState({ total: 0, activeThisWeek: 0 });
+  const [workspace,  setWorkspace]  = React.useState(null);
+  const [stats,      setStats]      = React.useState({ total:0, activeThisWeek:0, activeMembers:0, topTopics:[], topPillars:[], last8Weeks:[], maxWeek:1, ageBandCounts:{}, deptCounts:{}, departments:[], totalEvents:0 });
   const [challenges, setChallenges] = React.useState([]);
-  const [newChallenge, setNewChallenge] = React.useState({ title: "", description: "", end_date: "" });
+  const [newChallenge, setNewChallenge] = React.useState({ title:"", description:"", end_date:"" });
   const [inviteLink, setInviteLink] = React.useState("");
-  const [loading, setLoading] = React.useState(true);
-  const [savingChallenge, setSavingChallenge] = React.useState(false);
-  const [activeTab, setActiveTab] = React.useState("overview");
-  const [members, setMembers] = React.useState([]);
+  const [loading,    setLoading]    = React.useState(true);
+  const [saving,     setSaving]     = React.useState(false);
+  const [activeTab,  setActiveTab]  = React.useState("overview");
+  const [filterDept, setFilterDept] = React.useState("");
+  const isManager = user?.role === "manager";
 
   React.useEffect(() => {
     const load = async () => {
       setLoading(true);
       try {
-        const { data: ws } = await supabase.from("workspaces").select("*").eq("admin_user_id", user.id).single();
+        let ws;
+        if (isManager) {
+          // Manager: load their workspace via membership
+          const { data: mem } = await supabase.from("workspace_members")
+            .select("workspace_id, department, workspaces(*)").eq("user_id", user.id).single();
+          ws = mem?.workspaces;
+          if (ws) setWorkspace(ws);
+          const s = await fetchDashboardStats(ws?.id, mem?.department);
+          setStats(s);
+        } else {
+          const { data } = await supabase.from("workspaces").select("*").eq("admin_user_id", user.id).single();
+          ws = data;
+          if (ws) {
+            setWorkspace(ws);
+            const s = await fetchDashboardStats(ws.id, filterDept||null);
+            setStats(s);
+          }
+        }
         if (ws) {
-          setWorkspace(ws);
-          const { data: mems } = await supabase.from("workspace_members").select("user_id, joined_at, status").eq("workspace_id", ws.id);
-          setMembers(mems || []);
-          const weekAgo = new Date(Date.now()-7*24*60*60*1000).toISOString();
-          setStats({
-            total: mems?.length || 0,
-            activeThisWeek: mems?.filter(m => m.joined_at > weekAgo).length || 0,
-            activeMembers: mems?.filter(m => m.status === "active").length || 0,
-          });
           const chal = await fetchChallenges(ws.id);
           setChallenges(chal);
         }
@@ -1932,15 +2054,17 @@ function AdminDashboard({ user, onBack }) {
       setLoading(false);
     };
     load();
-  }, [user.id]);
+  }, [user.id, filterDept]);
 
   const handleCreateWorkspace = async () => {
     const name = prompt("Company name:");
     if (!name) return;
     const { data } = await supabase.from("workspaces")
-      .insert({ company_name: name, admin_user_id: user.id, plan: "starter" })
-      .select().single();
-    if (data) setWorkspace(data);
+      .insert({ company_name: name, admin_user_id: user.id, plan: "starter" }).select().single();
+    if (data) {
+      setWorkspace(data);
+      await supabase.from("profiles").update({ role:"hr_admin", workspace_id:data.id }).eq("id", user.id);
+    }
   };
 
   const handleGenerateInvite = async () => {
@@ -1951,212 +2075,366 @@ function AdminDashboard({ user, onBack }) {
 
   const handleAddChallenge = async () => {
     if (!workspace || !newChallenge.title) return;
-    setSavingChallenge(true);
+    setSaving(true);
     const end = newChallenge.end_date || new Date(Date.now()+7*24*60*60*1000).toISOString().split("T")[0];
-    await supabase.from("challenges").insert({ workspace_id: workspace.id, ...newChallenge, end_date: end });
-    const chal = await fetchChallenges(workspace.id);
-    setChallenges(chal);
-    setNewChallenge({ title: "", description: "", end_date: "" });
-    setSavingChallenge(false);
+    await supabase.from("challenges").insert({ workspace_id:workspace.id, ...newChallenge, end_date:end });
+    setChallenges(await fetchChallenges(workspace.id));
+    setNewChallenge({ title:"", description:"", end_date:"" });
+    setSaving(false);
   };
 
   const handleExportCSV = () => {
     const rows = [
-      ["Metric", "Value"],
+      ["foodnfitness.ai — Workplace Wellness Report"],
+      ["Company", workspace?.company_name||""],
+      ["Report date", new Date().toLocaleDateString()],
+      [""],
+      ["AGGREGATE METRICS (no individual data)"],
       ["Total employees", stats.total],
       ["Active this week", stats.activeThisWeek],
-      ["Active members", stats.activeMembers],
-      ["Report date", new Date().toLocaleDateString()],
-      ["Note", "No individual data included - aggregate only"],
+      ["Total searches logged", stats.totalEvents],
+      [""],
+      ["TOP HEALTH TOPICS"],
+      ...stats.topTopics.map(([t,c]) => [t, c + " searches"]),
+      [""],
+      ["PILLAR BREAKDOWN"],
+      ...stats.topPillars.map(([p,c]) => [p, c + " searches"]),
+      [""],
+      ["WEEKLY ACTIVITY (last 8 weeks)"],
+      ...stats.last8Weeks.map(w => [w.label, w.count + " searches"]),
+      [""],
+      ["Note: No names, emails, or individual data are included in this report."],
     ];
-    const csv = rows.map(r => r.join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
+    const csv = rows.map(r => r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type:"text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a"); a.href = url;
     a.download = "wellness_report_" + new Date().toISOString().split("T")[0] + ".csv";
     a.click();
   };
 
-  const C = { bg:"#16181a", card:"#1e2226", accent:"#6fcf97", blue:"#5aaee0", border:"rgba(255,255,255,.06)" };
-  const inp = { background:"rgba(255,255,255,.06)", border:"0.5px solid rgba(255,255,255,.12)", borderRadius:8, padding:"10px 14px", color:"#eaf0eb", fontSize:".9rem", width:"100%", boxSizing:"border-box", outline:"none" };
-  const tabs = ["overview","challenges","invite","settings"];
+  const C = { bg:"#16181a", card:"#1e2226", accent:"#6fcf97", blue:"#5aaee0", border:"rgba(255,255,255,.06)", muted:"#8ea898", bright:"#eaf0eb" };
+  const inp = { background:"rgba(255,255,255,.06)", border:"0.5px solid rgba(255,255,255,.12)", borderRadius:8, padding:"10px 14px", color:C.bright, fontSize:".9rem", width:"100%", boxSizing:"border-box", outline:"none" };
+  const tabs = isManager ? ["overview","challenges"] : ["overview","topics","challenges","invite","settings"];
+
+  const TOPIC_ICONS = { sleep:"🌙", stress:"🌬️", energy:"⚡", digestion:"🌿", inflammation:"🔥", immunity:"🛡️", weight:"⚖️", fitness:"💪", skin:"✨", hormones:"🔬", mood:"🧠", posture:"🧍", general:"🌐" };
+  const PILLAR_ICONS = { food:"🥗", exercise:"💪", breath:"🌬️", sleep:"🌙" };
 
   return (
     <div style={{minHeight:"100vh",background:C.bg,color:"#dde8df",fontFamily:"Georgia,serif"}}>
-      <style>{`.admin-tab{cursor:pointer;padding:8px 16px;border-radius:20px;font-size:.82rem;border:0.5px solid transparent;transition:all .15s;} .admin-tab:hover{background:rgba(255,255,255,.05);}`}</style>
-      {/* Nav */}
-      <nav style={{padding:"14px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",borderBottom:"0.5px solid "+C.border}}>
+      <style>{`.admin-tab{cursor:pointer;padding:7px 16px;border-radius:20px;font-size:.8rem;border:0.5px solid transparent;transition:all .15s;background:none;}`}</style>
+
+      <nav style={{padding:"14px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",borderBottom:"0.5px solid "+C.border,background:C.bg,position:"sticky",top:0,zIndex:10}}>
         <div style={{display:"flex",alignItems:"center",gap:10}}>
-          <button onClick={onBack} style={{background:"none",border:"none",color:"#8ea898",cursor:"pointer",fontSize:18}}>←</button>
-          <span style={{color:"#eaf0eb",fontWeight:600}}>Admin Dashboard</span>
-          {workspace && <span style={{fontSize:".75rem",color:"#6fcf97",background:"rgba(111,207,151,.1)",border:"0.5px solid rgba(111,207,151,.2)",padding:"2px 10px",borderRadius:20}}>{workspace.company_name}</span>}
+          <button onClick={onBack} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:18}}>←</button>
+          <span style={{color:C.bright,fontWeight:600}}>{isManager ? "Manager Dashboard" : "HR Dashboard"}</span>
+          {workspace && <span style={{fontSize:".72rem",color:C.accent,background:"rgba(111,207,151,.1)",border:"0.5px solid rgba(111,207,151,.2)",padding:"2px 10px",borderRadius:20}}>{workspace.company_name}</span>}
+          {isManager && <span style={{fontSize:".68rem",color:C.blue,background:"rgba(90,174,224,.1)",border:"0.5px solid rgba(90,174,224,.2)",padding:"2px 10px",borderRadius:20}}>dept view only</span>}
         </div>
-        <button onClick={handleExportCSV} style={{background:"rgba(255,255,255,.06)",border:"0.5px solid rgba(255,255,255,.12)",borderRadius:20,padding:"6px 16px",color:"#eaf0eb",fontSize:".82rem",cursor:"pointer"}}>
-          Download report
-        </button>
+        <div style={{display:"flex",gap:8}}>
+          {!isManager && <button onClick={handleExportCSV} style={{background:"rgba(255,255,255,.06)",border:"0.5px solid rgba(255,255,255,.12)",borderRadius:20,padding:"6px 16px",color:C.bright,fontSize:".8rem",cursor:"pointer"}}>Export CSV</button>}
+        </div>
       </nav>
 
-      <div style={{maxWidth:900,margin:"0 auto",padding:"24px 20px"}}>
+      <div style={{maxWidth:960,margin:"0 auto",padding:"24px 20px"}}>
         {loading ? (
-          <div style={{textAlign:"center",padding:"60px 0",color:"#8ea898"}}>Loading...</div>
+          <div style={{textAlign:"center",padding:"60px 0",color:C.muted}}>Loading dashboard...</div>
         ) : !workspace ? (
           <div style={{textAlign:"center",padding:"60px 0"}}>
             <div style={{fontSize:48,marginBottom:16}}>🏢</div>
-            <div style={{color:"#eaf0eb",fontSize:"1.2rem",fontWeight:600,marginBottom:8}}>Set up your company workspace</div>
-            <div style={{color:"#8ea898",fontSize:".92rem",marginBottom:24}}>Create a workspace to invite your team and track group wellness</div>
-            <button onClick={handleCreateWorkspace} style={{background:"linear-gradient(135deg,#3db876,#2a7a50)",border:"none",borderRadius:12,padding:"13px 32px",color:"#eaf0eb",fontSize:"1rem",cursor:"pointer",fontWeight:600}}>
+            <div style={{color:C.bright,fontSize:"1.2rem",fontWeight:600,marginBottom:8}}>Set up your workspace</div>
+            <div style={{color:C.muted,marginBottom:24,fontSize:".92rem"}}>Create a workspace to invite your team and track group wellness</div>
+            <button onClick={handleCreateWorkspace} style={{background:"linear-gradient(135deg,#3db876,#2a7a50)",border:"none",borderRadius:12,padding:"13px 32px",color:C.bright,fontSize:"1rem",cursor:"pointer",fontWeight:600}}>
               Create workspace
             </button>
           </div>
         ) : (
           <>
             {/* Tabs */}
-            <div style={{display:"flex",gap:4,marginBottom:24,background:"rgba(255,255,255,.03)",borderRadius:24,padding:4,width:"fit-content"}}>
+            <div style={{display:"flex",gap:4,marginBottom:24,background:"rgba(255,255,255,.03)",borderRadius:24,padding:4,width:"fit-content",flexWrap:"wrap"}}>
               {tabs.map(t => (
                 <button key={t} className="admin-tab" onClick={()=>setActiveTab(t)}
-                  style={{background:activeTab===t?"rgba(111,207,151,.15)":"transparent",
-                          border:activeTab===t?"0.5px solid rgba(111,207,151,.25)":"0.5px solid transparent",
-                          color:activeTab===t?"#6fcf97":"#8ea898",textTransform:"capitalize"}}>
+                  style={{background:activeTab===t?"rgba(111,207,151,.12)":"transparent",
+                          border:activeTab===t?"0.5px solid rgba(111,207,151,.22)":"0.5px solid transparent",
+                          color:activeTab===t?C.accent:C.muted,textTransform:"capitalize"}}>
                   {t}
                 </button>
               ))}
             </div>
 
-            {/* OVERVIEW */}
+            {/* Department filter (HR admin only) */}
+            {!isManager && stats.departments.length > 0 && (
+              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:20,flexWrap:"wrap"}}>
+                <span style={{fontSize:".78rem",color:C.muted}}>Filter by department:</span>
+                {["All",...stats.departments].map(d => (
+                  <button key={d} onClick={()=>setFilterDept(d==="All"?"":d)}
+                    style={{background:(filterDept===(d==="All"?"":d))?"rgba(111,207,151,.12)":"rgba(255,255,255,.04)",
+                            border:(filterDept===(d==="All"?"":d))?"0.5px solid rgba(111,207,151,.25)":"0.5px solid rgba(255,255,255,.08)",
+                            borderRadius:20,padding:"4px 12px",color:(filterDept===(d==="All"?"":d))?C.accent:C.muted,
+                            fontSize:".75rem",cursor:"pointer"}}>
+                    {d}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* ── OVERVIEW TAB ── */}
             {activeTab==="overview" && (
               <div>
-                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:12,marginBottom:24}}>
+                {/* Stat cards */}
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:12,marginBottom:20}}>
                   {[
-                    {label:"Total employees",val:stats.total,icon:"👥"},
-                    {label:"Active this week",val:stats.activeThisWeek,icon:"⚡"},
-                    {label:"Active members",val:stats.activeMembers||stats.total,icon:"✅"},
-                    {label:"Team challenges",val:challenges.length,icon:"🏆"},
+                    {label:"Total employees", val:stats.total,          icon:"👥", color:C.accent},
+                    {label:"Active this week", val:stats.activeThisWeek, icon:"⚡", color:"#f0a500"},
+                    {label:"Total searches",   val:stats.totalEvents,    icon:"🔍", color:C.blue},
+                    {label:"Active challenges",val:challenges.length,    icon:"🏆", color:"#9b7fe8"},
                   ].map((s,i) => (
-                    <div key={i} style={{background:C.card,borderRadius:14,padding:"18px 20px",border:"0.5px solid "+C.border}}>
-                      <div style={{fontSize:24,marginBottom:8}}>{s.icon}</div>
-                      <div style={{fontSize:"1.8rem",fontWeight:600,color:"#eaf0eb",lineHeight:1}}>{s.val}</div>
-                      <div style={{fontSize:".78rem",color:"#8ea898",marginTop:4}}>{s.label}</div>
+                    <div key={i} style={{background:C.card,borderRadius:14,padding:"18px",border:"0.5px solid "+C.border}}>
+                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
+                        <span style={{fontSize:20}}>{s.icon}</span>
+                        <span style={{fontSize:".68rem",color:s.color,background:"rgba(255,255,255,.04)",padding:"2px 8px",borderRadius:10}}>{s.label}</span>
+                      </div>
+                      <div style={{fontSize:"2rem",fontWeight:700,color:C.bright,lineHeight:1}}>{s.val}</div>
                     </div>
                   ))}
                 </div>
 
-                {/* Privacy notice */}
-                <div style={{background:"rgba(90,174,224,.06)",border:"0.5px solid rgba(90,174,224,.15)",borderRadius:12,padding:"14px 18px",marginBottom:24,display:"flex",gap:10,alignItems:"flex-start"}}>
-                  <span style={{fontSize:18}}>🔒</span>
-                  <div style={{fontSize:".82rem",color:"#8ea898",lineHeight:1.6}}>
-                    <strong style={{color:"#5aaee0"}}>Privacy protected.</strong> These are aggregate metrics only.
-                    No individual employee data, searches, or health logs are visible here.
-                    Employees own their personal data, always.
+                {/* Weekly activity */}
+                <div style={{background:C.card,borderRadius:14,padding:"20px",border:"0.5px solid "+C.border,marginBottom:16}}>
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
+                    <div style={{fontSize:".75rem",color:C.accent,letterSpacing:".08em",textTransform:"uppercase"}}>Weekly search activity</div>
+                    {stats.totalEvents===0 && <div style={{fontSize:".72rem",color:C.muted,fontStyle:"italic"}}>Populates as employees use the app</div>}
                   </div>
-                </div>
-
-                {/* Recent activity (aggregate only) */}
-                <div style={{background:C.card,borderRadius:14,padding:"20px",border:"0.5px solid "+C.border}}>
-                  <div style={{fontSize:".75rem",color:"#6fcf97",letterSpacing:".1em",textTransform:"uppercase",marginBottom:16}}>Engagement (last 8 weeks)</div>
-                  {[8,7,6,5,4,3,2,1].map((w,i) => {
-                    const pct = Math.max(20, Math.min(95, 40 + i*7 + Math.round(Math.random()*10)));
+                  {stats.last8Weeks.map((w,i) => {
+                    const pct = stats.maxWeek > 0 ? Math.round((w.count/stats.maxWeek)*100) : 0;
                     return (
-                      <div key={w} style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
-                        <div style={{fontSize:".72rem",color:"#6a7e6e",width:48,flexShrink:0}}>W-{w}</div>
+                      <div key={i} style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+                        <div style={{fontSize:".72rem",color:"#6a7e6e",width:44,flexShrink:0}}>{w.label}</div>
                         <div style={{flex:1,height:6,background:"rgba(255,255,255,.06)",borderRadius:3,overflow:"hidden"}}>
-                          <div style={{width:pct+"%",height:"100%",background:"rgba(111,207,151,.5)",borderRadius:3,transition:"width .6s ease"}}/>
+                          <div style={{width:pct+"%",height:"100%",background:"rgba(111,207,151,.55)",borderRadius:3,transition:"width .6s ease"}}/>
                         </div>
-                        <div style={{fontSize:".72rem",color:"#8ea898",width:32,textAlign:"right"}}>{pct}%</div>
+                        <div style={{fontSize:".72rem",color:C.muted,width:28,textAlign:"right"}}>{w.count}</div>
                       </div>
                     );
                   })}
-                  <div style={{fontSize:".7rem",color:"#6a7e6e",marginTop:8,fontStyle:"italic"}}>% of team who used the app each week</div>
+                </div>
+
+                {/* Top health topics */}
+                {stats.topTopics.length > 0 && (
+                  <div style={{background:C.card,borderRadius:14,padding:"20px",border:"0.5px solid "+C.border,marginBottom:16}}>
+                    <div style={{fontSize:".75rem",color:C.accent,letterSpacing:".08em",textTransform:"uppercase",marginBottom:14}}>Top health concerns this period</div>
+                    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:8}}>
+                      {stats.topTopics.map(([topic,count],i) => (
+                        <div key={i} style={{background:"rgba(255,255,255,.03)",borderRadius:10,padding:"12px 14px",border:"0.5px solid rgba(255,255,255,.06)"}}>
+                          <div style={{fontSize:18,marginBottom:4}}>{TOPIC_ICONS[topic]||"🌐"}</div>
+                          <div style={{fontSize:".85rem",fontWeight:500,color:C.bright,textTransform:"capitalize",marginBottom:2}}>{topic}</div>
+                          <div style={{fontSize:".72rem",color:C.muted}}>{count} search{count!==1?"es":""}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Age breakdown */}
+                {Object.keys(stats.ageBandCounts).length > 0 && (
+                  <div style={{background:C.card,borderRadius:14,padding:"20px",border:"0.5px solid "+C.border,marginBottom:16}}>
+                    <div style={{fontSize:".75rem",color:C.accent,letterSpacing:".08em",textTransform:"uppercase",marginBottom:14}}>Search activity by age group</div>
+                    {Object.entries(stats.ageBandCounts).sort().map(([band,count],i) => {
+                      const total = Object.values(stats.ageBandCounts).reduce((a,b)=>a+b,0);
+                      const pct = total > 0 ? Math.round((count/total)*100) : 0;
+                      return (
+                        <div key={i} style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+                          <div style={{fontSize:".78rem",color:C.muted,width:44}}>{band}</div>
+                          <div style={{flex:1,height:8,background:"rgba(255,255,255,.06)",borderRadius:4,overflow:"hidden"}}>
+                            <div style={{width:pct+"%",height:"100%",background:"rgba(90,174,224,.5)",borderRadius:4,transition:"width .6s ease"}}/>
+                          </div>
+                          <div style={{fontSize:".75rem",color:C.muted,width:32,textAlign:"right"}}>{pct}%</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Department breakdown (HR admin only) */}
+                {!isManager && Object.keys(stats.deptCounts).length > 0 && (
+                  <div style={{background:C.card,borderRadius:14,padding:"20px",border:"0.5px solid "+C.border,marginBottom:16}}>
+                    <div style={{fontSize:".75rem",color:C.accent,letterSpacing:".08em",textTransform:"uppercase",marginBottom:14}}>Activity by department</div>
+                    {Object.entries(stats.deptCounts).sort((a,b)=>b[1]-a[1]).map(([dept,count],i) => {
+                      const max = Math.max(...Object.values(stats.deptCounts));
+                      const pct = Math.round((count/max)*100);
+                      return (
+                        <div key={i} style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+                          <div style={{fontSize:".78rem",color:C.muted,width:100,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{dept}</div>
+                          <div style={{flex:1,height:8,background:"rgba(255,255,255,.06)",borderRadius:4,overflow:"hidden"}}>
+                            <div style={{width:pct+"%",height:"100%",background:"rgba(155,127,232,.5)",borderRadius:4,transition:"width .6s ease"}}/>
+                          </div>
+                          <div style={{fontSize:".75rem",color:C.muted,width:28,textAlign:"right"}}>{count}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Pillar breakdown */}
+                {stats.totalEvents > 0 && (
+                  <div style={{background:C.card,borderRadius:14,padding:"20px",border:"0.5px solid "+C.border,marginBottom:16}}>
+                    <div style={{fontSize:".75rem",color:C.accent,letterSpacing:".08em",textTransform:"uppercase",marginBottom:14}}>Most searched pillars</div>
+                    <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8}}>
+                      {stats.topPillars.map(([pillar,count],i) => (
+                        <div key={i} style={{background:"rgba(255,255,255,.03)",borderRadius:10,padding:"12px",textAlign:"center",border:"0.5px solid rgba(255,255,255,.06)"}}>
+                          <div style={{fontSize:22,marginBottom:4}}>{PILLAR_ICONS[pillar]||"🌐"}</div>
+                          <div style={{fontSize:".78rem",color:C.bright,textTransform:"capitalize",marginBottom:2}}>{pillar}</div>
+                          <div style={{fontSize:".7rem",color:C.muted}}>{count}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Empty state */}
+                {stats.totalEvents === 0 && stats.total === 0 && (
+                  <div style={{background:"rgba(111,207,151,.05)",border:"0.5px solid rgba(111,207,151,.15)",borderRadius:14,padding:"32px",textAlign:"center"}}>
+                    <div style={{fontSize:36,marginBottom:12}}>👥</div>
+                    <div style={{color:C.bright,fontWeight:600,marginBottom:8}}>No employees yet</div>
+                    <div style={{color:C.muted,fontSize:".88rem"}}>Go to the Invite tab to generate your first invite link</div>
+                  </div>
+                )}
+
+                {stats.total > 0 && stats.totalEvents === 0 && (
+                  <div style={{background:"rgba(240,165,0,.05)",border:"0.5px solid rgba(240,165,0,.15)",borderRadius:12,padding:"16px 18px",display:"flex",gap:10}}>
+                    <span>⏳</span>
+                    <div style={{fontSize:".82rem",color:C.muted,lineHeight:1.6}}>{stats.total} employee{stats.total!==1?"s":""} joined. Health topic trends will appear here once they start using the app.</div>
+                  </div>
+                )}
+
+                {/* Privacy notice */}
+                <div style={{background:"rgba(90,174,224,.05)",border:"0.5px solid rgba(90,174,224,.12)",borderRadius:12,padding:"14px 18px",marginTop:16,display:"flex",gap:10,alignItems:"flex-start"}}>
+                  <span style={{fontSize:16}}>🔒</span>
+                  <div style={{fontSize:".78rem",color:C.muted,lineHeight:1.6}}>
+                    <strong style={{color:"#5aaee0"}}>Privacy protected.</strong> All data shown is aggregate and anonymous.
+                    No individual employee searches, health logs, or personal information is visible here.
+                  </div>
                 </div>
               </div>
             )}
 
-            {/* CHALLENGES */}
-            {activeTab==="challenges" && (
+            {/* ── TOPICS TAB (HR admin only) ── */}
+            {activeTab==="topics" && !isManager && (
               <div>
                 <div style={{background:C.card,borderRadius:14,padding:"20px",border:"0.5px solid "+C.border,marginBottom:16}}>
-                  <div style={{fontSize:".78rem",color:"#6fcf97",letterSpacing:".08em",textTransform:"uppercase",marginBottom:14}}>Create a team challenge</div>
-                  <div style={{display:"flex",flexDirection:"column",gap:10}}>
-                    <input value={newChallenge.title} onChange={e=>setNewChallenge(p=>({...p,title:e.target.value}))}
-                      placeholder="Challenge title e.g. Log 5 meals this week" style={inp}/>
-                    <input value={newChallenge.description} onChange={e=>setNewChallenge(p=>({...p,description:e.target.value}))}
-                      placeholder="Description (optional)" style={inp}/>
-                    <input type="date" value={newChallenge.end_date} onChange={e=>setNewChallenge(p=>({...p,end_date:e.target.value}))}
-                      style={{...inp,color:newChallenge.end_date?"#eaf0eb":"#6a7e6e"}}/>
-                    <button onClick={handleAddChallenge} disabled={!newChallenge.title||savingChallenge}
-                      style={{background:"linear-gradient(135deg,#3db876,#2a7a50)",border:"none",borderRadius:10,padding:"11px",color:"#eaf0eb",fontSize:".9rem",cursor:"pointer",fontWeight:600}}>
-                      {savingChallenge ? "Creating..." : "Create challenge"}
-                    </button>
+                  <div style={{fontSize:".78rem",color:C.accent,letterSpacing:".08em",textTransform:"uppercase",marginBottom:6}}>Health topic trends</div>
+                  <div style={{fontSize:".82rem",color:C.muted,marginBottom:16,lineHeight:1.6}}>
+                    These are the wellness areas your team is actively searching for help with, aggregated anonymously. Use this to prioritise your wellbeing programmes.
                   </div>
+                  {stats.topTopics.length === 0 ? (
+                    <div style={{textAlign:"center",padding:"32px 0",color:C.muted,fontSize:".88rem"}}>
+                      Topics will appear here once employees start using the app.
+                    </div>
+                  ) : (
+                    <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                      {stats.topTopics.map(([topic,count],i) => {
+                        const max = stats.topTopics[0]?.[1]||1;
+                        const pct = Math.round((count/max)*100);
+                        const urgency = i===0?"High":i<=1?"Medium":"Normal";
+                        const urgencyColor = i===0?"#e24b4a":i<=1?"#f0a500":"#6a7e6e";
+                        return (
+                          <div key={i} style={{background:"rgba(255,255,255,.03)",borderRadius:12,padding:"14px 16px",border:"0.5px solid rgba(255,255,255,.06)"}}>
+                            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
+                              <div style={{display:"flex",alignItems:"center",gap:8}}>
+                                <span style={{fontSize:18}}>{TOPIC_ICONS[topic]||"🌐"}</span>
+                                <span style={{fontSize:".92rem",fontWeight:500,color:C.bright,textTransform:"capitalize"}}>{topic}</span>
+                              </div>
+                              <div style={{display:"flex",alignItems:"center",gap:8}}>
+                                <span style={{fontSize:".7rem",color:urgencyColor,background:"rgba(255,255,255,.04)",padding:"2px 8px",borderRadius:10}}>{urgency}</span>
+                                <span style={{fontSize:".8rem",color:C.muted}}>{count} searches</span>
+                              </div>
+                            </div>
+                            <div style={{height:4,background:"rgba(255,255,255,.06)",borderRadius:2,overflow:"hidden"}}>
+                              <div style={{width:pct+"%",height:"100%",background:"rgba(111,207,151,.5)",borderRadius:2,transition:"width .8s ease"}}/>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
+              </div>
+            )}
 
-                {challenges.length === 0 ? (
-                  <div style={{textAlign:"center",padding:"40px 0",color:"#6a7e6e",fontSize:".9rem"}}>No active challenges yet</div>
+            {/* ── CHALLENGES TAB ── */}
+            {activeTab==="challenges" && (
+              <div>
+                {!isManager && (
+                  <div style={{background:C.card,borderRadius:14,padding:"20px",border:"0.5px solid "+C.border,marginBottom:16}}>
+                    <div style={{fontSize:".78rem",color:C.accent,letterSpacing:".08em",textTransform:"uppercase",marginBottom:14}}>Create a team challenge</div>
+                    <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                      <input value={newChallenge.title} onChange={e=>setNewChallenge(p=>({...p,title:e.target.value}))} placeholder="e.g. 5 wellness searches this week" style={inp}/>
+                      <input value={newChallenge.description} onChange={e=>setNewChallenge(p=>({...p,description:e.target.value}))} placeholder="Description (optional)" style={inp}/>
+                      <input type="date" value={newChallenge.end_date} onChange={e=>setNewChallenge(p=>({...p,end_date:e.target.value}))} style={{...inp,color:newChallenge.end_date?C.bright:"#6a7e6e"}}/>
+                      <button onClick={handleAddChallenge} disabled={!newChallenge.title||saving}
+                        style={{background:"linear-gradient(135deg,#3db876,#2a7a50)",border:"none",borderRadius:10,padding:"11px",color:C.bright,fontSize:".9rem",cursor:"pointer",fontWeight:600}}>
+                        {saving?"Creating...":"Create challenge"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {challenges.length===0 ? (
+                  <div style={{textAlign:"center",padding:"40px 0",color:C.muted,fontSize:".9rem"}}>No active challenges</div>
                 ) : challenges.map((c,i) => (
                   <div key={i} style={{background:C.card,borderRadius:12,padding:"16px 18px",border:"0.5px solid "+C.border,marginBottom:8,display:"flex",alignItems:"center",gap:12}}>
                     <span style={{fontSize:22}}>🏆</span>
                     <div style={{flex:1}}>
-                      <div style={{fontSize:".92rem",fontWeight:600,color:"#eaf0eb",marginBottom:2}}>{c.title}</div>
-                      <div style={{fontSize:".75rem",color:"#8ea898"}}>{c.description} - ends {c.end_date}</div>
+                      <div style={{fontSize:".92rem",fontWeight:600,color:C.bright,marginBottom:2}}>{c.title}</div>
+                      <div style={{fontSize:".75rem",color:C.muted}}>{c.description} · ends {c.end_date}</div>
                     </div>
-                    <button onClick={async()=>{await supabase.from("challenges").update({active:false}).eq("id",c.id);const ch=await fetchChallenges(workspace.id);setChallenges(ch);}}
+                    {!isManager && <button onClick={async()=>{await supabase.from("challenges").update({active:false}).eq("id",c.id);setChallenges(await fetchChallenges(workspace.id));}}
                       style={{background:"rgba(220,80,80,.08)",border:"0.5px solid rgba(220,80,80,.2)",borderRadius:8,padding:"5px 12px",color:"#c08888",fontSize:".78rem",cursor:"pointer"}}>
                       End
-                    </button>
+                    </button>}
                   </div>
                 ))}
               </div>
             )}
 
-            {/* INVITE */}
-            {activeTab==="invite" && (
+            {/* ── INVITE TAB (HR admin only) ── */}
+            {activeTab==="invite" && !isManager && (
               <div>
                 <div style={{background:C.card,borderRadius:14,padding:"24px",border:"0.5px solid "+C.border,marginBottom:16}}>
-                  <div style={{fontSize:".78rem",color:"#6fcf97",letterSpacing:".08em",textTransform:"uppercase",marginBottom:8}}>Invite employees</div>
-                  <div style={{fontSize:".88rem",color:"#8ea898",lineHeight:1.6,marginBottom:16}}>
-                    Generate an invite link to share with your team. When employees click it, they will be added to your {workspace.company_name} workspace automatically.
-                  </div>
+                  <div style={{fontSize:".78rem",color:C.accent,letterSpacing:".08em",textTransform:"uppercase",marginBottom:8}}>Invite employees</div>
+                  <div style={{fontSize:".88rem",color:C.muted,lineHeight:1.6,marginBottom:16}}>Share this link with your team. When employees click it, they join your workspace automatically and see a privacy statement.</div>
                   <button onClick={handleGenerateInvite}
-                    style={{background:"linear-gradient(135deg,#3db876,#2a7a50)",border:"none",borderRadius:10,padding:"11px 24px",color:"#eaf0eb",fontSize:".9rem",cursor:"pointer",fontWeight:600,marginBottom:16}}>
+                    style={{background:"linear-gradient(135deg,#3db876,#2a7a50)",border:"none",borderRadius:10,padding:"11px 24px",color:C.bright,fontSize:".9rem",cursor:"pointer",fontWeight:600,marginBottom:16}}>
                     Generate invite link
                   </button>
                   {inviteLink && (
                     <div>
-                      <div style={{background:"rgba(255,255,255,.04)",border:"0.5px solid rgba(255,255,255,.1)",borderRadius:8,padding:"12px 14px",fontFamily:"monospace",fontSize:".82rem",color:"#6fcf97",wordBreak:"break-all",marginBottom:8}}>
-                        {inviteLink}
-                      </div>
+                      <div style={{background:"rgba(255,255,255,.04)",border:"0.5px solid rgba(255,255,255,.1)",borderRadius:8,padding:"12px 14px",fontFamily:"monospace",fontSize:".82rem",color:C.accent,wordBreak:"break-all",marginBottom:8}}>{inviteLink}</div>
                       <button onClick={()=>navigator.clipboard.writeText(inviteLink)}
-                        style={{background:"rgba(111,207,151,.1)",border:"0.5px solid rgba(111,207,151,.2)",borderRadius:8,padding:"7px 16px",color:"#6fcf97",fontSize:".82rem",cursor:"pointer"}}>
+                        style={{background:"rgba(111,207,151,.1)",border:"0.5px solid rgba(111,207,151,.2)",borderRadius:8,padding:"7px 16px",color:C.accent,fontSize:".82rem",cursor:"pointer"}}>
                         Copy link
                       </button>
                     </div>
                   )}
                 </div>
+                <div style={{background:C.card,borderRadius:14,padding:"20px",border:"0.5px solid "+C.border,marginBottom:12}}>
+                  <div style={{fontSize:".78rem",color:C.blue,letterSpacing:".08em",textTransform:"uppercase",marginBottom:8}}>Invite a team manager</div>
+                  <div style={{fontSize:".85rem",color:C.muted,lineHeight:1.6,marginBottom:10}}>Team managers see only their department's anonymous trends. To promote an employee to manager, email us at <span style={{color:C.accent}}>business@foodnfitness.ai</span> with their email address.</div>
+                </div>
                 <div style={{background:"rgba(90,174,224,.06)",border:"0.5px solid rgba(90,174,224,.15)",borderRadius:12,padding:"14px 18px",display:"flex",gap:10}}>
                   <span>🔒</span>
-                  <div style={{fontSize:".8rem",color:"#8ea898",lineHeight:1.6}}>
-                    Employees who join via this link will see a privacy statement explaining that you only see group-level data, never their individual searches or health information.
-                  </div>
+                  <div style={{fontSize:".8rem",color:C.muted,lineHeight:1.6}}>Employees who join via this link see a privacy statement confirming you only see group-level data — never individual searches or health information.</div>
                 </div>
               </div>
             )}
 
-            {/* SETTINGS */}
-            {activeTab==="settings" && (
+            {/* ── SETTINGS TAB (HR admin only) ── */}
+            {activeTab==="settings" && !isManager && (
               <div style={{background:C.card,borderRadius:14,padding:"24px",border:"0.5px solid "+C.border}}>
-                <div style={{marginBottom:20}}>
-                  <div style={{fontSize:".75rem",color:"#6a7e6e",letterSpacing:".08em",textTransform:"uppercase",marginBottom:4}}>Company name</div>
-                  <div style={{fontSize:"1rem",color:"#eaf0eb"}}>{workspace.company_name}</div>
-                </div>
-                <div style={{marginBottom:20}}>
-                  <div style={{fontSize:".75rem",color:"#6a7e6e",letterSpacing:".08em",textTransform:"uppercase",marginBottom:4}}>Plan</div>
-                  <div style={{fontSize:"1rem",color:"#6fcf97",textTransform:"capitalize"}}>{workspace.plan}</div>
-                </div>
-                <div style={{marginBottom:20}}>
-                  <div style={{fontSize:".75rem",color:"#6a7e6e",letterSpacing:".08em",textTransform:"uppercase",marginBottom:4}}>Total seats</div>
-                  <div style={{fontSize:"1rem",color:"#eaf0eb"}}>{members.length} / {workspace.max_members}</div>
-                </div>
-                <div style={{padding:"12px 16px",background:"rgba(90,174,224,.06)",border:"0.5px solid rgba(90,174,224,.15)",borderRadius:10,fontSize:".8rem",color:"#8ea898",lineHeight:1.6}}>
-                  🔒 As the workspace admin, you have agreed to our data processing terms. Individual employee data is never accessible to you. For enterprise plans and custom contracts, contact us at <span style={{color:"#5aaee0"}}>business@foodnfitness.ai</span>
+                <div style={{marginBottom:18}}><div style={{fontSize:".72rem",color:"#6a7e6e",textTransform:"uppercase",letterSpacing:".08em",marginBottom:4}}>Company</div><div style={{color:C.bright}}>{workspace.company_name}</div></div>
+                <div style={{marginBottom:18}}><div style={{fontSize:".72rem",color:"#6a7e6e",textTransform:"uppercase",letterSpacing:".08em",marginBottom:4}}>Plan</div><div style={{color:C.accent,textTransform:"capitalize"}}>{workspace.plan}</div></div>
+                <div style={{marginBottom:18}}><div style={{fontSize:".72rem",color:"#6a7e6e",textTransform:"uppercase",letterSpacing:".08em",marginBottom:4}}>Seats</div><div style={{color:C.bright}}>{stats.total} / {workspace.max_members}</div></div>
+                <div style={{padding:"12px 16px",background:"rgba(90,174,224,.06)",border:"0.5px solid rgba(90,174,224,.15)",borderRadius:10,fontSize:".8rem",color:C.muted,lineHeight:1.6}}>
+                  🔒 Individual employee data is never accessible from this dashboard. For enterprise plans, DPAs, or custom contracts, contact <span style={{color:C.accent}}>business@foodnfitness.ai</span>
                 </div>
               </div>
             )}
@@ -2166,6 +2444,7 @@ function AdminDashboard({ user, onBack }) {
     </div>
   );
 }
+
 
 // --- INVITE LANDING PAGE ---
 function InvitePage({ token, onAuth }) {
@@ -2257,48 +2536,50 @@ function InvitePage({ token, onAuth }) {
 
 // --- BUSINESS LANDING PAGE ---
 function BusinessPage({ onBack, onGetStarted }) {
-  const CALENDLY = "https://calendly.com/adel-foodnfitness/30min";
+  const CALENDLY = "https://calendly.com/adelhammoumi/60min";
 
   const plans = [
     {
-      name:"Starter", price:"$3", per:"per employee / month", max:"Up to 50 employees",
-      annual:"Billed annually", highlight:false, badge:null, cta:"Book a free pilot",
+      name:"Team", price:"$3", per:"per employee / month", max:"Up to 50 employees",
+      annual:"Billed annually -- 14-day free trial", highlight:false, badge:null, cta:"Book a free pilot",
+      access:"HR manager access",
       features:[
         "AI wellness coach for every employee",
-        "4 pillars: food, movement, breathwork, sleep",
-        "Anonymous group dashboard for HR",
+        "Food, movement, breathwork and sleep",
+        "HR dashboard -- anonymous group trends",
+        "Top health topics across the team",
         "Team challenges",
-        "Browser-based — no app install",
+        "Invite link onboarding",
         "Email support",
       ]
     },
     {
-      name:"Growth", price:"$5", per:"per employee / month", max:"51 – 200 employees",
-      annual:"Billed annually", highlight:true, badge:"Most popular", cta:"Book a free pilot",
+      name:"Business", price:"$5", per:"per employee / month", max:"51 - 200 employees",
+      annual:"Billed annually -- 14-day free trial", highlight:true, badge:"Most popular", cta:"Book a free pilot",
+      access:"HR director + team manager access",
       features:[
-        "Everything in Starter",
-        "Branded onboarding with company logo",
-        "Weekly engagement reports",
-        "Custom team challenges",
-        "Slack / Teams announcement kit",
+        "Everything in Team",
+        "Team manager logins -- department view",
+        "Trends by department and health topic",
+        "Age-group wellness breakdowns",
+        "Department and age-group wellness trends",
         "Priority support",
       ]
     },
     {
       name:"Enterprise", price:"Custom", per:"", max:"200+ employees",
-      annual:"", highlight:false, badge:null, cta:"Contact us",
+      annual:"Annual contract", highlight:false, badge:null, cta:"Talk to us",
+      access:"Custom roles and permissions",
       features:[
-        "Everything in Growth",
-        "SSO / SAML integration",
-        "Custom data retention policy",
-        "Dedicated customer success manager",
-        "SLA guarantee",
-        "Annual contract",
+        "Everything in Business",
+        "Dedicated onboarding support",
+        "Custom data processing agreement",
+        "SAML/SSO available on request",
+        "SLA and uptime guarantee",
+        "Dedicated account manager",
       ]
     },
   ];
-
-  const logos = ["Notion","Figma","Stripe","Linear","Vercel","Intercom"];
 
   const C = {
     bg:"#16181a", card:"#1e2226", accent:"#6fcf97", blue:"#5aaee0",
@@ -2354,7 +2635,7 @@ function BusinessPage({ onBack, onGetStarted }) {
           <span style={{color:C.accent}}>Help them recover harder.</span>
         </h1>
         <p style={{fontSize:"clamp(1rem,1.6vw,1.15rem)",color:C.muted,lineHeight:1.8,maxWidth:560,margin:"0 auto 36px"}}>
-          Give every employee a personalised AI wellness coach — food, movement, breathwork and sleep —
+          Give every employee a personalised AI wellness coach -- food, movement, breathwork and sleep --
           without sharing a single byte of personal data with HR.
         </p>
         <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap",marginBottom:16}}>
@@ -2372,25 +2653,13 @@ function BusinessPage({ onBack, onGetStarted }) {
           </button>
         </div>
         <div style={{fontSize:".78rem",color:"rgba(255,255,255,.3)"}}>
-          Free 30-day pilot — no credit card — cancels anytime
+          Free 14-day pilot -- no credit card -- cancels anytime
         </div>
       </Section>
 
       <Divider/>
 
-      {/* ── SOCIAL PROOF LOGOS ── */}
-      <Section style={{paddingTop:40,paddingBottom:40,textAlign:"center"}}>
-        <div style={{fontSize:".72rem",color:"rgba(255,255,255,.25)",letterSpacing:".1em",textTransform:"uppercase",marginBottom:20}}>
-          Trusted by teams at
-        </div>
-        <div style={{display:"flex",gap:32,justifyContent:"center",flexWrap:"wrap",alignItems:"center"}}>
-          {logos.map((l,i) => (
-            <div key={i} style={{fontSize:".88rem",fontWeight:600,color:"rgba(255,255,255,.18)",letterSpacing:".02em"}}>{l}</div>
-          ))}
-        </div>
-      </Section>
 
-      <Divider/>
 
       {/* ── PROBLEM / SOLUTION ── */}
       <Section style={{paddingTop:72,paddingBottom:72}}>
@@ -2423,7 +2692,7 @@ function BusinessPage({ onBack, onGetStarted }) {
               {[
                 "Personalised to each employee's goals and body",
                 "4 pillars: food, movement, breathwork, sleep",
-                "Used in 30 seconds — no app, no login friction",
+                "Used in 30 seconds -- no app, no login friction",
                 "Anonymous team trends so HR can show ROI",
               ].map((t,i) => (
                 <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start"}}>
@@ -2476,8 +2745,8 @@ function BusinessPage({ onBack, onGetStarted }) {
             {icon:"🔒",title:"Zero individual data to HR",body:"Employees own their health data. HR only sees aggregate, anonymous trends. Mirrors the Culture Amp and Unmind privacy model."},
             {icon:"⚡",title:"Under a week to deploy",body:"No IT tickets, no integrations required. Share a link. Employees join. Done. Most teams are live within 48 hours."},
             {icon:"🤖",title:"Genuinely personalised AI",body:"Not a chatbot. Not generic tips. The AI factors in age, weight, health goals, allergies, and time of day to give specific, actionable plans."},
-            {icon:"📊",title:"ROI you can show leadership",body:"Weekly engagement reports and team challenges give HR tangible numbers to justify the investment to the C-suite."},
-            {icon:"💬",title:"Covers what EAPs miss",body:"EAPs focus on crisis. We focus on daily performance — sleep quality, energy, focus, recovery. Prevention, not reaction."},
+            {icon:"📊",title:"ROI you can show leadership",body:"Anonymous engagement trends and team challenges give HR tangible metrics to justify the investment to the C-suite."},
+            {icon:"💬",title:"Covers what EAPs miss",body:"EAPs focus on crisis. We focus on daily performance -- sleep quality, energy, focus, recovery. Prevention, not reaction."},
           ].map((b,i) => (
             <div key={i} style={{background:C.card,borderRadius:14,padding:"22px",border:"0.5px solid "+C.border}}>
               <div style={{fontSize:26,marginBottom:10}}>{b.icon}</div>
@@ -2497,7 +2766,7 @@ function BusinessPage({ onBack, onGetStarted }) {
           <h2 style={{fontSize:"clamp(1.6rem,3vw,2.2rem)",fontWeight:600,color:C.bright,marginBottom:10,lineHeight:1.3}}>
             Transparent pricing. No surprises.
           </h2>
-          <p style={{fontSize:".95rem",color:C.muted}}>All plans include a free 30-day pilot. Pay only if your team loves it.</p>
+          <p style={{fontSize:".95rem",color:C.muted}}>All plans include a free 14-day pilot. Pay only if your team loves it.</p>
         </div>
 
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))",gap:16,marginBottom:32}}>
@@ -2516,7 +2785,8 @@ function BusinessPage({ onBack, onGetStarted }) {
                 </div>
               )}
               <div style={{marginBottom:20}}>
-                <div style={{fontSize:".78rem",color:C.muted,textTransform:"uppercase",letterSpacing:".06em",marginBottom:6}}>{p.name}</div>
+                <div style={{fontSize:".78rem",color:C.muted,textTransform:"uppercase",letterSpacing:".06em",marginBottom:4}}>{p.name}</div>
+                {p.access&&<div style={{fontSize:".72rem",color:C.accent,background:"rgba(111,207,151,.08)",border:"0.5px solid rgba(111,207,151,.15)",borderRadius:20,padding:"2px 10px",display:"inline-block",marginBottom:8}}>{p.access}</div>}
                 <div style={{display:"flex",alignItems:"baseline",gap:4,marginBottom:4}}>
                   <span style={{fontSize:"2.6rem",fontWeight:700,color:C.bright,lineHeight:1}}>{p.price}</span>
                   {p.per&&<span style={{fontSize:".82rem",color:C.muted}}>{p.per}</span>}
@@ -2568,12 +2838,12 @@ function BusinessPage({ onBack, onGetStarted }) {
         </div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(340px,1fr))",gap:16,maxWidth:800,margin:"0 auto"}}>
           {[
-            {q:"Can we see what employees are searching for?",a:"No. Never. Your dashboard shows only anonymous group metrics — total active users, engagement rates, top wellness categories. Individual searches, health data and conversations are completely private."},
-            {q:"Does it work for remote and global teams?",a:"Yes. It's fully browser-based — no app download, no IT setup. Works in every country, on any device, in any timezone."},
+            {q:"Can we see what employees are searching for?",a:"No. Never. Your dashboard shows only anonymous group metrics -- total active users, engagement rates, top wellness categories. Individual searches, health data and conversations are completely private."},
+            {q:"Does it work for remote and global teams?",a:"Yes. It's fully browser-based -- no app download, no IT setup. Works in every country, on any device, in any timezone."},
             {q:"How long does it take to deploy?",a:"Most companies are live within 48 hours. You generate an invite link from your dashboard and share it in Slack or email. That's it."},
-            {q:"What languages does it support?",a:"Employees can interact in any language — the AI responds in the same language they write in. The admin dashboard is in English."},
-            {q:"How is this different from an EAP?",a:"EAPs focus on crisis response. foodnfitness.ai focuses on daily performance — better sleep, more energy, less stress — so employees never reach the crisis point."},
-            {q:"What's included in the free pilot?",a:"Full access for up to 50 employees for 30 days. All features, real data, no limits. You only pay if you decide to continue."},
+            {q:"What languages does it support?",a:"Employees can interact in any language -- the AI responds in the same language they write in. The admin dashboard is in English."},
+            {q:"How is this different from an EAP?",a:"EAPs focus on crisis response. foodnfitness.ai focuses on daily performance -- better sleep, more energy, less stress -- so employees never reach the crisis point."},
+            {q:"What's included in the free pilot?",a:"Full access for up to 50 employees for 14 days. All features, real data, no limits. You only pay if you decide to continue."},
           ].map((faq,i) => (
             <div key={i} style={{background:C.card,borderRadius:14,padding:"20px 22px",border:"0.5px solid "+C.border}}>
               <div style={{fontSize:".92rem",fontWeight:600,color:C.bright,marginBottom:8,lineHeight:1.4}}>{faq.q}</div>
@@ -2590,7 +2860,7 @@ function BusinessPage({ onBack, onGetStarted }) {
         <div style={{maxWidth:580,margin:"0 auto"}}>
           <div style={{fontSize:32,marginBottom:20}}>🌿</div>
           <h2 style={{fontSize:"clamp(1.8rem,3.5vw,2.6rem)",fontWeight:600,color:C.bright,lineHeight:1.2,marginBottom:16}}>
-            Start your free 30-day pilot
+            Start your free 14-day pilot
           </h2>
           <p style={{fontSize:"1rem",color:C.muted,lineHeight:1.7,marginBottom:32}}>
             No contract. No credit card. No IT required. Book a 20-minute demo and we'll have your team live within the week.
@@ -2610,7 +2880,7 @@ function BusinessPage({ onBack, onGetStarted }) {
       {/* ── FOOTER ── */}
       <div style={{borderTop:"0.5px solid "+C.border,padding:"28px 24px",textAlign:"center"}}>
         <div style={{fontSize:".82rem",color:"rgba(255,255,255,.2)",marginBottom:8}}>
-          foodnfitness.ai — AI wellness for modern teams
+          foodnfitness.ai -- AI wellness for modern teams
         </div>
         <div style={{display:"flex",justifyContent:"center",gap:20,flexWrap:"wrap"}}>
           {[["Privacy","#"],["Terms","#"],["Security","#"],["Contact","mailto:business@foodnfitness.ai"]].map(([label,href],i) => (
@@ -2707,6 +2977,7 @@ function App() {
             sex:profile.sex||prefs.sex||cached?.sex||"",
             age:(profile.age!=null&&profile.age!=""?Number(profile.age):null)??prefs.age??cached?.age??null,
             weight:(profile.weight!=null&&profile.weight!=""?Number(profile.weight):null)??prefs.weight??cached?.weight??null,
+            department:profile.department||cached?.department||"",
             history:profile.history||cached?.history||[]
           };
           // Persist prefs so they survive future sign-outs
@@ -2908,6 +3179,8 @@ function App() {
         setTimeout(()=>setShowSignupGate(true), 1800);
       }
       recordSuccess(isFollowUp,q);
+      // Log anonymised search event for B2B workspace dashboard
+      if(result.pillars?.length) logSearchEvent(userRef.current, q, result.pillars);
       if(window.posthog)window.posthog.capture("search_completed",{query:q,is_follow_up:isFollowUp,pillar_count:(result.pillars||[]).length});if(window.tlTrack)window.tlTrack('feature_used',{feature:'search',is_follow_up:isFollowUp,pillar_count:(result.pillars||[]).length});
       // fetchWeekPlan disabled - saves API call, prevents orphaned week plan display
     }catch(e){
