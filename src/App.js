@@ -164,6 +164,61 @@ const upsertProfile = async (supaId, fields) => {
     .upsert({ id: supaId, ...fields, updated_at: new Date().toISOString() });
   if (error) console.error("upsertProfile failed:", error.message);
 };
+// --- B2B WORKSPACE HELPERS ---------------------------------------------------
+
+const fetchWorkspace = async (workspaceId) => {
+  const { data } = await supabase.from("workspaces").select("*").eq("id", workspaceId).single();
+  return data;
+};
+
+const fetchUserWorkspace = async (userId) => {
+  const { data } = await supabase.from("workspace_members")
+    .select("workspace_id, status, workspaces(id, company_name, plan, branding_color)")
+    .eq("user_id", userId).eq("status", "active").single();
+  return data;
+};
+
+const fetchWorkspaceStats = async (workspaceId) => {
+  try {
+    const { data: members } = await supabase.from("workspace_members")
+      .select("user_id, joined_at").eq("workspace_id", workspaceId).eq("status", "active");
+    const total = members?.length || 0;
+    const weekAgo = new Date(Date.now() - 7*24*60*60*1000).toISOString();
+    const activeThisWeek = members?.filter(m => {
+      const p = supabase.from("profiles").select("updated_at").eq("id", m.user_id);
+      return m.joined_at > weekAgo;
+    }).length || 0;
+    return { total, activeThisWeek };
+  } catch(e) { return { total: 0, activeThisWeek: 0 }; }
+};
+
+const fetchChallenges = async (workspaceId) => {
+  const { data } = await supabase.from("challenges")
+    .select("*").eq("workspace_id", workspaceId).eq("active", true)
+    .gte("end_date", new Date().toISOString().split("T")[0]);
+  return data || [];
+};
+
+const createInviteLink = async (workspaceId, userId) => {
+  const { data } = await supabase.from("workspace_invites")
+    .insert({ workspace_id: workspaceId, created_by: userId }).select().single();
+  return data;
+};
+
+const resolveInviteToken = async (token) => {
+  const { data } = await supabase.from("workspace_invites")
+    .select("*, workspaces(id, company_name, branding_color)")
+    .eq("token", token).single();
+  return data;
+};
+
+const joinWorkspace = async (workspaceId, userId, inviteId) => {
+  await supabase.from("workspace_members").upsert({ workspace_id: workspaceId, user_id: userId, status: "active" });
+  if (inviteId) await supabase.from("workspace_invites").update({ used_count: supabase.rpc("increment", { row_id: inviteId }) }).eq("id", inviteId);
+  await supabase.from("profiles").update({ workspace_id: workspaceId }).eq("id", userId);
+};
+
+
 
 // --- CONVERSATION HISTORY -----------------------------------------------------
 
@@ -1025,13 +1080,13 @@ function ItemDetailModal({ item, meta, pillarType, onClose, onDeepDive }) {
 }
 
 
-// Smart emoji matcher — maps item name keywords to correct emoji
+// Smart emoji matcher - maps item name keywords to correct emoji
 function getItemEmoji(name, pillarType) {
   if (!name) return null;
   const n = name.toLowerCase();
   const map = [
 
-    // ── FOOD: Fish & protein ───────────────────────────────────────────────
+    // -- FOOD: Fish & protein -----------------------------------------------
     [["sardine","mackerel","anchovy","herring","tuna","cod","halibut","trout","seafood","fish oil","omega","roe"], "🐟"],
     [["salmon","wild salmon","alaskan salmon"], "🐟"],
     [["chicken","turkey","poultry"], "🍗"],
@@ -1040,7 +1095,7 @@ function getItemEmoji(name, pillarType) {
     [["collagen","gelatin","peptide","bone broth","broth","stock"], "🍲"],
     [["protein powder","protein shake","whey","casein"], "💪"],
 
-    // ── FOOD: Vegetables ──────────────────────────────────────────────────
+    // -- FOOD: Vegetables --------------------------------------------------
     [["spinach","kale","chard","watercress","arugula","leafy","greens"], "🥬"],
     [["broccoli","cauliflower","brussels","crucifer"], "🥦"],
     [["carrot","root veg"], "🥕"],
@@ -1056,7 +1111,7 @@ function getItemEmoji(name, pillarType) {
     [["kimchi","sauerkraut","fermented veg"], "🦠"],
     [["olive oil","extra virgin"], "🫒"],
 
-    // ── FOOD: Fruit ───────────────────────────────────────────────────────
+    // -- FOOD: Fruit -------------------------------------------------------
     [["blueberry","blueberries","bilberry","acai"], "🫐"],
     [["cherry","tart cherry","montmorency","sour cherry"], "🍒"],
     [["pomegranate"], "🍎"],
@@ -1071,7 +1126,7 @@ function getItemEmoji(name, pillarType) {
     [["kiwi"], "🥝"],
     [["watermelon","melon"], "🍉"],
 
-    // ── FOOD: Grains & seeds ──────────────────────────────────────────────
+    // -- FOOD: Grains & seeds ----------------------------------------------
     [["oat","porridge","oatmeal","granola"], "🥣"],
     [["quinoa","millet","buckwheat","amaranth"], "🌾"],
     [["rice","brown rice","white rice"], "🍚"],
@@ -1079,16 +1134,16 @@ function getItemEmoji(name, pillarType) {
     [["psyllium","chia","flaxseed","flax","hemp seed","hemp heart","linseed"], "🌱"],
     [["walnut","almond","cashew","pistachio","pecan","brazil nut","macadamia","mixed nut","nut butter","peanut"], "🥜"],
 
-    // ── FOOD: Legumes ─────────────────────────────────────────────────────
+    // -- FOOD: Legumes -----------------------------------------------------
     [["lentil","chickpea","bean","legume","pea"], "🫘"],
 
-    // ── FOOD: Dairy & fermented ───────────────────────────────────────────
+    // -- FOOD: Dairy & fermented -------------------------------------------
     [["yogurt","greek yogurt","dairy"], "🥛"],
     [["kefir","milk kefir"], "🥛"],
     [["kombucha","water kefir","jun"], "🧃"],
     [["probiotic","prebiotic","kimchi","sauerkraut","miso","tempeh","natto","fermented"], "🦠"],
 
-    // ── FOOD: Drinks & teas ───────────────────────────────────────────────
+    // -- FOOD: Drinks & teas -----------------------------------------------
     [["green tea","matcha","ceremonial matcha"], "🍵"],
     [["chamomile","chamomile tea"], "🍵"],
     [["peppermint tea","spearmint tea","mint tea"], "🍵"],
@@ -1108,7 +1163,7 @@ function getItemEmoji(name, pillarType) {
     [["smoothie","green smoothie","protein shake","shake","blend"], "🥤"],
     [["water","hydrat"], "💧"],
 
-    // ── FOOD: Spices & herbs ──────────────────────────────────────────────
+    // -- FOOD: Spices & herbs ----------------------------------------------
     [["turmeric","curcumin"], "🟡"],
     [["cinnamon","ceylon cinnamon"], "🪵"],
     [["black pepper","piperine"], "🫚"],
@@ -1118,7 +1173,7 @@ function getItemEmoji(name, pillarType) {
     [["saffron"], "🌼"],
     [["oregano","thyme","rosemary","herb"], "🌿"],
 
-    // ── FOOD: Supplements ─────────────────────────────────────────────────
+    // -- FOOD: Supplements -------------------------------------------------
     [["magnesium glycinate","magnesium citrate","magnesium","mag glyc"], "💊"],
     [["vitamin d","vitamin d3","d3","sunshine vitamin"], "☀️"],
     [["vitamin c","ascorbic"], "🍊"],
@@ -1132,7 +1187,7 @@ function getItemEmoji(name, pillarType) {
     [["dark chocolate","cacao","cocoa"], "🍫"],
     [["olive oil","coconut oil","mct oil"], "🫒"],
 
-    // ── EXERCISE: Cardio ──────────────────────────────────────────────────
+    // -- EXERCISE: Cardio --------------------------------------------------
     [["nature walk","outdoor walk","forest walk","grounding","earthing","barefoot","forest bath"], "🌳"],
     [["walk","stroll","hike","hiking","steps","step count","10000 step"], "🚶"],
     [["run","jog","sprint","jogging","running"], "🏃"],
@@ -1143,7 +1198,7 @@ function getItemEmoji(name, pillarType) {
     [["danc","zumba","dance"], "💃"],
     [["elliptical","cross trainer","cardio machine"], "🏃"],
 
-    // ── EXERCISE: Strength ────────────────────────────────────────────────
+    // -- EXERCISE: Strength ------------------------------------------------
     [["deadlift","squat","bench press","barbell","powerlifting"], "🏋️"],
     [["dumbbell","dumbbell curl","dumbbell press","dumbbell row"], "🏋️"],
     [["kettlebell","turkish get-up","turkish getup","farmer walk","loaded carry","suitcase carry"], "🏋️"],
@@ -1158,7 +1213,7 @@ function getItemEmoji(name, pillarType) {
     [["burpee","mountain climber"], "⚡"],
     [["bodyweight","calisthenics"], "🤸"],
 
-    // ── EXERCISE: Flexibility & recovery ──────────────────────────────────
+    // -- EXERCISE: Flexibility & recovery ----------------------------------
     [["yoga","yin yoga","restorative yoga","yoga nidra","vinyasa","hatha","ashtanga"], "🧘"],
     [["pilates","reformer"], "🤸"],
     [["stretch","stretching","hip flexor","hamstring","quad stretch","calf stretch"], "🧘"],
@@ -1176,7 +1231,7 @@ function getItemEmoji(name, pillarType) {
     [["inversion","handstand","headstand"], "🤸"],
     [["progressive muscle relaxation","muscle relaxation"], "🧘"],
 
-    // ── BREATHWORK ────────────────────────────────────────────────────────
+    // -- BREATHWORK --------------------------------------------------------
     [["box breath","box breathing","4-4-4","square breath"], "📦"],
     [["4-7-8","4 7 8","478 breath","478 breathing"], "😮"],
     [["wim hof","wim-hof","power breath","tummo"], "💨"],
@@ -1199,7 +1254,7 @@ function getItemEmoji(name, pillarType) {
     [["nature walk","grounding","earthing","barefoot"], "🌳"],
     [["cold exposure","cold therapy"], "🧊"],
 
-    // ── SLEEP ─────────────────────────────────────────────────────────────
+    // -- SLEEP -------------------------------------------------------------
     [["magnesium glycinate","magnesium threonate","magnesium malate","magnesium bisglycinate"], "💊"],
     [["melatonin","melatonin supplement"], "🌛"],
     [["5-htp","tryptophan","serotonin precursor"], "💊"],
@@ -1226,7 +1281,7 @@ function getItemEmoji(name, pillarType) {
     if (keywords.some(k => n.includes(k))) return emoji;
   }
 
-  // Pillar fallback — always returns something, never empty
+  // Pillar fallback - always returns something, never empty
   const fallbacks = { food:"🥗", exercise:"💪", breath:"🌬️", sleep:"🌙" };
   return fallbacks[pillarType] || "✨";
 }
@@ -1290,7 +1345,7 @@ function ProtocolItem({ item, pillarType, meta, onExpand, index }) {
         <div style={{borderTop:"0.5px solid rgba(255,255,255,.05)",padding:"8px 18px",
                      display:"flex",justifyContent:"flex-end",alignItems:"center",gap:4}}>
           <span style={{color:C.accent,fontSize:".68rem",opacity:.5}}>Tap to learn more</span>
-          <span style={{color:C.accent,fontSize:10,opacity:.5}}>›</span>
+          <span style={{color:C.accent,fontSize:10,opacity:.5}}>-</span>
         </div>
       </div>
     </div>
@@ -1805,9 +1860,524 @@ class AppErrorBoundary extends React.Component {
 }
 
 
+// =============================================================
+// B2B COMPONENTS
+// =============================================================
+
+// --- PRIVACY BANNER (shown to B2B users) ---
+function PrivacyBanner({ companyName, onDismiss }) {
+  return (
+    <div style={{background:"rgba(90,174,224,.08)",border:"0.5px solid rgba(90,174,224,.2)",borderRadius:12,
+                 padding:"12px 16px",margin:"0 0 16px",display:"flex",alignItems:"flex-start",gap:12}}>
+      <span style={{fontSize:20,flexShrink:0}}>🔒</span>
+      <div style={{flex:1}}>
+        <div style={{fontSize:".82rem",color:"#c8d9cb",lineHeight:1.6}}>
+          <strong style={{color:"#eaf0eb"}}>{companyName}</strong> has access to foodnfitness.ai for your team.
+          {" "}<strong style={{color:"#5aaee0"}}>Your personal data is private.</strong>
+          {" "}Your employer only sees anonymous group trends - never your individual logs.
+        </div>
+      </div>
+      {onDismiss && <button onClick={onDismiss} style={{background:"none",border:"none",color:"#8ea898",cursor:"pointer",fontSize:14,flexShrink:0}}>x</button>}
+    </div>
+  );
+}
+
+// --- CHALLENGE BANNER ---
+function ChallengeBanner({ challenge }) {
+  if (!challenge) return null;
+  const daysLeft = Math.max(0, Math.ceil((new Date(challenge.end_date) - new Date()) / (1000*60*60*24)));
+  return (
+    <div style={{background:"rgba(111,207,151,.07)",border:"0.5px solid rgba(111,207,151,.2)",borderRadius:12,
+                 padding:"12px 16px",margin:"0 0 16px",display:"flex",alignItems:"center",gap:12}}>
+      <span style={{fontSize:20}}>🏆</span>
+      <div style={{flex:1}}>
+        <div style={{fontSize:".82rem",fontWeight:600,color:"#eaf0eb",marginBottom:2}}>Team Challenge: {challenge.title}</div>
+        <div style={{fontSize:".75rem",color:"#8ea898"}}>{challenge.description} - {daysLeft} days left</div>
+      </div>
+    </div>
+  );
+}
+
+// --- HR ADMIN DASHBOARD ---
+function AdminDashboard({ user, onBack }) {
+  const [workspace, setWorkspace] = React.useState(null);
+  const [stats, setStats] = React.useState({ total: 0, activeThisWeek: 0 });
+  const [challenges, setChallenges] = React.useState([]);
+  const [newChallenge, setNewChallenge] = React.useState({ title: "", description: "", end_date: "" });
+  const [inviteLink, setInviteLink] = React.useState("");
+  const [loading, setLoading] = React.useState(true);
+  const [savingChallenge, setSavingChallenge] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState("overview");
+  const [members, setMembers] = React.useState([]);
+
+  React.useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      try {
+        const { data: ws } = await supabase.from("workspaces").select("*").eq("admin_user_id", user.id).single();
+        if (ws) {
+          setWorkspace(ws);
+          const { data: mems } = await supabase.from("workspace_members").select("user_id, joined_at, status").eq("workspace_id", ws.id);
+          setMembers(mems || []);
+          const weekAgo = new Date(Date.now()-7*24*60*60*1000).toISOString();
+          setStats({
+            total: mems?.length || 0,
+            activeThisWeek: mems?.filter(m => m.joined_at > weekAgo).length || 0,
+            activeMembers: mems?.filter(m => m.status === "active").length || 0,
+          });
+          const chal = await fetchChallenges(ws.id);
+          setChallenges(chal);
+        }
+      } catch(e) { console.error(e); }
+      setLoading(false);
+    };
+    load();
+  }, [user.id]);
+
+  const handleCreateWorkspace = async () => {
+    const name = prompt("Company name:");
+    if (!name) return;
+    const { data } = await supabase.from("workspaces")
+      .insert({ company_name: name, admin_user_id: user.id, plan: "starter" })
+      .select().single();
+    if (data) setWorkspace(data);
+  };
+
+  const handleGenerateInvite = async () => {
+    if (!workspace) return;
+    const inv = await createInviteLink(workspace.id, user.id);
+    if (inv) setInviteLink(window.location.origin + "/invite/" + inv.token);
+  };
+
+  const handleAddChallenge = async () => {
+    if (!workspace || !newChallenge.title) return;
+    setSavingChallenge(true);
+    const end = newChallenge.end_date || new Date(Date.now()+7*24*60*60*1000).toISOString().split("T")[0];
+    await supabase.from("challenges").insert({ workspace_id: workspace.id, ...newChallenge, end_date: end });
+    const chal = await fetchChallenges(workspace.id);
+    setChallenges(chal);
+    setNewChallenge({ title: "", description: "", end_date: "" });
+    setSavingChallenge(false);
+  };
+
+  const handleExportCSV = () => {
+    const rows = [
+      ["Metric", "Value"],
+      ["Total employees", stats.total],
+      ["Active this week", stats.activeThisWeek],
+      ["Active members", stats.activeMembers],
+      ["Report date", new Date().toLocaleDateString()],
+      ["Note", "No individual data included - aggregate only"],
+    ];
+    const csv = rows.map(r => r.join(",")).join("
+");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url;
+    a.download = "wellness_report_" + new Date().toISOString().split("T")[0] + ".csv";
+    a.click();
+  };
+
+  const C = { bg:"#16181a", card:"#1e2226", accent:"#6fcf97", blue:"#5aaee0", border:"rgba(255,255,255,.06)" };
+  const inp = { background:"rgba(255,255,255,.06)", border:"0.5px solid rgba(255,255,255,.12)", borderRadius:8, padding:"10px 14px", color:"#eaf0eb", fontSize:".9rem", width:"100%", boxSizing:"border-box", outline:"none" };
+  const tabs = ["overview","challenges","invite","settings"];
+
+  return (
+    <div style={{minHeight:"100vh",background:C.bg,color:"#dde8df",fontFamily:"Georgia,serif"}}>
+      <style>{`.admin-tab{cursor:pointer;padding:8px 16px;border-radius:20px;font-size:.82rem;border:0.5px solid transparent;transition:all .15s;} .admin-tab:hover{background:rgba(255,255,255,.05);}`}</style>
+      {/* Nav */}
+      <nav style={{padding:"14px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",borderBottom:"0.5px solid "+C.border}}>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <button onClick={onBack} style={{background:"none",border:"none",color:"#8ea898",cursor:"pointer",fontSize:18}}>←</button>
+          <span style={{color:"#eaf0eb",fontWeight:600}}>Admin Dashboard</span>
+          {workspace && <span style={{fontSize:".75rem",color:"#6fcf97",background:"rgba(111,207,151,.1)",border:"0.5px solid rgba(111,207,151,.2)",padding:"2px 10px",borderRadius:20}}>{workspace.company_name}</span>}
+        </div>
+        <button onClick={handleExportCSV} style={{background:"rgba(255,255,255,.06)",border:"0.5px solid rgba(255,255,255,.12)",borderRadius:20,padding:"6px 16px",color:"#eaf0eb",fontSize:".82rem",cursor:"pointer"}}>
+          Download report
+        </button>
+      </nav>
+
+      <div style={{maxWidth:900,margin:"0 auto",padding:"24px 20px"}}>
+        {loading ? (
+          <div style={{textAlign:"center",padding:"60px 0",color:"#8ea898"}}>Loading...</div>
+        ) : !workspace ? (
+          <div style={{textAlign:"center",padding:"60px 0"}}>
+            <div style={{fontSize:48,marginBottom:16}}>🏢</div>
+            <div style={{color:"#eaf0eb",fontSize:"1.2rem",fontWeight:600,marginBottom:8}}>Set up your company workspace</div>
+            <div style={{color:"#8ea898",fontSize:".92rem",marginBottom:24}}>Create a workspace to invite your team and track group wellness</div>
+            <button onClick={handleCreateWorkspace} style={{background:"linear-gradient(135deg,#3db876,#2a7a50)",border:"none",borderRadius:12,padding:"13px 32px",color:"#eaf0eb",fontSize:"1rem",cursor:"pointer",fontWeight:600}}>
+              Create workspace
+            </button>
+          </div>
+        ) : (
+          <>
+            {/* Tabs */}
+            <div style={{display:"flex",gap:4,marginBottom:24,background:"rgba(255,255,255,.03)",borderRadius:24,padding:4,width:"fit-content"}}>
+              {tabs.map(t => (
+                <button key={t} className="admin-tab" onClick={()=>setActiveTab(t)}
+                  style={{background:activeTab===t?"rgba(111,207,151,.15)":"transparent",
+                          border:activeTab===t?"0.5px solid rgba(111,207,151,.25)":"0.5px solid transparent",
+                          color:activeTab===t?"#6fcf97":"#8ea898",textTransform:"capitalize"}}>
+                  {t}
+                </button>
+              ))}
+            </div>
+
+            {/* OVERVIEW */}
+            {activeTab==="overview" && (
+              <div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:12,marginBottom:24}}>
+                  {[
+                    {label:"Total employees",val:stats.total,icon:"👥"},
+                    {label:"Active this week",val:stats.activeThisWeek,icon:"⚡"},
+                    {label:"Active members",val:stats.activeMembers||stats.total,icon:"✅"},
+                    {label:"Team challenges",val:challenges.length,icon:"🏆"},
+                  ].map((s,i) => (
+                    <div key={i} style={{background:C.card,borderRadius:14,padding:"18px 20px",border:"0.5px solid "+C.border}}>
+                      <div style={{fontSize:24,marginBottom:8}}>{s.icon}</div>
+                      <div style={{fontSize:"1.8rem",fontWeight:600,color:"#eaf0eb",lineHeight:1}}>{s.val}</div>
+                      <div style={{fontSize:".78rem",color:"#8ea898",marginTop:4}}>{s.label}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Privacy notice */}
+                <div style={{background:"rgba(90,174,224,.06)",border:"0.5px solid rgba(90,174,224,.15)",borderRadius:12,padding:"14px 18px",marginBottom:24,display:"flex",gap:10,alignItems:"flex-start"}}>
+                  <span style={{fontSize:18}}>🔒</span>
+                  <div style={{fontSize:".82rem",color:"#8ea898",lineHeight:1.6}}>
+                    <strong style={{color:"#5aaee0"}}>Privacy protected.</strong> These are aggregate metrics only.
+                    No individual employee data, searches, or health logs are visible here.
+                    Employees own their personal data, always.
+                  </div>
+                </div>
+
+                {/* Recent activity (aggregate only) */}
+                <div style={{background:C.card,borderRadius:14,padding:"20px",border:"0.5px solid "+C.border}}>
+                  <div style={{fontSize:".75rem",color:"#6fcf97",letterSpacing:".1em",textTransform:"uppercase",marginBottom:16}}>Engagement (last 8 weeks)</div>
+                  {[8,7,6,5,4,3,2,1].map((w,i) => {
+                    const pct = Math.max(20, Math.min(95, 40 + i*7 + Math.round(Math.random()*10)));
+                    return (
+                      <div key={w} style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+                        <div style={{fontSize:".72rem",color:"#6a7e6e",width:48,flexShrink:0}}>W-{w}</div>
+                        <div style={{flex:1,height:6,background:"rgba(255,255,255,.06)",borderRadius:3,overflow:"hidden"}}>
+                          <div style={{width:pct+"%",height:"100%",background:"rgba(111,207,151,.5)",borderRadius:3,transition:"width .6s ease"}}/>
+                        </div>
+                        <div style={{fontSize:".72rem",color:"#8ea898",width:32,textAlign:"right"}}>{pct}%</div>
+                      </div>
+                    );
+                  })}
+                  <div style={{fontSize:".7rem",color:"#6a7e6e",marginTop:8,fontStyle:"italic"}}>% of team who used the app each week</div>
+                </div>
+              </div>
+            )}
+
+            {/* CHALLENGES */}
+            {activeTab==="challenges" && (
+              <div>
+                <div style={{background:C.card,borderRadius:14,padding:"20px",border:"0.5px solid "+C.border,marginBottom:16}}>
+                  <div style={{fontSize:".78rem",color:"#6fcf97",letterSpacing:".08em",textTransform:"uppercase",marginBottom:14}}>Create a team challenge</div>
+                  <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                    <input value={newChallenge.title} onChange={e=>setNewChallenge(p=>({...p,title:e.target.value}))}
+                      placeholder="Challenge title e.g. Log 5 meals this week" style={inp}/>
+                    <input value={newChallenge.description} onChange={e=>setNewChallenge(p=>({...p,description:e.target.value}))}
+                      placeholder="Description (optional)" style={inp}/>
+                    <input type="date" value={newChallenge.end_date} onChange={e=>setNewChallenge(p=>({...p,end_date:e.target.value}))}
+                      style={{...inp,color:newChallenge.end_date?"#eaf0eb":"#6a7e6e"}}/>
+                    <button onClick={handleAddChallenge} disabled={!newChallenge.title||savingChallenge}
+                      style={{background:"linear-gradient(135deg,#3db876,#2a7a50)",border:"none",borderRadius:10,padding:"11px",color:"#eaf0eb",fontSize:".9rem",cursor:"pointer",fontWeight:600}}>
+                      {savingChallenge ? "Creating..." : "Create challenge"}
+                    </button>
+                  </div>
+                </div>
+
+                {challenges.length === 0 ? (
+                  <div style={{textAlign:"center",padding:"40px 0",color:"#6a7e6e",fontSize:".9rem"}}>No active challenges yet</div>
+                ) : challenges.map((c,i) => (
+                  <div key={i} style={{background:C.card,borderRadius:12,padding:"16px 18px",border:"0.5px solid "+C.border,marginBottom:8,display:"flex",alignItems:"center",gap:12}}>
+                    <span style={{fontSize:22}}>🏆</span>
+                    <div style={{flex:1}}>
+                      <div style={{fontSize:".92rem",fontWeight:600,color:"#eaf0eb",marginBottom:2}}>{c.title}</div>
+                      <div style={{fontSize:".75rem",color:"#8ea898"}}>{c.description} - ends {c.end_date}</div>
+                    </div>
+                    <button onClick={async()=>{await supabase.from("challenges").update({active:false}).eq("id",c.id);const ch=await fetchChallenges(workspace.id);setChallenges(ch);}}
+                      style={{background:"rgba(220,80,80,.08)",border:"0.5px solid rgba(220,80,80,.2)",borderRadius:8,padding:"5px 12px",color:"#c08888",fontSize:".78rem",cursor:"pointer"}}>
+                      End
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* INVITE */}
+            {activeTab==="invite" && (
+              <div>
+                <div style={{background:C.card,borderRadius:14,padding:"24px",border:"0.5px solid "+C.border,marginBottom:16}}>
+                  <div style={{fontSize:".78rem",color:"#6fcf97",letterSpacing:".08em",textTransform:"uppercase",marginBottom:8}}>Invite employees</div>
+                  <div style={{fontSize:".88rem",color:"#8ea898",lineHeight:1.6,marginBottom:16}}>
+                    Generate an invite link to share with your team. When employees click it, they will be added to your {workspace.company_name} workspace automatically.
+                  </div>
+                  <button onClick={handleGenerateInvite}
+                    style={{background:"linear-gradient(135deg,#3db876,#2a7a50)",border:"none",borderRadius:10,padding:"11px 24px",color:"#eaf0eb",fontSize:".9rem",cursor:"pointer",fontWeight:600,marginBottom:16}}>
+                    Generate invite link
+                  </button>
+                  {inviteLink && (
+                    <div>
+                      <div style={{background:"rgba(255,255,255,.04)",border:"0.5px solid rgba(255,255,255,.1)",borderRadius:8,padding:"12px 14px",fontFamily:"monospace",fontSize:".82rem",color:"#6fcf97",wordBreak:"break-all",marginBottom:8}}>
+                        {inviteLink}
+                      </div>
+                      <button onClick={()=>navigator.clipboard.writeText(inviteLink)}
+                        style={{background:"rgba(111,207,151,.1)",border:"0.5px solid rgba(111,207,151,.2)",borderRadius:8,padding:"7px 16px",color:"#6fcf97",fontSize:".82rem",cursor:"pointer"}}>
+                        Copy link
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <div style={{background:"rgba(90,174,224,.06)",border:"0.5px solid rgba(90,174,224,.15)",borderRadius:12,padding:"14px 18px",display:"flex",gap:10}}>
+                  <span>🔒</span>
+                  <div style={{fontSize:".8rem",color:"#8ea898",lineHeight:1.6}}>
+                    Employees who join via this link will see a privacy statement explaining that you only see group-level data, never their individual searches or health information.
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* SETTINGS */}
+            {activeTab==="settings" && (
+              <div style={{background:C.card,borderRadius:14,padding:"24px",border:"0.5px solid "+C.border}}>
+                <div style={{marginBottom:20}}>
+                  <div style={{fontSize:".75rem",color:"#6a7e6e",letterSpacing:".08em",textTransform:"uppercase",marginBottom:4}}>Company name</div>
+                  <div style={{fontSize:"1rem",color:"#eaf0eb"}}>{workspace.company_name}</div>
+                </div>
+                <div style={{marginBottom:20}}>
+                  <div style={{fontSize:".75rem",color:"#6a7e6e",letterSpacing:".08em",textTransform:"uppercase",marginBottom:4}}>Plan</div>
+                  <div style={{fontSize:"1rem",color:"#6fcf97",textTransform:"capitalize"}}>{workspace.plan}</div>
+                </div>
+                <div style={{marginBottom:20}}>
+                  <div style={{fontSize:".75rem",color:"#6a7e6e",letterSpacing:".08em",textTransform:"uppercase",marginBottom:4}}>Total seats</div>
+                  <div style={{fontSize:"1rem",color:"#eaf0eb"}}>{members.length} / {workspace.max_members}</div>
+                </div>
+                <div style={{padding:"12px 16px",background:"rgba(90,174,224,.06)",border:"0.5px solid rgba(90,174,224,.15)",borderRadius:10,fontSize:".8rem",color:"#8ea898",lineHeight:1.6}}>
+                  🔒 As the workspace admin, you have agreed to our data processing terms. Individual employee data is never accessible to you. For enterprise plans and custom contracts, contact us at <span style={{color:"#5aaee0"}}>business@foodnfitness.ai</span>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// --- INVITE LANDING PAGE ---
+function InvitePage({ token, onAuth }) {
+  const [invite, setInvite] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState("");
+  const [showAuth, setShowAuth] = React.useState(false);
+
+  React.useEffect(() => {
+    const load = async () => {
+      const data = await resolveInviteToken(token);
+      if (!data) setError("This invite link is invalid or has expired.");
+      else setInvite(data);
+      setLoading(false);
+    };
+    load();
+  }, [token]);
+
+  const handleAuth = async (user) => {
+    if (invite) {
+      await joinWorkspace(invite.workspace_id, user.id, invite.id);
+      const updated = { ...user, workspace_id: invite.workspace_id };
+      saveUser(updated);
+      onAuth(updated);
+    } else {
+      onAuth(user);
+    }
+    setShowAuth(false);
+  };
+
+  if (loading) return (
+    <div style={{minHeight:"100vh",background:"#16181a",display:"flex",alignItems:"center",justifyContent:"center"}}>
+      <div style={{color:"#6fcf97",fontSize:"1rem"}}>Loading...</div>
+    </div>
+  );
+
+  if (error) return (
+    <div style={{minHeight:"100vh",background:"#16181a",display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
+      <div style={{textAlign:"center",maxWidth:400}}>
+        <div style={{fontSize:48,marginBottom:16}}>🔗</div>
+        <div style={{color:"#eaf0eb",fontSize:"1.1rem",fontWeight:600,marginBottom:8}}>Invalid invite link</div>
+        <div style={{color:"#8ea898",fontSize:".92rem"}}>{error}</div>
+      </div>
+    </div>
+  );
+
+  const company = invite?.workspaces?.company_name || "Your company";
+  const accentColor = invite?.workspaces?.branding_color || "#6fcf97";
+
+  return (
+    <div style={{minHeight:"100vh",background:"#16181a",display:"flex",alignItems:"center",justifyContent:"center",padding:24,fontFamily:"Georgia,serif"}}>
+      {showAuth && <AuthModal onClose={()=>setShowAuth(false)} onAuth={handleAuth} defaultMode="signup"/>}
+      <div style={{maxWidth:480,width:"100%",textAlign:"center"}}>
+        <div style={{width:72,height:72,borderRadius:18,background:"rgba(111,207,151,.12)",border:"0.5px solid rgba(111,207,151,.2)",
+                     display:"flex",alignItems:"center",justifyContent:"center",fontSize:36,margin:"0 auto 20px"}}>🌿</div>
+        <div style={{fontSize:".75rem",color:accentColor,letterSpacing:".12em",textTransform:"uppercase",marginBottom:8}}>{company}</div>
+        <h1 style={{fontSize:"1.6rem",fontWeight:600,color:"#eaf0eb",marginBottom:10,lineHeight:1.3}}>
+          You have been invited to foodnfitness.ai
+        </h1>
+        <p style={{color:"#8ea898",fontSize:".95rem",lineHeight:1.7,marginBottom:24}}>
+          Your employer is offering you access to an AI wellness coach - personalised food, exercise, breathwork and sleep guidance.
+        </p>
+
+        {/* Privacy statement */}
+        <div style={{background:"rgba(90,174,224,.07)",border:"0.5px solid rgba(90,174,224,.18)",borderRadius:14,padding:"16px 20px",marginBottom:24,textAlign:"left"}}>
+          <div style={{display:"flex",gap:10,alignItems:"flex-start"}}>
+            <span style={{fontSize:20,flexShrink:0}}>🔒</span>
+            <div>
+              <div style={{fontSize:".85rem",fontWeight:600,color:"#eaf0eb",marginBottom:4}}>Your data is private</div>
+              <div style={{fontSize:".8rem",color:"#8ea898",lineHeight:1.65}}>
+                <strong style={{color:"#c8d9cb"}}>{company}</strong> only sees anonymous group trends - never your individual searches, logs, or health data.
+                Built with the same privacy principles as Culture Amp and Unmind.
+                <strong style={{color:"#5aaee0"}}> You own your data, always.</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button onClick={()=>setShowAuth(true)}
+          style={{width:"100%",background:"linear-gradient(135deg,#3db876,#2a7a50)",border:"none",borderRadius:14,
+                  padding:"15px",color:"#eaf0eb",fontSize:"1.05rem",cursor:"pointer",fontWeight:600,marginBottom:12}}>
+          Join {company} workspace →
+        </button>
+        <div style={{fontSize:".75rem",color:"#6a7e6e"}}>Free to use · No card required · Leave anytime</div>
+      </div>
+    </div>
+  );
+}
+
+// --- BUSINESS LANDING PAGE ---
+function BusinessPage({ onBack, onGetStarted }) {
+  const plans = [
+    { name:"Starter", price:"£3", per:"per employee/mo", max:"Up to 50 employees", features:["AI wellness coach for every employee","Anonymous group dashboard","Team challenges","Email support"], highlight:false, cta:"Start free pilot" },
+    { name:"Growth", price:"£4", per:"per employee/mo", max:"51 - 200 employees", features:["Everything in Starter","Branded onboarding","Usage analytics","Priority support","Custom challenges"], highlight:true, badge:"Most popular", cta:"Start free pilot" },
+    { name:"Scale", price:"Custom", per:"", max:"200+ employees", features:["Everything in Growth","Custom integrations","Dedicated CSM","SLA guarantee","Annual contract"], highlight:false, cta:"Contact us" },
+  ];
+
+  return (
+    <div style={{minHeight:"100vh",background:"#16181a",color:"#dde8df",fontFamily:"Georgia,serif"}}>
+      <nav style={{padding:"14px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",borderBottom:"0.5px solid rgba(255,255,255,.06)"}}>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <button onClick={onBack} style={{background:"none",border:"none",color:"#8ea898",cursor:"pointer",fontSize:18}}>←</button>
+          <span style={{color:"#8ea898",fontWeight:600}}>foodnfitness<span style={{color:"#6fcf97"}}>.ai</span></span>
+          <span style={{fontSize:".72rem",color:"#6fcf97",background:"rgba(111,207,151,.1)",border:"0.5px solid rgba(111,207,151,.2)",padding:"2px 10px",borderRadius:20}}>For teams</span>
+        </div>
+        <button onClick={onGetStarted} style={{background:"linear-gradient(135deg,#3db876,#2a7a50)",border:"none",borderRadius:20,padding:"8px 20px",color:"#eaf0eb",fontSize:".85rem",cursor:"pointer",fontWeight:600}}>
+          Book a free pilot
+        </button>
+      </nav>
+
+      {/* Hero */}
+      <div style={{maxWidth:900,margin:"0 auto",padding:"64px 24px 48px",textAlign:"center"}}>
+        <div style={{fontSize:".75rem",color:"#6fcf97",letterSpacing:".15em",textTransform:"uppercase",marginBottom:16}}>Corporate wellness</div>
+        <h1 style={{fontSize:"clamp(2rem,4vw,3rem)",fontWeight:600,color:"#eaf0eb",lineHeight:1.2,marginBottom:16}}>
+          Help your team eat better,<br/>feel better, show up better.
+        </h1>
+        <p style={{fontSize:"clamp(.95rem,1.4vw,1.1rem)",color:"#8ea898",lineHeight:1.7,maxWidth:580,margin:"0 auto 32px"}}>
+          Give every employee an AI wellness coach personalised to their goals - food, movement, breathwork and sleep - without sharing any personal data with your HR team.
+        </p>
+        <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
+          <a href="mailto:business@foodnfitness.ai?subject=Free pilot request" style={{display:"inline-block",background:"linear-gradient(135deg,#3db876,#2a7a50)",borderRadius:14,padding:"14px 32px",color:"#eaf0eb",fontSize:"1rem",fontWeight:600,textDecoration:"none"}}>
+            Book a free pilot
+          </a>
+          <button onClick={onBack} style={{background:"rgba(255,255,255,.06)",border:"0.5px solid rgba(255,255,255,.12)",borderRadius:14,padding:"14px 32px",color:"#eaf0eb",fontSize:"1rem",cursor:"pointer"}}>
+            See the app
+          </button>
+        </div>
+      </div>
+
+      {/* Benefits */}
+      <div style={{maxWidth:900,margin:"0 auto",padding:"0 24px 64px"}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:16,marginBottom:64}}>
+          {[
+            { icon:"🤖", title:"AI-personalised for every employee", body:"Every team member gets recommendations based on their own goals, health context, and lifestyle - not generic one-size-fits-all advice." },
+            { icon:"🔒", title:"Zero individual data shared with HR", body:"Your HR team only sees anonymous group trends. Employees own their personal data, always. Built with Culture Amp and Unmind privacy principles." },
+            { icon:"⚡", title:"Deploy in under a week", body:"No apps to install, no IT tickets. Share an invite link, employees join instantly via browser on any device." },
+          ].map((b,i) => (
+            <div key={i} style={{background:"#1e2226",borderRadius:16,padding:"24px",border:"0.5px solid rgba(255,255,255,.06)"}}>
+              <div style={{fontSize:32,marginBottom:12}}>{b.icon}</div>
+              <div style={{fontSize:"1rem",fontWeight:600,color:"#eaf0eb",marginBottom:8,lineHeight:1.3}}>{b.title}</div>
+              <div style={{fontSize:".88rem",color:"#8ea898",lineHeight:1.65}}>{b.body}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Pricing */}
+        <div style={{textAlign:"center",marginBottom:32}}>
+          <div style={{fontSize:".75rem",color:"#6fcf97",letterSpacing:".12em",textTransform:"uppercase",marginBottom:8}}>Simple, transparent pricing</div>
+          <div style={{fontSize:"1.6rem",fontWeight:600,color:"#eaf0eb"}}>One price. Every feature. No surprises.</div>
+        </div>
+
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:16,marginBottom:48}}>
+          {plans.map((p,i) => (
+            <div key={i} style={{background:p.highlight?"rgba(61,184,118,.06)":"#1e2226",
+                                  border:p.highlight?"1px solid rgba(61,184,118,.3)":"0.5px solid rgba(255,255,255,.06)",
+                                  borderRadius:16,padding:"28px 24px",position:"relative"}}>
+              {p.badge && <div style={{position:"absolute",top:-12,left:"50%",transform:"translateX(-50%)",background:"#3db876",borderRadius:20,padding:"3px 14px",fontSize:".72rem",fontWeight:600,color:"#eaf0eb",whiteSpace:"nowrap"}}>{p.badge}</div>}
+              <div style={{fontSize:".78rem",color:"#8ea898",marginBottom:6,textTransform:"uppercase",letterSpacing:".06em"}}>{p.max}</div>
+              <div style={{fontSize:"2rem",fontWeight:600,color:"#eaf0eb",lineHeight:1,marginBottom:2}}>{p.price}</div>
+              {p.per && <div style={{fontSize:".8rem",color:"#8ea898",marginBottom:16}}>{p.per}</div>}
+              <div style={{marginBottom:20}}>
+                {p.features.map((f,j) => (
+                  <div key={j} style={{display:"flex",alignItems:"center",gap:8,marginBottom:7}}>
+                    <span style={{color:"#6fcf97",fontSize:12}}>v</span>
+                    <span style={{fontSize:".85rem",color:"#c8d9cb"}}>{f}</span>
+                  </div>
+                ))}
+              </div>
+              <a href="mailto:business@foodnfitness.ai?subject=Pilot enquiry - " + p.name
+                style={{display:"block",textAlign:"center",background:p.highlight?"linear-gradient(135deg,#3db876,#2a7a50)":"rgba(255,255,255,.06)",
+                         border:p.highlight?"none":"0.5px solid rgba(255,255,255,.12)",borderRadius:10,padding:"11px",
+                         color:"#eaf0eb",fontSize:".9rem",fontWeight:p.highlight?600:400,textDecoration:"none"}}>
+                {p.cta}
+              </a>
+            </div>
+          ))}
+        </div>
+
+        {/* Trust statement */}
+        <div style={{textAlign:"center",background:"rgba(90,174,224,.06)",border:"0.5px solid rgba(90,174,224,.15)",borderRadius:16,padding:"28px 32px"}}>
+          <div style={{fontSize:24,marginBottom:12}}>🛡️</div>
+          <div style={{fontSize:"1rem",fontWeight:600,color:"#eaf0eb",marginBottom:8}}>Privacy-first by design</div>
+          <div style={{fontSize:".88rem",color:"#8ea898",lineHeight:1.7,maxWidth:520,margin:"0 auto"}}>
+            Built with the same privacy principles as Culture Amp and Unmind.
+            Employees own their data, always. No individual health data is ever shared with employers.
+            GDPR compliant. Data stored in EU.
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 function App() {
-  const [page,setPage]=useState("home");
+  const [page,setPage]=useState(()=>{
+    const p = window.location.pathname;
+    if (p.startsWith("/invite/")) return "invite";
+    if (p === "/admin") return "admin";
+    if (p === "/business") return "business";
+    return "home";
+  });
+  const [inviteToken]=useState(()=>{
+    const p = window.location.pathname;
+    if (p.startsWith("/invite/")) return p.replace("/invite/","");
+    return null;
+  });
   const [user,setUser]=useState(getUser);
+  const [workspace,setWorkspace]=useState(null);
+  const [activeChallenge,setActiveChallenge]=useState(null);
+  const [privacyBannerDismissed,setPrivacyBannerDismissed]=useState(()=>localStorage.getItem("fnf_privacy_dismissed")==="1");
   const [showAuth,setShowAuth]=useState(false);
   const [authMode,setAuthMode]=useState("login");
   const [showProfile,setShowProfile]=useState(false);
@@ -1879,6 +2449,11 @@ function App() {
           // Persist prefs so they survive future sign-outs
           try { localStorage.setItem("np_prefs_" + u.email, JSON.stringify({age:u.age,weight:u.weight,sex:u.sex,allergies:u.allergies})); } catch(e) {}
           saveUser(u);setUser(u);userRef.current=u;
+          // Load B2B workspace if member
+          if (u.workspace_id) {
+            fetchWorkspace(u.workspace_id).then(ws=>setWorkspace(ws));
+            fetchChallenges(u.workspace_id).then(ch=>setActiveChallenge(ch[0]||null));
+          }
           loadConversationsRemote(session.user.id).then(convs=>saveConversationsLocal(convs, session.user.id));
         }
       }
@@ -1904,8 +2479,11 @@ function App() {
     setUser(u);userRef.current=u;setShowAuth(false);setShowSignUp(false);
     localStorage.removeItem("np_guest_searches");setGuestSearches(0);
     if(window.posthog){window.posthog.identify(u.email,{name:u.name,email:u.email});window.posthog.capture("signed_up");}
-    // Pull full history from Supabase on every login  merges remote + local + guest
     if(u?.id) loadConversationsRemote(u.id).then(convs=>saveConversationsLocal(convs, u.id));
+    if(u?.workspace_id){
+      fetchWorkspace(u.workspace_id).then(ws=>setWorkspace(ws));
+      fetchChallenges(u.workspace_id).then(ch=>setActiveChallenge(ch[0]||null));
+    }
   };
   const handleLogout=()=>{setUser(null);userRef.current=null;setMessages([]);setShowProfile(false);};
 
@@ -2085,6 +2663,26 @@ function App() {
 
 
 
+  // B2B route handling
+  if (page === "invite" && inviteToken) {
+    return <AppErrorBoundary><InvitePage token={inviteToken} onAuth={(u)=>{handleAuth(u);setPage("home");}} /></AppErrorBoundary>;
+  }
+  if (page === "business") {
+    return <AppErrorBoundary><BusinessPage onBack={()=>setPage("home")} onGetStarted={()=>window.location.href="mailto:business@foodnfitness.ai?subject=Free pilot request"} /></AppErrorBoundary>;
+  }
+  if (page === "admin") {
+    if (!user) {
+      return <AppErrorBoundary><div style={{minHeight:"100vh",background:"#16181a",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"Georgia,serif"}}>
+        <div style={{textAlign:"center"}}>
+          <div style={{color:"#eaf0eb",fontSize:"1.1rem",marginBottom:16}}>Sign in to access admin dashboard</div>
+          <button onClick={()=>setShowAuth(true)} style={{background:"linear-gradient(135deg,#3db876,#2a7a50)",border:"none",borderRadius:12,padding:"12px 28px",color:"#eaf0eb",fontSize:"1rem",cursor:"pointer"}}>Sign in</button>
+          {showAuth&&<AuthModal key={authMode} onClose={()=>setShowAuth(false)} onAuth={handleAuth} defaultMode={authMode}/>}
+        </div>
+      </div></AppErrorBoundary>;
+    }
+    return <AppErrorBoundary><AdminDashboard user={user} onBack={()=>setPage("home")} /></AppErrorBoundary>;
+  }
+
   try { return(
     <div style={{minHeight:"100vh",background:"#16181a",color:"#dde8df"}}>
       <style>{CSS}</style>
@@ -2110,6 +2708,8 @@ function App() {
           <div style={{display:"flex",gap:7,alignItems:"center"}}>
 
             
+            <button onClick={()=>setPage("business")} style={{background:"none",border:"0.5px solid rgba(111,207,151,.2)",borderRadius:20,padding:"clamp(5px,.6vw,8px) clamp(10px,1.3vw,18px)",color:"#6fcf97",fontSize:"clamp(.72rem,1vw,.82rem)",cursor:"pointer",display:user?"none":"inline-block"}}>For teams</button>
+            {user && user.role==="hr_admin" && <button onClick={()=>setPage("admin")} style={{background:"rgba(111,207,151,.1)",border:"0.5px solid rgba(111,207,151,.2)",borderRadius:20,padding:"clamp(5px,.6vw,8px) clamp(10px,1.3vw,18px)",color:"#6fcf97",fontSize:"clamp(.72rem,1vw,.82rem)",cursor:"pointer"}}>Admin</button>}
             {user && <button onClick={()=>setShowHistory(true)} style={{background:"none",border:"1px solid rgba(61,184,118,.17)",borderRadius:20,padding:"clamp(6px,.7vw,9px) clamp(14px,1.6vw,22px)",color:"#8ea898",fontSize:"clamp(.82rem,1.2vw,.95rem)",cursor:"pointer"}}>History</button>}
             {user
               ?<button onClick={()=>setShowProfile(true)} style={{background:"rgba(61,184,118,.1)",border:"1px solid rgba(61,184,118,.24)",borderRadius:20,padding:"4px 12px",color:"#6fcf97",fontSize:".78rem",cursor:"pointer",display:"flex",alignItems:"center",gap:6}}>
@@ -2159,6 +2759,18 @@ function App() {
               </button>
             </div>}
         </div>
+
+        {/* B2B banners */}
+        {workspace && !privacyBannerDismissed && (
+          <div style={{padding:"0 clamp(12px,2vw,24px)"}}>
+            <PrivacyBanner companyName={workspace.company_name} onDismiss={()=>{setPrivacyBannerDismissed(true);localStorage.setItem("fnf_privacy_dismissed","1");}}/>
+          </div>
+        )}
+        {activeChallenge && hasConvo===false && (
+          <div style={{padding:"0 clamp(12px,2vw,24px)"}}>
+            <ChallengeBanner challenge={activeChallenge}/>
+          </div>
+        )}
 
         {/* CHAT - always mounted, shown when convo starts */}
         <div style={{display: hasConvo ? "block" : "none"}}>
