@@ -2334,7 +2334,7 @@ function BusinessPage({ onBack, onGetStarted }) {
                   </div>
                 ))}
               </div>
-              <a href="mailto:business@foodnfitness.ai?subject=Pilot enquiry - " + p.name
+              <a href={`mailto:business@foodnfitness.ai?subject=Pilot%20enquiry%20-%20${p.name}`}
                 style={{display:"block",textAlign:"center",background:p.highlight?"linear-gradient(135deg,#3db876,#2a7a50)":"rgba(255,255,255,.06)",
                          border:p.highlight?"none":"0.5px solid rgba(255,255,255,.12)",borderRadius:10,padding:"11px",
                          color:"#eaf0eb",fontSize:".9rem",fontWeight:p.highlight?600:400,textDecoration:"none"}}>
