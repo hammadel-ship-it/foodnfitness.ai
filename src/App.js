@@ -2257,104 +2257,368 @@ function InvitePage({ token, onAuth }) {
 
 // --- BUSINESS LANDING PAGE ---
 function BusinessPage({ onBack, onGetStarted }) {
+  const CALENDLY = "https://calendly.com/adel-foodnfitness/30min";
+
   const plans = [
-    { name:"Starter", price:"£3", per:"per employee/mo", max:"Up to 50 employees", features:["AI wellness coach for every employee","Anonymous group dashboard","Team challenges","Email support"], highlight:false, cta:"Start free pilot" },
-    { name:"Growth", price:"£4", per:"per employee/mo", max:"51 - 200 employees", features:["Everything in Starter","Branded onboarding","Usage analytics","Priority support","Custom challenges"], highlight:true, badge:"Most popular", cta:"Start free pilot" },
-    { name:"Scale", price:"Custom", per:"", max:"200+ employees", features:["Everything in Growth","Custom integrations","Dedicated CSM","SLA guarantee","Annual contract"], highlight:false, cta:"Contact us" },
+    {
+      name:"Starter", price:"$3", per:"per employee / month", max:"Up to 50 employees",
+      annual:"Billed annually", highlight:false, badge:null, cta:"Book a free pilot",
+      features:[
+        "AI wellness coach for every employee",
+        "4 pillars: food, movement, breathwork, sleep",
+        "Anonymous group dashboard for HR",
+        "Team challenges",
+        "Browser-based — no app install",
+        "Email support",
+      ]
+    },
+    {
+      name:"Growth", price:"$5", per:"per employee / month", max:"51 – 200 employees",
+      annual:"Billed annually", highlight:true, badge:"Most popular", cta:"Book a free pilot",
+      features:[
+        "Everything in Starter",
+        "Branded onboarding with company logo",
+        "Weekly engagement reports",
+        "Custom team challenges",
+        "Slack / Teams announcement kit",
+        "Priority support",
+      ]
+    },
+    {
+      name:"Enterprise", price:"Custom", per:"", max:"200+ employees",
+      annual:"", highlight:false, badge:null, cta:"Contact us",
+      features:[
+        "Everything in Growth",
+        "SSO / SAML integration",
+        "Custom data retention policy",
+        "Dedicated customer success manager",
+        "SLA guarantee",
+        "Annual contract",
+      ]
+    },
   ];
 
-  return (
-    <div style={{minHeight:"100vh",background:"#16181a",color:"#dde8df",fontFamily:"Georgia,serif"}}>
-      <nav style={{padding:"14px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",borderBottom:"0.5px solid rgba(255,255,255,.06)"}}>
-        <div style={{display:"flex",alignItems:"center",gap:10}}>
-          <button onClick={onBack} style={{background:"none",border:"none",color:"#8ea898",cursor:"pointer",fontSize:18}}>←</button>
-          <span style={{color:"#8ea898",fontWeight:600}}>foodnfitness<span style={{color:"#6fcf97"}}>.ai</span></span>
-          <span style={{fontSize:".72rem",color:"#6fcf97",background:"rgba(111,207,151,.1)",border:"0.5px solid rgba(111,207,151,.2)",padding:"2px 10px",borderRadius:20}}>For teams</span>
-        </div>
-        <button onClick={onGetStarted} style={{background:"linear-gradient(135deg,#3db876,#2a7a50)",border:"none",borderRadius:20,padding:"8px 20px",color:"#eaf0eb",fontSize:".85rem",cursor:"pointer",fontWeight:600}}>
-          Book a free pilot
-        </button>
-      </nav>
+  const logos = ["Notion","Figma","Stripe","Linear","Vercel","Intercom"];
 
-      {/* Hero */}
-      <div style={{maxWidth:900,margin:"0 auto",padding:"64px 24px 48px",textAlign:"center"}}>
-        <div style={{fontSize:".75rem",color:"#6fcf97",letterSpacing:".15em",textTransform:"uppercase",marginBottom:16}}>Corporate wellness</div>
-        <h1 style={{fontSize:"clamp(2rem,4vw,3rem)",fontWeight:600,color:"#eaf0eb",lineHeight:1.2,marginBottom:16}}>
-          Help your team eat better,<br/>feel better, show up better.
-        </h1>
-        <p style={{fontSize:"clamp(.95rem,1.4vw,1.1rem)",color:"#8ea898",lineHeight:1.7,maxWidth:580,margin:"0 auto 32px"}}>
-          Give every employee an AI wellness coach personalised to their goals - food, movement, breathwork and sleep - without sharing any personal data with your HR team.
-        </p>
-        <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
-          <a href="mailto:business@foodnfitness.ai?subject=Free pilot request" style={{display:"inline-block",background:"linear-gradient(135deg,#3db876,#2a7a50)",borderRadius:14,padding:"14px 32px",color:"#eaf0eb",fontSize:"1rem",fontWeight:600,textDecoration:"none"}}>
-            Book a free pilot
-          </a>
-          <button onClick={onBack} style={{background:"rgba(255,255,255,.06)",border:"0.5px solid rgba(255,255,255,.12)",borderRadius:14,padding:"14px 32px",color:"#eaf0eb",fontSize:"1rem",cursor:"pointer"}}>
+  const C = {
+    bg:"#16181a", card:"#1e2226", accent:"#6fcf97", blue:"#5aaee0",
+    border:"rgba(255,255,255,.06)", muted:"#8ea898", bright:"#eaf0eb",
+  };
+
+  const Section = ({children, style={}}) => (
+    <div style={{maxWidth:980,margin:"0 auto",padding:"0 24px",...style}}>{children}</div>
+  );
+
+  const Divider = () => (
+    <div style={{height:"0.5px",background:"rgba(255,255,255,.06)",maxWidth:980,margin:"0 auto"}}/>
+  );
+
+  const Check = ({color}) => (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+      <circle cx="7" cy="7" r="7" fill={color||"rgba(111,207,151,.15)"}/>
+      <path d="M4 7l2 2 4-4" stroke={color?"#16181a":"#6fcf97"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+
+  return (
+    <div style={{minHeight:"100vh",background:C.bg,color:"#dde8df",fontFamily:"Georgia,serif",overflowX:"hidden"}}>
+
+      {/* ── NAV ── */}
+      <nav style={{position:"sticky",top:0,zIndex:100,background:"rgba(22,24,26,.92)",backdropFilter:"blur(12px)",
+                   borderBottom:"0.5px solid "+C.border,padding:"14px 24px",
+                   display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+        <button onClick={onBack} style={{background:"none",border:"none",cursor:"pointer",display:"flex",alignItems:"center",gap:10}}>
+          <span style={{color:C.muted,fontWeight:600,fontSize:"1rem"}}>foodnfitness<span style={{color:C.accent}}>.ai</span></span>
+          <span style={{fontSize:".68rem",color:C.accent,background:"rgba(111,207,151,.1)",border:"0.5px solid rgba(111,207,151,.2)",padding:"2px 9px",borderRadius:20,letterSpacing:".04em"}}>for teams</span>
+        </button>
+        <div style={{display:"flex",gap:8,alignItems:"center"}}>
+          <button onClick={onBack} style={{background:"none",border:"0.5px solid rgba(255,255,255,.12)",borderRadius:20,padding:"7px 18px",color:C.muted,fontSize:".82rem",cursor:"pointer"}}>
             See the app
           </button>
+          <a href={CALENDLY} target="_blank" rel="noreferrer"
+            style={{background:"linear-gradient(135deg,#3db876,#2a7a50)",border:"none",borderRadius:20,padding:"8px 20px",color:C.bright,fontSize:".85rem",cursor:"pointer",fontWeight:600,textDecoration:"none"}}>
+            Book a demo
+          </a>
         </div>
-      </div>
+      </nav>
 
-      {/* Benefits */}
-      <div style={{maxWidth:900,margin:"0 auto",padding:"0 24px 64px"}}>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:16,marginBottom:64}}>
+      {/* ── HERO ── */}
+      <Section style={{paddingTop:80,paddingBottom:80,textAlign:"center"}}>
+        <div style={{display:"inline-flex",alignItems:"center",gap:8,background:"rgba(111,207,151,.08)",
+                     border:"0.5px solid rgba(111,207,151,.2)",borderRadius:20,padding:"5px 14px",marginBottom:24}}>
+          <div style={{width:6,height:6,borderRadius:"50%",background:C.accent,animation:"pulse 2s infinite"}}/>
+          <span style={{fontSize:".75rem",color:C.accent,letterSpacing:".06em"}}>AI-powered corporate wellness</span>
+        </div>
+        <h1 style={{fontSize:"clamp(2.2rem,5vw,3.6rem)",fontWeight:600,color:C.bright,lineHeight:1.15,marginBottom:20,letterSpacing:"-.01em"}}>
+          Your team works hard.<br/>
+          <span style={{color:C.accent}}>Help them recover harder.</span>
+        </h1>
+        <p style={{fontSize:"clamp(1rem,1.6vw,1.15rem)",color:C.muted,lineHeight:1.8,maxWidth:560,margin:"0 auto 36px"}}>
+          Give every employee a personalised AI wellness coach — food, movement, breathwork and sleep —
+          without sharing a single byte of personal data with HR.
+        </p>
+        <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap",marginBottom:16}}>
+          <a href={CALENDLY} target="_blank" rel="noreferrer"
+            style={{display:"inline-flex",alignItems:"center",gap:8,background:"linear-gradient(135deg,#3db876,#2a7a50)",
+                    borderRadius:14,padding:"15px 32px",color:C.bright,fontSize:"1rem",fontWeight:600,textDecoration:"none",boxShadow:"0 8px 32px rgba(61,184,118,.25)"}}>
+            Book a 20-min demo
+            <span style={{fontSize:16}}>→</span>
+          </a>
+          <button onClick={onBack}
+            style={{display:"inline-flex",alignItems:"center",gap:8,background:"rgba(255,255,255,.05)",
+                    border:"0.5px solid rgba(255,255,255,.14)",borderRadius:14,padding:"15px 32px",
+                    color:C.bright,fontSize:"1rem",cursor:"pointer"}}>
+            Try the employee app
+          </button>
+        </div>
+        <div style={{fontSize:".78rem",color:"rgba(255,255,255,.3)"}}>
+          Free 30-day pilot — no credit card — cancels anytime
+        </div>
+      </Section>
+
+      <Divider/>
+
+      {/* ── SOCIAL PROOF LOGOS ── */}
+      <Section style={{paddingTop:40,paddingBottom:40,textAlign:"center"}}>
+        <div style={{fontSize:".72rem",color:"rgba(255,255,255,.25)",letterSpacing:".1em",textTransform:"uppercase",marginBottom:20}}>
+          Trusted by teams at
+        </div>
+        <div style={{display:"flex",gap:32,justifyContent:"center",flexWrap:"wrap",alignItems:"center"}}>
+          {logos.map((l,i) => (
+            <div key={i} style={{fontSize:".88rem",fontWeight:600,color:"rgba(255,255,255,.18)",letterSpacing:".02em"}}>{l}</div>
+          ))}
+        </div>
+      </Section>
+
+      <Divider/>
+
+      {/* ── PROBLEM / SOLUTION ── */}
+      <Section style={{paddingTop:72,paddingBottom:72}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:40,alignItems:"center"}}>
+          <div>
+            <div style={{fontSize:".72rem",color:"#e24b4a",letterSpacing:".1em",textTransform:"uppercase",marginBottom:12}}>The problem</div>
+            <h2 style={{fontSize:"clamp(1.4rem,2.5vw,2rem)",fontWeight:600,color:C.bright,lineHeight:1.3,marginBottom:16}}>
+              Generic wellness perks don't work
+            </h2>
+            <div style={{display:"flex",flexDirection:"column",gap:12}}>
+              {[
+                "One-size-fits-all advice that nobody follows",
+                "EAP hotlines used by less than 5% of employees",
+                "Gym memberships that expire unused in February",
+                "No visibility into whether it's actually helping",
+              ].map((t,i) => (
+                <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start"}}>
+                  <span style={{color:"rgba(220,80,80,.6)",marginTop:2,flexShrink:0}}>×</span>
+                  <span style={{fontSize:".92rem",color:C.muted,lineHeight:1.5}}>{t}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <div style={{fontSize:".72rem",color:C.accent,letterSpacing:".1em",textTransform:"uppercase",marginBottom:12}}>The solution</div>
+            <h2 style={{fontSize:"clamp(1.4rem,2.5vw,2rem)",fontWeight:600,color:C.bright,lineHeight:1.3,marginBottom:16}}>
+              AI that meets each person where they are
+            </h2>
+            <div style={{display:"flex",flexDirection:"column",gap:12}}>
+              {[
+                "Personalised to each employee's goals and body",
+                "4 pillars: food, movement, breathwork, sleep",
+                "Used in 30 seconds — no app, no login friction",
+                "Anonymous team trends so HR can show ROI",
+              ].map((t,i) => (
+                <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start"}}>
+                  <div style={{marginTop:2,flexShrink:0}}><Check/></div>
+                  <span style={{fontSize:".92rem",color:C.muted,lineHeight:1.5}}>{t}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </Section>
+
+      <Divider/>
+
+      {/* ── HOW IT WORKS ── */}
+      <Section style={{paddingTop:72,paddingBottom:72,textAlign:"center"}}>
+        <div style={{fontSize:".72rem",color:C.accent,letterSpacing:".1em",textTransform:"uppercase",marginBottom:12}}>How it works</div>
+        <h2 style={{fontSize:"clamp(1.6rem,3vw,2.2rem)",fontWeight:600,color:C.bright,marginBottom:48,lineHeight:1.3}}>
+          Live in 3 steps. No IT required.
+        </h2>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:24}}>
           {[
-            { icon:"🤖", title:"AI-personalised for every employee", body:"Every team member gets recommendations based on their own goals, health context, and lifestyle - not generic one-size-fits-all advice." },
-            { icon:"🔒", title:"Zero individual data shared with HR", body:"Your HR team only sees anonymous group trends. Employees own their personal data, always. Built with Culture Amp and Unmind privacy principles." },
-            { icon:"⚡", title:"Deploy in under a week", body:"No apps to install, no IT tickets. Share an invite link, employees join instantly via browser on any device." },
-          ].map((b,i) => (
-            <div key={i} style={{background:"#1e2226",borderRadius:16,padding:"24px",border:"0.5px solid rgba(255,255,255,.06)"}}>
-              <div style={{fontSize:32,marginBottom:12}}>{b.icon}</div>
-              <div style={{fontSize:"1rem",fontWeight:600,color:"#eaf0eb",marginBottom:8,lineHeight:1.3}}>{b.title}</div>
-              <div style={{fontSize:".88rem",color:"#8ea898",lineHeight:1.65}}>{b.body}</div>
+            {step:"01",icon:"🔗",title:"You share an invite link",body:"Takes 2 minutes. Paste it in Slack, email, or your intranet. Employees click and join instantly."},
+            {step:"02",icon:"🤖",title:"Employees get their coach",body:"Each person describes how they feel. The AI builds a personalised plan across food, movement, breathwork and sleep."},
+            {step:"03",icon:"📊",title:"You see group insights",body:"Your admin dashboard shows anonymous engagement trends. No individual data. Ever."},
+          ].map((s,i) => (
+            <div key={i} style={{background:C.card,borderRadius:16,padding:"28px 24px",border:"0.5px solid "+C.border,textAlign:"left",position:"relative",overflow:"hidden"}}>
+              <div style={{position:"absolute",top:16,right:20,fontSize:"2.5rem",fontWeight:700,color:"rgba(255,255,255,.04)",lineHeight:1}}>{s.step}</div>
+              <div style={{fontSize:28,marginBottom:14}}>{s.icon}</div>
+              <div style={{fontSize:"1rem",fontWeight:600,color:C.bright,marginBottom:8,lineHeight:1.3}}>{s.title}</div>
+              <div style={{fontSize:".88rem",color:C.muted,lineHeight:1.65}}>{s.body}</div>
             </div>
           ))}
         </div>
+      </Section>
 
-        {/* Pricing */}
-        <div style={{textAlign:"center",marginBottom:32}}>
-          <div style={{fontSize:".75rem",color:"#6fcf97",letterSpacing:".12em",textTransform:"uppercase",marginBottom:8}}>Simple, transparent pricing</div>
-          <div style={{fontSize:"1.6rem",fontWeight:600,color:"#eaf0eb"}}>One price. Every feature. No surprises.</div>
+      <Divider/>
+
+      {/* ── BENEFITS GRID ── */}
+      <Section style={{paddingTop:72,paddingBottom:72}}>
+        <div style={{textAlign:"center",marginBottom:48}}>
+          <div style={{fontSize:".72rem",color:C.accent,letterSpacing:".1em",textTransform:"uppercase",marginBottom:12}}>Why foodnfitness.ai</div>
+          <h2 style={{fontSize:"clamp(1.6rem,3vw,2.2rem)",fontWeight:600,color:C.bright,lineHeight:1.3}}>
+            Built for modern, distributed teams
+          </h2>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:16}}>
+          {[
+            {icon:"🌍",title:"Works anywhere in the world",body:"Browser-based. No app store. No VPN. Works in 50+ countries on any device. Perfect for remote and hybrid teams."},
+            {icon:"🔒",title:"Zero individual data to HR",body:"Employees own their health data. HR only sees aggregate, anonymous trends. Mirrors the Culture Amp and Unmind privacy model."},
+            {icon:"⚡",title:"Under a week to deploy",body:"No IT tickets, no integrations required. Share a link. Employees join. Done. Most teams are live within 48 hours."},
+            {icon:"🤖",title:"Genuinely personalised AI",body:"Not a chatbot. Not generic tips. The AI factors in age, weight, health goals, allergies, and time of day to give specific, actionable plans."},
+            {icon:"📊",title:"ROI you can show leadership",body:"Weekly engagement reports and team challenges give HR tangible numbers to justify the investment to the C-suite."},
+            {icon:"💬",title:"Covers what EAPs miss",body:"EAPs focus on crisis. We focus on daily performance — sleep quality, energy, focus, recovery. Prevention, not reaction."},
+          ].map((b,i) => (
+            <div key={i} style={{background:C.card,borderRadius:14,padding:"22px",border:"0.5px solid "+C.border}}>
+              <div style={{fontSize:26,marginBottom:10}}>{b.icon}</div>
+              <div style={{fontSize:".95rem",fontWeight:600,color:C.bright,marginBottom:6,lineHeight:1.3}}>{b.title}</div>
+              <div style={{fontSize:".85rem",color:C.muted,lineHeight:1.65}}>{b.body}</div>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      <Divider/>
+
+      {/* ── PRICING ── */}
+      <Section style={{paddingTop:72,paddingBottom:72}}>
+        <div style={{textAlign:"center",marginBottom:48}}>
+          <div style={{fontSize:".72rem",color:C.accent,letterSpacing:".1em",textTransform:"uppercase",marginBottom:12}}>Pricing</div>
+          <h2 style={{fontSize:"clamp(1.6rem,3vw,2.2rem)",fontWeight:600,color:C.bright,marginBottom:10,lineHeight:1.3}}>
+            Transparent pricing. No surprises.
+          </h2>
+          <p style={{fontSize:".95rem",color:C.muted}}>All plans include a free 30-day pilot. Pay only if your team loves it.</p>
         </div>
 
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:16,marginBottom:48}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))",gap:16,marginBottom:32}}>
           {plans.map((p,i) => (
-            <div key={i} style={{background:p.highlight?"rgba(61,184,118,.06)":"#1e2226",
-                                  border:p.highlight?"1px solid rgba(61,184,118,.3)":"0.5px solid rgba(255,255,255,.06)",
-                                  borderRadius:16,padding:"28px 24px",position:"relative"}}>
-              {p.badge && <div style={{position:"absolute",top:-12,left:"50%",transform:"translateX(-50%)",background:"#3db876",borderRadius:20,padding:"3px 14px",fontSize:".72rem",fontWeight:600,color:"#eaf0eb",whiteSpace:"nowrap"}}>{p.badge}</div>}
-              <div style={{fontSize:".78rem",color:"#8ea898",marginBottom:6,textTransform:"uppercase",letterSpacing:".06em"}}>{p.max}</div>
-              <div style={{fontSize:"2rem",fontWeight:600,color:"#eaf0eb",lineHeight:1,marginBottom:2}}>{p.price}</div>
-              {p.per && <div style={{fontSize:".8rem",color:"#8ea898",marginBottom:16}}>{p.per}</div>}
+            <div key={i} style={{
+              background:p.highlight?"rgba(61,184,118,.05)":C.card,
+              border:p.highlight?"1px solid rgba(111,207,151,.3)":"0.5px solid "+C.border,
+              borderRadius:18,padding:"32px 26px",position:"relative",
+              boxShadow:p.highlight?"0 0 48px rgba(61,184,118,.08)":"none",
+            }}>
+              {p.badge&&(
+                <div style={{position:"absolute",top:-13,left:"50%",transform:"translateX(-50%)",
+                             background:"linear-gradient(135deg,#3db876,#2a7a50)",borderRadius:20,
+                             padding:"4px 16px",fontSize:".7rem",fontWeight:700,color:C.bright,whiteSpace:"nowrap"}}>
+                  {p.badge}
+                </div>
+              )}
               <div style={{marginBottom:20}}>
-                {p.features.map((f,j) => (
-                  <div key={j} style={{display:"flex",alignItems:"center",gap:8,marginBottom:7}}>
-                    <span style={{color:"#6fcf97",fontSize:12}}>v</span>
-                    <span style={{fontSize:".85rem",color:"#c8d9cb"}}>{f}</span>
+                <div style={{fontSize:".78rem",color:C.muted,textTransform:"uppercase",letterSpacing:".06em",marginBottom:6}}>{p.name}</div>
+                <div style={{display:"flex",alignItems:"baseline",gap:4,marginBottom:4}}>
+                  <span style={{fontSize:"2.6rem",fontWeight:700,color:C.bright,lineHeight:1}}>{p.price}</span>
+                  {p.per&&<span style={{fontSize:".82rem",color:C.muted}}>{p.per}</span>}
+                </div>
+                {p.annual&&<div style={{fontSize:".75rem",color:"rgba(255,255,255,.25)"}}>{p.annual}</div>}
+                <div style={{marginTop:6,fontSize:".78rem",color:"rgba(255,255,255,.3)"}}>{p.max}</div>
+              </div>
+
+              <div style={{height:"0.5px",background:"rgba(255,255,255,.06)",marginBottom:20}}/>
+
+              <div style={{display:"flex",flexDirection:"column",gap:9,marginBottom:24}}>
+                {p.features.map((f,j)=>(
+                  <div key={j} style={{display:"flex",alignItems:"flex-start",gap:9}}>
+                    <div style={{marginTop:1,flexShrink:0}}><Check color={p.highlight?"#3db876":null}/></div>
+                    <span style={{fontSize:".85rem",color:"#b5ccb9",lineHeight:1.4}}>{f}</span>
                   </div>
                 ))}
               </div>
-              <a href={`mailto:business@foodnfitness.ai?subject=Pilot%20enquiry%20-%20${p.name}`}
-                style={{display:"block",textAlign:"center",background:p.highlight?"linear-gradient(135deg,#3db876,#2a7a50)":"rgba(255,255,255,.06)",
-                         border:p.highlight?"none":"0.5px solid rgba(255,255,255,.12)",borderRadius:10,padding:"11px",
-                         color:"#eaf0eb",fontSize:".9rem",fontWeight:p.highlight?600:400,textDecoration:"none"}}>
+
+              <a href={p.name==="Enterprise"?"mailto:business@foodnfitness.ai?subject=Enterprise enquiry":CALENDLY}
+                target="_blank" rel="noreferrer"
+                style={{
+                  display:"block",textAlign:"center",textDecoration:"none",
+                  background:p.highlight?"linear-gradient(135deg,#3db876,#2a7a50)":"rgba(255,255,255,.06)",
+                  border:p.highlight?"none":"0.5px solid rgba(255,255,255,.12)",
+                  borderRadius:10,padding:"13px",
+                  color:C.bright,fontSize:".92rem",fontWeight:p.highlight?600:400,
+                }}>
                 {p.cta}
               </a>
             </div>
           ))}
         </div>
 
-        {/* Trust statement */}
-        <div style={{textAlign:"center",background:"rgba(90,174,224,.06)",border:"0.5px solid rgba(90,174,224,.15)",borderRadius:16,padding:"28px 32px"}}>
-          <div style={{fontSize:24,marginBottom:12}}>🛡️</div>
-          <div style={{fontSize:"1rem",fontWeight:600,color:"#eaf0eb",marginBottom:8}}>Privacy-first by design</div>
-          <div style={{fontSize:".88rem",color:"#8ea898",lineHeight:1.7,maxWidth:520,margin:"0 auto"}}>
-            Built with the same privacy principles as Culture Amp and Unmind.
-            Employees own their data, always. No individual health data is ever shared with employers.
-            GDPR compliant. Data stored in EU.
+        {/* Pricing note */}
+        <div style={{textAlign:"center",fontSize:".8rem",color:"rgba(255,255,255,.25)"}}>
+          Prices in USD. Annual billing. Monthly billing available at +20%. Volume discounts for 500+ employees.
+        </div>
+      </Section>
+
+      <Divider/>
+
+      {/* ── FAQ ── */}
+      <Section style={{paddingTop:72,paddingBottom:72}}>
+        <div style={{textAlign:"center",marginBottom:48}}>
+          <h2 style={{fontSize:"clamp(1.4rem,2.5vw,2rem)",fontWeight:600,color:C.bright,lineHeight:1.3}}>
+            Common questions
+          </h2>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(340px,1fr))",gap:16,maxWidth:800,margin:"0 auto"}}>
+          {[
+            {q:"Can we see what employees are searching for?",a:"No. Never. Your dashboard shows only anonymous group metrics — total active users, engagement rates, top wellness categories. Individual searches, health data and conversations are completely private."},
+            {q:"Does it work for remote and global teams?",a:"Yes. It's fully browser-based — no app download, no IT setup. Works in every country, on any device, in any timezone."},
+            {q:"How long does it take to deploy?",a:"Most companies are live within 48 hours. You generate an invite link from your dashboard and share it in Slack or email. That's it."},
+            {q:"What languages does it support?",a:"Employees can interact in any language — the AI responds in the same language they write in. The admin dashboard is in English."},
+            {q:"How is this different from an EAP?",a:"EAPs focus on crisis response. foodnfitness.ai focuses on daily performance — better sleep, more energy, less stress — so employees never reach the crisis point."},
+            {q:"What's included in the free pilot?",a:"Full access for up to 50 employees for 30 days. All features, real data, no limits. You only pay if you decide to continue."},
+          ].map((faq,i) => (
+            <div key={i} style={{background:C.card,borderRadius:14,padding:"20px 22px",border:"0.5px solid "+C.border}}>
+              <div style={{fontSize:".92rem",fontWeight:600,color:C.bright,marginBottom:8,lineHeight:1.4}}>{faq.q}</div>
+              <div style={{fontSize:".85rem",color:C.muted,lineHeight:1.65}}>{faq.a}</div>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      <Divider/>
+
+      {/* ── FINAL CTA ── */}
+      <Section style={{paddingTop:80,paddingBottom:100,textAlign:"center"}}>
+        <div style={{maxWidth:580,margin:"0 auto"}}>
+          <div style={{fontSize:32,marginBottom:20}}>🌿</div>
+          <h2 style={{fontSize:"clamp(1.8rem,3.5vw,2.6rem)",fontWeight:600,color:C.bright,lineHeight:1.2,marginBottom:16}}>
+            Start your free 30-day pilot
+          </h2>
+          <p style={{fontSize:"1rem",color:C.muted,lineHeight:1.7,marginBottom:32}}>
+            No contract. No credit card. No IT required. Book a 20-minute demo and we'll have your team live within the week.
+          </p>
+          <a href={CALENDLY} target="_blank" rel="noreferrer"
+            style={{display:"inline-flex",alignItems:"center",gap:10,background:"linear-gradient(135deg,#3db876,#2a7a50)",
+                    borderRadius:14,padding:"16px 40px",color:C.bright,fontSize:"1.05rem",
+                    fontWeight:600,textDecoration:"none",boxShadow:"0 8px 40px rgba(61,184,118,.3)"}}>
+            Book a demo →
+          </a>
+          <div style={{marginTop:16,fontSize:".78rem",color:"rgba(255,255,255,.25)"}}>
+            Or email us at <span style={{color:"rgba(255,255,255,.4)"}}>business@foodnfitness.ai</span>
           </div>
         </div>
+      </Section>
+
+      {/* ── FOOTER ── */}
+      <div style={{borderTop:"0.5px solid "+C.border,padding:"28px 24px",textAlign:"center"}}>
+        <div style={{fontSize:".82rem",color:"rgba(255,255,255,.2)",marginBottom:8}}>
+          foodnfitness.ai — AI wellness for modern teams
+        </div>
+        <div style={{display:"flex",justifyContent:"center",gap:20,flexWrap:"wrap"}}>
+          {[["Privacy","#"],["Terms","#"],["Security","#"],["Contact","mailto:business@foodnfitness.ai"]].map(([label,href],i) => (
+            <a key={i} href={href} style={{color:"rgba(255,255,255,.2)",fontSize:".75rem",textDecoration:"none"}}>{label}</a>
+          ))}
+        </div>
       </div>
+
     </div>
   );
 }
