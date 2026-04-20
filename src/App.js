@@ -101,7 +101,8 @@ const buildPrompt = (user, isFollowUp) => {
   if (!isFollowUp) {
     const item = '{"emoji":"","name":"","when":"","benefit":"","outcome":"","timeframe":""}';
     const pillar = (type,label) => `{"type":"${type}","label":"${label}","items":[${item},${item}]}`;
-    return "Wellness coach. " + sexNote + " " + ageNote + " " + weightNote + " " + timeCtx + "\n" +
+    const scoreCtx = user?.todayScore ? "Today score: "+user.todayScore+"/15 (energy "+user.todayEnergy+"/5, sleep "+user.todaySleep+"/5, body "+user.todayBody+"/5). Prioritise lowest area." : "";
+    return "Wellness coach. " + sexNote + " " + ageNote + " " + weightNote + " " + timeCtx + " " + scoreCtx + "\n" +
       "Reply with ONLY this JSON structure, filled in. No markdown, no extra text.\n" +
       `{"responseType":"initial","acknowledgment":"1 sentence","pillars":[${pillar("food","Food")},${pillar("exercise","Movement")},${pillar("breath","Breathwork")},${pillar("sleep","Sleep")}],"tip":"1 tip"}` + "\n" +
       "Rules: every string max 10 words. Be specific." +
@@ -1905,7 +1906,7 @@ function SignupGateModal({ onSignup, onLogin, onClose }) {
             <div style={{color:"#8ea898",fontSize:".95rem",lineHeight:1.7}}>Create a free account to keep going  unlimited searches, saved history, and personalised plans.</div>
           </div>
           <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:28}}>
-            {[["v","Unlimited searches - always free"],["v","Saved conversation history"],["v","Personalised to your profile"],["v","Weekly wellness plans"]].map(([icon,text],i)=>(
+            {[["v","Daily body score — track how you feel"],["v","Unlimited searches — always free"],["v","Saved conversation history"],["v","Personalised to your profile"]].map(([icon,text],i)=>(
               <div key={i} style={{display:"flex",alignItems:"center",gap:12,background:"rgba(61,184,118,.07)",border:"1px solid rgba(61,184,118,.15)",borderRadius:12,padding:"12px 16px"}}>
                 <span style={{fontSize:20}}>{icon}</span>
                 <span style={{color:"#8ea898",fontSize:".95rem"}}>{text}</span>
@@ -2894,6 +2895,281 @@ function BusinessPage({ onBack, onGetStarted }) {
 }
 
 
+// =============================================================
+// DAILY BODY SCORE — helpers, components
+// =============================================================
+
+const todayStr = () => new Date().toISOString().split("T")[0];
+
+const fetchCheckins = async (userId, limit=30) => {
+  const { data } = await supabase.from("daily_checkins")
+    .select("date, energy, sleep, body, score, note")
+    .eq("user_id", userId)
+    .order("date", { ascending: false })
+    .limit(limit);
+  return data || [];
+};
+
+const saveCheckin = async (userId, energy, sleep, body, note="") => {
+  const { data, error } = await supabase.from("daily_checkins")
+    .upsert({ user_id: userId, date: todayStr(), energy, sleep, body, note },
+             { onConflict: "user_id,date" })
+    .select().single();
+  return error ? null : data;
+};
+
+const getScoreLabel = (score) => {
+  if (score >= 13) return { label:"Excellent", color:"#6fcf97" };
+  if (score >= 10) return { label:"Good",      color:"#5aaee0" };
+  if (score >=  7) return { label:"Fair",       color:"#f0a500" };
+  return               { label:"Low",       color:"#e24b4a" };
+};
+
+const getLowestPillar = (energy, sleep, body) => {
+  const min = Math.min(energy, sleep, body);
+  if (body   === min) return "exercise";
+  if (sleep  === min) return "sleep";
+  return "food";
+};
+
+const buildCheckinQuery = (energy, sleep, body) => {
+  const pillar = getLowestPillar(energy, sleep, body);
+  const map = {
+    food:     "My energy is low and my body feels off today. What should I eat to recover?",
+    sleep:    "I slept badly and feel drained today. How can I recover and boost my energy?",
+    exercise: "My body feels stiff and heavy today. What gentle movement will help me feel better?",
+  };
+  return map[pillar];
+};
+
+// ── Sparkline component ───────────────────────────────────────────────────
+function ScoreSparkline({ checkins }) {
+  if (!checkins?.length) return null;
+  const last7 = [...checkins].reverse().slice(-7);
+  const max = 15, min = 3;
+  const w = 80, h = 28;
+  const pts = last7.map((c, i) => {
+    const x = last7.length === 1 ? w/2 : (i / (last7.length-1)) * w;
+    const y = h - ((c.score - min) / (max - min)) * h;
+    return `${x},${Math.max(1, Math.min(h-1, y))}`;
+  }).join(" ");
+  const lastScore = last7[last7.length-1]?.score || 0;
+  const { color } = getScoreLabel(lastScore);
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} style={{overflow:"visible"}}>
+      <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity=".8"/>
+      {last7.map((c,i) => {
+        const x = last7.length === 1 ? w/2 : (i / (last7.length-1)) * w;
+        const y = h - ((c.score - min) / (max - min)) * h;
+        return <circle key={i} cx={x} cy={Math.max(1, Math.min(h-1, y))} r="2" fill={color} opacity={i===last7.length-1?1:.4}/>;
+      })}
+    </svg>
+  );
+}
+
+// ── Wellness score widget (shown on homepage) ─────────────────────────────
+function WellnessScoreWidget({ user, checkins, onCheckin, onQuery }) {
+  if (!user) return null;
+  const today = todayStr();
+  const todayCheckin = checkins.find(c => c.date === today);
+  const streak = (() => {
+    let s = 0;
+    const sorted = [...checkins].sort((a,b)=>b.date.localeCompare(a.date));
+    let cur = new Date(); cur.setHours(0,0,0,0);
+    for (const c of sorted) {
+      const d = new Date(c.date + "T00:00:00");
+      const diff = Math.round((cur - d) / 86400000);
+      if (diff <= 1) { s++; cur = d; } else break;
+    }
+    return s;
+  })();
+
+  const scoreInfo = todayCheckin ? getScoreLabel(todayCheckin.score) : null;
+
+  return (
+    <div style={{margin:"0 clamp(16px,4vw,40px) 0",background:"#1e2226",borderRadius:16,
+                 border:"0.5px solid rgba(255,255,255,.07)",overflow:"hidden"}}>
+      <div style={{padding:"16px 20px",display:"flex",alignItems:"center",gap:16,flexWrap:"wrap"}}>
+
+        {/* Today's score or prompt */}
+        {todayCheckin ? (
+          <div style={{display:"flex",alignItems:"center",gap:14,flex:1,minWidth:0}}>
+            <div style={{textAlign:"center",flexShrink:0}}>
+              <div style={{fontSize:"2rem",fontWeight:700,color:scoreInfo.color,lineHeight:1}}>{todayCheckin.score}</div>
+              <div style={{fontSize:".6rem",color:"#6a7e6e",textTransform:"uppercase",letterSpacing:".06em"}}>/ 15</div>
+            </div>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
+                <span style={{fontSize:".82rem",fontWeight:600,color:scoreInfo.color}}>{scoreInfo.label}</span>
+                {streak>0&&<span style={{fontSize:".7rem",color:"#f0a500",background:"rgba(240,165,0,.1)",border:"0.5px solid rgba(240,165,0,.2)",borderRadius:20,padding:"1px 8px"}}>{streak} day streak</span>}
+              </div>
+              <div style={{display:"flex",gap:12}}>
+                {[["Energy",todayCheckin.energy,"⚡"],["Sleep",todayCheckin.sleep,"🌙"],["Body",todayCheckin.body,"💪"]].map(([lbl,val,ico])=>(
+                  <div key={lbl} style={{display:"flex",alignItems:"center",gap:4}}>
+                    <span style={{fontSize:11}}>{ico}</span>
+                    <span style={{fontSize:".72rem",color:"#6a7e6e"}}>{lbl}</span>
+                    <span style={{fontSize:".78rem",color:"#c8d9cb",fontWeight:600}}>{val}/5</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <ScoreSparkline checkins={checkins}/>
+          </div>
+        ) : (
+          <div style={{flex:1,display:"flex",alignItems:"center",gap:12}}>
+            <div style={{width:44,height:44,borderRadius:12,background:"rgba(111,207,151,.1)",border:"0.5px solid rgba(111,207,151,.15)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>📊</div>
+            <div>
+              <div style={{fontSize:".92rem",fontWeight:600,color:"#eaf0eb",marginBottom:2}}>How is your body today?</div>
+              <div style={{fontSize:".78rem",color:"#6a7e6e"}}>20-second daily check-in · tracks your score over time</div>
+            </div>
+          </div>
+        )}
+
+        {/* CTA */}
+        <button onClick={onCheckin}
+          style={{background:todayCheckin?"rgba(255,255,255,.05)":"linear-gradient(135deg,#3db876,#2a7a50)",
+                  border:todayCheckin?"0.5px solid rgba(255,255,255,.1)":"none",
+                  borderRadius:10,padding:"9px 18px",color:"#eaf0eb",fontSize:".82rem",
+                  cursor:"pointer",fontWeight:todayCheckin?400:600,flexShrink:0,whiteSpace:"nowrap"}}>
+          {todayCheckin ? "Update today" : "Check in now"}
+        </button>
+      </div>
+
+      {/* Score-driven suggestion */}
+      {todayCheckin && todayCheckin.score <= 9 && (
+        <div style={{borderTop:"0.5px solid rgba(255,255,255,.05)",padding:"10px 20px",
+                     display:"flex",alignItems:"center",gap:10,background:"rgba(255,255,255,.02)"}}>
+          <span style={{fontSize:14}}>💡</span>
+          <span style={{fontSize:".78rem",color:"#8ea898",flex:1}}>
+            Your score is low today. Want a protocol to help recover?
+          </span>
+          <button onClick={()=>onQuery(buildCheckinQuery(todayCheckin.energy,todayCheckin.sleep,todayCheckin.body))}
+            style={{background:"rgba(111,207,151,.1)",border:"0.5px solid rgba(111,207,151,.2)",borderRadius:8,
+                    padding:"5px 12px",color:"#6fcf97",fontSize:".75rem",cursor:"pointer",whiteSpace:"nowrap"}}>
+            Get protocol
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Daily checkin modal ───────────────────────────────────────────────────
+function DailyCheckinModal({ user, existing, onSave, onClose }) {
+  const [energy, setEnergy] = React.useState(existing?.energy || 3);
+  const [sleep,  setSleep]  = React.useState(existing?.sleep  || 3);
+  const [body,   setBody]   = React.useState(existing?.body   || 3);
+  const [saving, setSaving] = React.useState(false);
+
+  const score = energy + sleep + body;
+  const { label, color } = getScoreLabel(score);
+
+  const SliderRow = ({ label, icon, value, onChange, color }) => (
+    <div style={{marginBottom:20}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          <span style={{fontSize:18}}>{icon}</span>
+          <span style={{fontSize:".92rem",fontWeight:600,color:"#eaf0eb"}}>{label}</span>
+        </div>
+        <div style={{display:"flex",gap:6,alignItems:"center"}}>
+          {[1,2,3,4,5].map(v=>(
+            <button key={v} onClick={()=>onChange(v)}
+              style={{width:32,height:32,borderRadius:8,border:"0.5px solid",
+                      borderColor:value===v?color:"rgba(255,255,255,.1)",
+                      background:value===v?color+"22":"rgba(255,255,255,.04)",
+                      color:value===v?color:"#6a7e6e",fontSize:".88rem",
+                      cursor:"pointer",fontWeight:value===v?600:400,transition:"all .12s"}}>
+              {v}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div style={{display:"flex",justifyContent:"space-between",padding:"0 4px"}}>
+        <span style={{fontSize:".68rem",color:"#6a7e6e"}}>
+          {label==="Energy"?"Exhausted":label==="Sleep"?"Terrible":"Very stiff"}
+        </span>
+        <span style={{fontSize:".68rem",color:"#6a7e6e"}}>
+          {label==="Energy"?"Full of energy":label==="Sleep"?"Slept great":"Feeling great"}
+        </span>
+      </div>
+    </div>
+  );
+
+  const handleSave = async () => {
+    setSaving(true);
+    await saveCheckin(user.id, energy, sleep, body);
+    onSave({ energy, sleep, body, score, date: todayStr() });
+    setSaving(false);
+  };
+
+  return (
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.7)",zIndex:1000,
+                 display:"flex",alignItems:"flex-end",justifyContent:"center",padding:"0 0 0"}}>
+      <div style={{background:"#1e2226",borderRadius:"20px 20px 0 0",width:"100%",maxWidth:520,
+                   padding:"28px 28px 40px",border:"0.5px solid rgba(255,255,255,.08)"}}>
+
+        {/* Header */}
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:24}}>
+          <div>
+            <div style={{fontSize:"1.05rem",fontWeight:600,color:"#eaf0eb",marginBottom:2}}>Daily body check-in</div>
+            <div style={{fontSize:".78rem",color:"#6a7e6e"}}>{new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"})}</div>
+          </div>
+          <button onClick={onClose} style={{background:"none",border:"none",color:"#6a7e6e",cursor:"pointer",fontSize:20}}>×</button>
+        </div>
+
+        {/* Score preview */}
+        <div style={{textAlign:"center",marginBottom:24,padding:"16px",background:"rgba(255,255,255,.03)",borderRadius:12,border:"0.5px solid rgba(255,255,255,.06)"}}>
+          <div style={{fontSize:"3rem",fontWeight:700,color:color,lineHeight:1,marginBottom:4}}>{score}</div>
+          <div style={{fontSize:".82rem",color:color,marginBottom:2,fontWeight:600}}>{label}</div>
+          <div style={{fontSize:".72rem",color:"#6a7e6e"}}>out of 15</div>
+        </div>
+
+        {/* Sliders */}
+        <SliderRow label="Energy"      icon="⚡" value={energy} onChange={setEnergy} color="#f0a500"/>
+        <SliderRow label="Sleep"       icon="🌙" value={sleep}  onChange={setSleep}  color="#5b9bd5"/>
+        <SliderRow label="Body feeling" icon="💪" value={body}   onChange={setBody}   color="#6fcf97"/>
+
+        {/* Save */}
+        <button onClick={handleSave} disabled={saving}
+          style={{width:"100%",background:"linear-gradient(135deg,#3db876,#2a7a50)",border:"none",
+                  borderRadius:12,padding:"14px",color:"#eaf0eb",fontSize:"1rem",
+                  cursor:"pointer",fontWeight:600,marginTop:8}}>
+          {saving ? "Saving..." : "Save today's score"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── Weekly pattern insight ─────────────────────────────────────────────────
+function WeeklyInsight({ checkins, onQuery }) {
+  if (!checkins || checkins.length < 5) return null;
+  const avg = (key) => Math.round((checkins.slice(0,7).reduce((s,c)=>s+c[key],0)/Math.min(checkins.length,7))*10)/10;
+  const avgE = avg("energy"), avgS = avg("sleep"), avgB = avg("body");
+  const weakest = avgE<=avgS&&avgE<=avgB?"energy":avgS<=avgB?"sleep":"body feeling";
+  const pillarMap = {energy:"food",sleep:"sleep","body feeling":"exercise"};
+  const insight = `Your ${weakest} has averaged ${Math.min(avgE,avgS,avgB)}/5 this week. That is the area holding your score down most.`;
+  const query = buildCheckinQuery(Math.round(avgE),Math.round(avgS),Math.round(avgB));
+
+  return (
+    <div style={{margin:"12px clamp(16px,4vw,40px) 0",background:"rgba(90,174,224,.07)",
+                 border:"0.5px solid rgba(90,174,224,.18)",borderRadius:12,padding:"14px 18px",
+                 display:"flex",gap:12,alignItems:"flex-start"}}>
+      <span style={{fontSize:18,flexShrink:0}}>📈</span>
+      <div style={{flex:1}}>
+        <div style={{fontSize:".8rem",fontWeight:600,color:"#5aaee0",marginBottom:3}}>Weekly pattern</div>
+        <div style={{fontSize:".8rem",color:"#8ea898",lineHeight:1.6,marginBottom:8}}>{insight}</div>
+        <button onClick={()=>onQuery(query)}
+          style={{background:"rgba(90,174,224,.12)",border:"0.5px solid rgba(90,174,224,.25)",
+                  borderRadius:8,padding:"5px 12px",color:"#5aaee0",fontSize:".75rem",cursor:"pointer"}}>
+          Get a protocol for this →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+
 function App() {
   const [page,setPage]=useState(()=>{
     const p = window.location.pathname;
@@ -2911,6 +3187,9 @@ function App() {
   const [workspace,setWorkspace]=useState(null);
   const [activeChallenge,setActiveChallenge]=useState(null);
   const [privacyBannerDismissed,setPrivacyBannerDismissed]=useState(()=>localStorage.getItem("fnf_privacy_dismissed")==="1");
+  const [checkins,setCheckins]=useState([]);
+  const [showCheckin,setShowCheckin]=useState(false);
+  const [checkinDone,setCheckinDone]=useState(false);
   const [showAuth,setShowAuth]=useState(false);
   const [authMode,setAuthMode]=useState("login");
   const [showProfile,setShowProfile]=useState(false);
@@ -2983,6 +3262,13 @@ function App() {
           // Persist prefs so they survive future sign-outs
           try { localStorage.setItem("np_prefs_" + u.email, JSON.stringify({age:u.age,weight:u.weight,sex:u.sex,allergies:u.allergies})); } catch(e) {}
           saveUser(u);setUser(u);userRef.current=u;
+          // Load daily checkins
+          fetchCheckins(u.id).then(data => {
+            setCheckins(data);
+            // Show checkin modal if not done today
+            const doneToday = data.some(c => c.date === todayStr());
+            if (!doneToday) setTimeout(()=>setShowCheckin(true), 1200);
+          });
           // Load B2B workspace if member
           if (u.workspace_id) {
             fetchWorkspace(u.workspace_id).then(ws=>setWorkspace(ws));
@@ -3017,6 +3303,13 @@ function App() {
     if(u?.workspace_id){
       fetchWorkspace(u.workspace_id).then(ws=>setWorkspace(ws));
       fetchChallenges(u.workspace_id).then(ch=>setActiveChallenge(ch[0]||null));
+    }
+    if(u?.id){
+      fetchCheckins(u.id).then(data=>{
+        setCheckins(data);
+        const doneToday = data.some(c=>c.date===todayStr());
+        if(!doneToday) setTimeout(()=>setShowCheckin(true), 800);
+      });
     }
   };
   const handleLogout=()=>{setUser(null);userRef.current=null;setMessages([]);setShowProfile(false);};
@@ -3232,6 +3525,21 @@ function App() {
 
       {showSignUp&&<SignUpPrompt onClose={()=>setShowSignUp(false)} onSignUp={()=>{setShowSignUp(false);setAuthMode("signup");setShowAuth(true);if(window.tlTrack)window.tlTrack("signup_started");}}/>}
       {showHistory && <HistoryModal onClose={()=>setShowHistory(false)} onLoad={(msgs)=>{setMessages(msgs);setInput("");setError(null);}} user={user}/>}
+      {showCheckin && user && (
+        <DailyCheckinModal
+          user={user}
+          existing={checkins.find(c=>c.date===todayStr())}
+          onSave={(c)=>{
+            setCheckins(p=>{const filtered=p.filter(x=>x.date!==todayStr());return[{...c,date:todayStr()},...filtered];});
+            setCheckinDone(true);
+            setShowCheckin(false);
+            // Store score on user ref for prompt context
+            const updated={...userRef.current,todayScore:c.score,todayEnergy:c.energy,todaySleep:c.sleep,todayBody:c.body};
+            setUser(updated);userRef.current=updated;saveUser(updated);
+          }}
+          onClose={()=>setShowCheckin(false)}
+        />
+      )}
       <div style={{position:"fixed",inset:0,background:"#16181a",zIndex:0,pointerEvents:"none"}}/>
       <div style={{position:"relative",zIndex:1,maxWidth:1100,margin:"0 auto",padding:"0 0 80px",overflowX:"hidden",minHeight:"100vh"}}>
 
@@ -3260,14 +3568,30 @@ function App() {
         {/* HOME - always mounted, just hidden when convo starts */}
         <div style={{display: hasConvo ? "none" : "block"}}>
 
+          {/* ── DAILY SCORE WIDGET ── */}
+          {user && (
+            <>
+              <div style={{padding:"clamp(20px,4vw,40px) 0 0"}}>
+                <WellnessScoreWidget
+                  user={user}
+                  checkins={checkins}
+                  onCheckin={()=>setShowCheckin(true)}
+                  onQuery={(q)=>handleQuery(q)}
+                />
+              </div>
+              <WeeklyInsight checkins={checkins} onQuery={(q)=>handleQuery(q)}/>
+              <div style={{height:24}}/>
+            </>
+          )}
+
           {/* ── HERO: Concept C — The Comparison ── */}
-          <div style={{padding:"clamp(32px,5vw,60px) clamp(16px,4vw,40px) 0"}}>
+          <div style={{padding:user?"0 clamp(16px,4vw,40px) 0":"clamp(32px,5vw,60px) clamp(16px,4vw,40px) 0"}}>
 
             {/* Eyebrow */}
             <div style={{display:"flex",justifyContent:"center",marginBottom:20}}>
               <div style={{display:"inline-flex",alignItems:"center",gap:8,background:"rgba(111,207,151,.08)",border:"0.5px solid rgba(111,207,151,.2)",borderRadius:20,padding:"5px 14px"}}>
                 <div style={{width:6,height:6,borderRadius:"50%",background:"#6fcf97"}}/>
-                <span style={{fontSize:".75rem",color:"#6fcf97",letterSpacing:".04em"}}>Free to try — no sign-up needed</span>
+                <span style={{fontSize:".75rem",color:"#6fcf97",letterSpacing:".04em"}}>{user?"Your daily score is tracked and growing":"Free to try — no sign-up needed"}</span>
               </div>
             </div>
 
@@ -3349,7 +3673,7 @@ function App() {
             {!user&&<div style={{textAlign:"center",marginBottom:8}}>
               <button onClick={()=>{setAuthMode("signup");setShowAuth(true);if(window.tlTrack)window.tlTrack("signup_started");}}
                 style={{background:"none",border:"0.5px solid rgba(111,207,151,.3)",borderRadius:24,padding:"9px 26px",color:"#6fcf97",fontSize:".88rem",cursor:"pointer",letterSpacing:".02em"}}>
-                Sign up free — unlimited searches
+                Sign up free — track your daily score
               </button>
             </div>}
           </div>
