@@ -3259,41 +3259,110 @@ function App() {
 
         {/* HOME - always mounted, just hidden when convo starts */}
         <div style={{display: hasConvo ? "none" : "block"}}>
-            <div style={{textAlign:"center",padding:"clamp(36px,6vw,72px) clamp(24px,8vw,120px) clamp(20px,3vw,36px)"}}>
-              <div style={{display:"flex",justifyContent:"center",marginBottom:18}}>
-                <FnfLogo size={80} animated={true}/>
-              </div>
-              <h1 style={{fontSize:"clamp(2.2rem,5vw,4.2rem)",fontWeight:400,color:"#8ea898",margin:"0 0 10px",letterSpacing:"-.02em"}}>How are you feeling today?</h1>
-              <p style={{color:"#8ea898",fontSize:"clamp(1rem,1.9vw,1.2rem)",fontStyle:"italic",margin:"0 0 6px"}}>Food  Fitness  Breathwork  Sleep</p>
-              <p style={{color:"#8ea898",fontSize:"clamp(.88rem,1.5vw,1.02rem)",lineHeight:1.75,margin:"0 0 14px"}}>Describe what you are going through  we will build your personalised wellness plan</p>
-              <div style={{display:"flex",flexWrap:"wrap",justifyContent:"center",gap:8,marginTop:6,marginBottom:4}}>
-                {user?.allergies?.length>0&&<div style={{display:"inline-flex",alignItems:"center",gap:5,background:"rgba(200,70,70,.07)",border:"1px solid rgba(200,70,70,.17)",borderRadius:20,padding:"3px 12px"}}><span style={{color:"#c04040",fontSize:".82rem"}}> Avoiding: {user.allergies.join(", ")}</span></div>}
-                {user?.sex&&<div style={{display:"inline-flex",alignItems:"center",gap:5,background:"rgba(61,184,118,.07)",border:"1px solid rgba(61,184,118,.18)",borderRadius:20,padding:"3px 12px"}}><span style={{color:"#8ea898",fontSize:".82rem"}}>{user.sex==="female"?" Female profile":" Male profile"}</span></div>}
-                {user&&(!user.sex||!user.age||!user.weight)&&<button onClick={()=>setShowProfile(true)} style={{background:"none",border:"1px dashed rgba(61,184,118,.25)",borderRadius:20,padding:"3px 12px",color:"#8ea898",fontSize:".78rem",cursor:"pointer",fontFamily:"'Georgia',serif",fontStyle:"italic"}}>
-  + {[!user.sex&&"sex",!user.age&&"age",!user.weight&&"weight"].filter(Boolean).join(", ")}  personalise results
-</button>}
+
+          {/* ── HERO: Concept C — The Comparison ── */}
+          <div style={{padding:"clamp(32px,5vw,60px) clamp(16px,4vw,40px) 0"}}>
+
+            {/* Eyebrow */}
+            <div style={{display:"flex",justifyContent:"center",marginBottom:20}}>
+              <div style={{display:"inline-flex",alignItems:"center",gap:8,background:"rgba(111,207,151,.08)",border:"0.5px solid rgba(111,207,151,.2)",borderRadius:20,padding:"5px 14px"}}>
+                <div style={{width:6,height:6,borderRadius:"50%",background:"#6fcf97"}}/>
+                <span style={{fontSize:".75rem",color:"#6fcf97",letterSpacing:".04em"}}>Free to try — no sign-up needed</span>
               </div>
             </div>
-            <div style={{padding:"0 clamp(20px,5vw,80px) 20px"}}>
-              <SearchBar value={input} onChange={setInput} onSubmit={handleQuery} loading={loading} hasConvo={false} placeholder="How are you feeling? What do you want to improve?"/>
-            </div>
-            <div style={{margin:"0 clamp(20px,5vw,80px) 20px",background:"rgba(255,200,70,.04)",border:"1px solid rgba(255,200,70,.12)",borderRadius:12,padding:"10px 14px",display:"flex",gap:9,alignItems:"flex-start"}}>
-              <span style={{fontSize:13,flexShrink:0,marginTop:1,opacity:.7}}></span>
-              <p style={{margin:0,color:"#966010",fontSize:"clamp(.8rem,1.2vw,.92rem)",lineHeight:1.65}}><strong style={{color:"#8a7a30"}}>Disclaimer:</strong> foodnfitness.ai provides general wellness suggestions only. Always consult a healthcare professional before making changes to diet, exercise or medication.</p>
-            </div>
-            <div style={{padding:"0 0 10px"}}>
-              <div style={{display:"flex",alignItems:"center",gap:11,padding:"0 20px",marginBottom:14}}>
-                <div style={{flex:1,height:1,background:"rgba(61,184,118,.09)"}}/>
-                <span style={{color:"#8ea898",fontSize:"clamp(.8rem,1.2vw,.92rem)",letterSpacing:".1em",whiteSpace:"nowrap"}}>or pick a topic</span>
-                <div style={{flex:1,height:1,background:"rgba(61,184,118,.09)"}}/>
+
+            {/* Headline */}
+            <h1 style={{textAlign:"center",fontSize:"clamp(1.7rem,4vw,2.8rem)",fontWeight:600,color:"#eaf0eb",lineHeight:1.2,marginBottom:12,letterSpacing:"-.01em"}}>
+              Yes, you could ask ChatGPT.<br/>
+              <span style={{color:"#6fcf97"}}>Here is what you get instead.</span>
+            </h1>
+            <p style={{textAlign:"center",color:"#8ea898",fontSize:"clamp(.9rem,1.4vw,1.05rem)",lineHeight:1.7,maxWidth:520,margin:"0 auto 28px"}}>
+              Generic AI gives generic advice. foodnfitness.ai gives you a specific protocol — with exact timings, mechanisms, and a timeline for when you will feel better.
+            </p>
+
+            {/* Side-by-side comparison */}
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:24,maxWidth:760,margin:"0 auto 24px"}}>
+
+              {/* ChatGPT side */}
+              <div style={{background:"#1a1c1e",borderRadius:14,overflow:"hidden",border:"0.5px solid rgba(255,255,255,.06)"}}>
+                <div style={{padding:"10px 14px",background:"rgba(255,255,255,.04)",borderBottom:"0.5px solid rgba(255,255,255,.06)",display:"flex",alignItems:"center",gap:8}}>
+                  <div style={{width:8,height:8,borderRadius:"50%",background:"rgba(255,255,255,.2)"}}/>
+                  <span style={{fontSize:".72rem",color:"rgba(255,255,255,.3)",fontWeight:600,letterSpacing:".04em"}}>Generic AI</span>
+                </div>
+                <div style={{padding:"14px",fontSize:".82rem",color:"rgba(255,255,255,.35)",lineHeight:1.7,fontStyle:"italic"}}>
+                  "Here are some tips for managing inflammation: eat anti-inflammatory foods like berries and fatty fish, exercise regularly, get enough sleep, consider turmeric supplements, reduce stress..."
+                </div>
+                <div style={{margin:"0 14px 14px",padding:"8px 12px",background:"rgba(220,80,80,.07)",border:"0.5px solid rgba(220,80,80,.15)",borderRadius:8}}>
+                  <span style={{fontSize:".72rem",color:"rgba(200,80,80,.7)"}}>Generic. No timeline. No outcome. You already knew this.</span>
+                </div>
               </div>
-              <ChipSection onQuery={handleQuery}/>
+
+              {/* foodnfitness side */}
+              <div style={{background:"#1a1c1e",borderRadius:14,overflow:"hidden",border:"1px solid rgba(111,207,151,.3)"}}>
+                <div style={{padding:"10px 14px",background:"rgba(111,207,151,.08)",borderBottom:"0.5px solid rgba(111,207,151,.15)",display:"flex",alignItems:"center",gap:8}}>
+                  <div style={{width:8,height:8,borderRadius:"50%",background:"#6fcf97"}}/>
+                  <span style={{fontSize:".72rem",color:"#6fcf97",fontWeight:600,letterSpacing:".04em"}}>foodnfitness.ai</span>
+                </div>
+                <div style={{padding:"12px 14px",display:"flex",flexDirection:"column",gap:10}}>
+                  {[
+                    {e:"🐟",n:"Sardines or mackerel",w:"At breakfast",f:"In 2-3 weeks"},
+                    {e:"🔄",n:"Joint mobility flows",w:"5 min on waking",f:"From session 1"},
+                    {e:"🫁",n:"4-7-8 breathing",w:"Before meals",f:"Within 20 min"},
+                  ].map((item,i)=>(
+                    <div key={i} style={{background:"rgba(255,255,255,.04)",borderRadius:8,padding:"9px 11px",border:"0.5px solid rgba(255,255,255,.06)"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:3}}>
+                        <span style={{fontSize:14}}>{item.e}</span>
+                        <span style={{fontSize:".8rem",fontWeight:600,color:"#eaf0eb"}}>{item.n}</span>
+                      </div>
+                      <div style={{fontSize:".72rem",color:"#6a7e6e",marginBottom:3}}>{item.w}</div>
+                      <div style={{fontSize:".72rem",color:"#6fcf97"}}>You will feel better: {item.f}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{margin:"0 14px 14px",padding:"8px 12px",background:"rgba(111,207,151,.07)",border:"0.5px solid rgba(111,207,151,.15)",borderRadius:8}}>
+                  <span style={{fontSize:".72rem",color:"rgba(111,207,151,.8)"}}>Specific. Structured. Tells you exactly what to do and when you will feel it.</span>
+                </div>
+              </div>
             </div>
-            {!user&&<div style={{textAlign:"center",padding:"12px 0 8px"}}>
-              <button onClick={()=>{setAuthMode("signup");setShowAuth(true);if(window.tlTrack)window.tlTrack("signup_started");}} style={{background:"linear-gradient(135deg,rgba(61,184,118,.15),rgba(61,184,118,.06))",border:"1px solid rgba(61,184,118,.4)",borderRadius:24,padding:"10px 28px",color:"#6fcf97",fontSize:".95rem",cursor:"pointer",fontFamily:"'Georgia',serif",fontWeight:600,letterSpacing:".02em",boxShadow:"0 2px 16px rgba(61,184,118,.15)",transition:"all .18s"}}>
-                 Sign up free  unlimited searches
+
+            {/* Personalisation badges */}
+            {(user?.allergies?.length>0||user?.sex||user&&(!user.sex||!user.age||!user.weight))&&(
+              <div style={{display:"flex",flexWrap:"wrap",justifyContent:"center",gap:8,marginBottom:12}}>
+                {user?.allergies?.length>0&&<div style={{display:"inline-flex",alignItems:"center",gap:5,background:"rgba(200,70,70,.07)",border:"0.5px solid rgba(200,70,70,.17)",borderRadius:20,padding:"3px 12px"}}><span style={{color:"#c08888",fontSize:".78rem"}}>Avoiding: {user.allergies.join(", ")}</span></div>}
+                {user?.sex&&<div style={{display:"inline-flex",alignItems:"center",gap:5,background:"rgba(61,184,118,.07)",border:"0.5px solid rgba(61,184,118,.18)",borderRadius:20,padding:"3px 12px"}}><span style={{color:"#8ea898",fontSize:".78rem"}}>{user.sex==="female"?"Female profile":"Male profile"}</span></div>}
+                {user&&(!user.sex||!user.age||!user.weight)&&<button onClick={()=>setShowProfile(true)} style={{background:"none",border:"0.5px dashed rgba(61,184,118,.3)",borderRadius:20,padding:"3px 12px",color:"#8ea898",fontSize:".75rem",cursor:"pointer"}}>+ personalise results</button>}
+              </div>
+            )}
+
+            {/* Search bar */}
+            <div style={{maxWidth:680,margin:"0 auto 12px"}}>
+              <SearchBar value={input} onChange={setInput} onSubmit={handleQuery} loading={loading} hasConvo={false} placeholder="Describe what you are feeling — we will build your protocol"/>
+            </div>
+
+            {/* Disclaimer */}
+            <div style={{maxWidth:680,margin:"0 auto 20px",background:"rgba(255,200,70,.04)",border:"0.5px solid rgba(255,200,70,.1)",borderRadius:10,padding:"9px 14px",display:"flex",gap:8,alignItems:"flex-start"}}>
+              <span style={{fontSize:12,flexShrink:0,marginTop:1,opacity:.6}}></span>
+              <p style={{margin:0,color:"#7a6a30",fontSize:".78rem",lineHeight:1.6}}><strong style={{color:"#8a7a40"}}>Disclaimer:</strong> General wellness suggestions only. Always consult a healthcare professional before changing diet, exercise or medication.</p>
+            </div>
+
+            {/* Sign up CTA (logged out only) */}
+            {!user&&<div style={{textAlign:"center",marginBottom:8}}>
+              <button onClick={()=>{setAuthMode("signup");setShowAuth(true);if(window.tlTrack)window.tlTrack("signup_started");}}
+                style={{background:"none",border:"0.5px solid rgba(111,207,151,.3)",borderRadius:24,padding:"9px 26px",color:"#6fcf97",fontSize:".88rem",cursor:"pointer",letterSpacing:".02em"}}>
+                Sign up free — unlimited searches
               </button>
             </div>}
+          </div>
+
+          {/* ── OR PICK A TOPIC ── */}
+          <div style={{padding:"20px 0 10px"}}>
+            <div style={{display:"flex",alignItems:"center",gap:11,padding:"0 clamp(16px,4vw,40px)",marginBottom:14}}>
+              <div style={{flex:1,height:"0.5px",background:"rgba(111,207,151,.08)"}}/>
+              <span style={{color:"#6a7e6e",fontSize:".8rem",letterSpacing:".08em",whiteSpace:"nowrap"}}>or pick a concern</span>
+              <div style={{flex:1,height:"0.5px",background:"rgba(111,207,151,.08)"}}/>
+            </div>
+            <ChipSection onQuery={handleQuery}/>
+          </div>
         </div>
 
         {/* B2B banners */}
