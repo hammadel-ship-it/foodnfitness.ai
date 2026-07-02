@@ -4,30 +4,103 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Privacy Policy — foodnfitness.ai</title>
+  <meta name="description" content="Privacy Policy for foodnfitness.ai"/>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0;}
-    body{background:#0b1a0d;color:#e0ede2;font-family:'Georgia',serif;-webkit-font-smoothing:antialiased;line-height:1.8;}
-    a{color:#4ec97a;text-decoration:none;}
-    a:hover{text-decoration:underline;}
-    nav{padding:18px 32px;border-bottom:1px solid rgba(80,180,100,.1);display:flex;align-items:center;justify-content:space-between;}
-    nav span{color:#5a9a6a;font-size:1rem;font-weight:600;}
-    nav span em{color:#22a35a;font-style:normal;}
-    .back{color:#4a7a56;font-size:.85rem;}
-    .wrap{max-width:720px;margin:0 auto;padding:60px 32px 100px;}
-    h1{font-size:2rem;font-weight:400;color:#a8ddb5;margin-bottom:8px;letter-spacing:-.02em;}
-    .date{color:#3a6644;font-size:.85rem;margin-bottom:48px;}
-    h2{font-size:.8rem;font-weight:600;color:#4ec97a;margin:36px 0 12px;letter-spacing:.04em;text-transform:uppercase;}
-    p{color:#8dc89e;margin-bottom:16px;font-size:.97rem;}
-    ul{color:#8dc89e;margin:0 0 16px 20px;font-size:.97rem;}
-    ul li{margin-bottom:8px;}
-    footer{text-align:center;color:#1e3d25;font-size:.8rem;padding:32px 0;}
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #16181a;
+      color: #c8d9cb;
+      font-family: Georgia, serif;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.8;
+      min-height: 100vh;
+    }
+    a { color: #6fcf97; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    strong { color: #eaf0eb; }
+
+    /* Nav */
+    nav {
+      padding: 14px 32px;
+      border-bottom: 0.5px solid rgba(255,255,255,.06);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      background: rgba(22,24,26,.95);
+      backdrop-filter: blur(10px);
+      z-index: 10;
+    }
+    .logo { color: #8ea898; font-size: 1rem; font-weight: 600; }
+    .logo em { color: #6fcf97; font-style: normal; }
+    .back {
+      color: #6a7e6e;
+      font-size: .82rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 0.5px solid rgba(255,255,255,.08);
+      border-radius: 20px;
+      padding: 4px 14px;
+      transition: color .15s;
+    }
+    .back:hover { color: #6fcf97; text-decoration: none; }
+
+    /* Content */
+    .wrap { max-width: 700px; margin: 0 auto; padding: 60px 32px 100px; }
+
+    h1 {
+      font-size: clamp(1.6rem, 4vw, 2.2rem);
+      font-weight: 400;
+      color: #eaf0eb;
+      margin-bottom: 6px;
+      letter-spacing: -.02em;
+      line-height: 1.2;
+    }
+    .date {
+      color: #4a5e4e;
+      font-size: .8rem;
+      margin-bottom: 52px;
+      letter-spacing: .02em;
+    }
+    h2 {
+      font-size: .7rem;
+      font-weight: 700;
+      color: #6fcf97;
+      margin: 40px 0 10px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+    p { color: #8ea898; margin-bottom: 16px; font-size: .95rem; line-height: 1.8; }
+    ul { color: #8ea898; margin: 0 0 16px 20px; font-size: .95rem; }
+    ul li { margin-bottom: 8px; line-height: 1.7; }
+
+    /* Divider */
+    .section-divider {
+      height: 0.5px;
+      background: rgba(255,255,255,.06);
+      margin: 48px 0 0;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      color: #2e3e32;
+      font-size: .78rem;
+      padding: 32px 0 48px;
+      border-top: 0.5px solid rgba(255,255,255,.04);
+    }
+    footer a { color: #3a5040; }
+    footer a:hover { color: #6fcf97; }
   </style>
 </head>
 <body>
   <nav>
-    <span>foodnfitness<em>.ai</em></span>
+    <span class="logo">foodnfitness<em>.ai</em></span>
     <a class="back" href="/">← Back to app</a>
   </nav>
+
   <div class="wrap">
     <h1>Privacy Policy</h1>
     <p class="date">Last updated: March 8, 2026</p>
@@ -36,57 +109,62 @@
     <p>foodnfitness.ai ("we", "us", "our") operates the wellness platform at foodnfitness.ai. This Privacy Policy explains how we collect, use, and protect your personal information.</p>
 
     <h2>2. Information We Collect</h2>
-    <p>We collect the following information when you use the Service:</p>
+    <p>We collect the following when you use the Service:</p>
     <ul>
-      <li><strong style="color:#a8ddb5">Account information:</strong> your name and email address when you sign up.</li>
-      <li><strong style="color:#a8ddb5">Profile information:</strong> optional details such as biological sex and food allergies that you choose to provide to personalise your results.</li>
-      <li><strong style="color:#a8ddb5">Usage data:</strong> your search queries and the wellness responses generated, stored to power your conversation history feature.</li>
-      <li><strong style="color:#a8ddb5">Payment information:</strong> payments are processed by Paddle. We do not store your card details. We receive confirmation of successful transactions only.</li>
-      <li><strong style="color:#a8ddb5">Technical data:</strong> browser type, device, and anonymised usage analytics to improve the Service.</li>
+      <li><strong>Account information:</strong> your name and email address when you sign up.</li>
+      <li><strong>Profile information:</strong> optional details such as age, weight, biological sex, and food allergies you provide to personalise your results.</li>
+      <li><strong>Daily check-in data:</strong> if you use the daily body score feature, we store your self-reported energy, sleep, and body feeling scores. This data is private to you only.</li>
+      <li><strong>Usage data:</strong> your search queries and wellness responses, stored to power your conversation history.</li>
+      <li><strong>Payment information:</strong> payments are processed by Stripe. We do not store your card details. We receive confirmation of successful transactions only.</li>
+      <li><strong>Technical data:</strong> browser type, device, and anonymised usage analytics to improve the Service.</li>
     </ul>
 
     <h2>3. How We Use Your Information</h2>
     <ul>
-      <li>To provide and personalise the wellness recommendations.</li>
-      <li>To manage your account and credits.</li>
-      <li>To process payments via Paddle.</li>
+      <li>To provide and personalise wellness recommendations.</li>
+      <li>To track your daily body score and surface patterns over time.</li>
+      <li>To manage your account and process payments via Stripe.</li>
       <li>To improve the Service through anonymised analytics.</li>
       <li>To communicate important updates about your account.</li>
     </ul>
 
-    <h2>4. Data Storage</h2>
-    <p>Your account data is stored securely in Supabase, a cloud database provider with SOC 2 compliance and data encryption at rest and in transit. Your data is stored in servers located in the European Union or United States depending on your region.</p>
+    <h2>4. B2B Workplace Wellness</h2>
+    <p>If you access foodnfitness.ai through a workplace invitation, your employer (the workspace admin) <strong>cannot</strong> see your individual searches, health data, daily scores, or any personal information. Employers only see anonymous, aggregated group-level trends — for example, the most common wellness topics searched across the team as a whole. Your personal wellness data is always private to you.</p>
 
-    <h2>5. Data Sharing</h2>
+    <h2>5. Data Storage</h2>
+    <p>Your account data is stored securely in Supabase, with SOC 2 compliance, encryption at rest and in transit. Data is stored in EU or US servers depending on your region.</p>
+
+    <h2>6. Data Sharing</h2>
     <p>We do not sell your personal data. We share data only with the following trusted third parties to operate the Service:</p>
     <ul>
-      <li><strong style="color:#a8ddb5">Supabase</strong> — secure database and authentication.</li>
-      <li><strong style="color:#a8ddb5">Paddle</strong> — payment processing.</li>
-      <li><strong style="color:#a8ddb5">Anthropic</strong> — AI model powering wellness responses (queries are not stored by Anthropic beyond processing).</li>
+      <li><strong>Supabase</strong> — secure database and authentication.</li>
+      <li><strong>Stripe</strong> — payment processing.</li>
+      <li><strong>Anthropic</strong> — AI model powering wellness responses. Queries are not stored by Anthropic beyond the processing window.</li>
     </ul>
 
-    <h2>6. Your Rights</h2>
-    <p>You have the right to:</p>
-    <ul>
-      <li>Access the personal data we hold about you.</li>
-      <li>Request correction of inaccurate data.</li>
-      <li>Request deletion of your account and all associated data.</li>
-      <li>Export your data in a portable format.</li>
-    </ul>
-    <p>To exercise any of these rights, contact us at <a href="mailto:hello@foodnfitness.ai">hello@foodnfitness.ai</a>.</p>
+    <h2>7. Your Rights</h2>
+    <p>You have the right to access, correct, export, or delete your personal data at any time. To exercise any of these rights, contact us at <a href="mailto:hello@foodnfitness.ai">hello@foodnfitness.ai</a>.</p>
 
-    <h2>7. Cookies</h2>
+    <h2>8. Cookies</h2>
     <p>We use only essential cookies required for authentication and session management. We do not use advertising or tracking cookies.</p>
 
-    <h2>8. Children's Privacy</h2>
-    <p>The Service is not intended for children under the age of 13. We do not knowingly collect personal information from children.</p>
+    <h2>9. Children's Privacy</h2>
+    <p>The Service is not intended for children under 13. We do not knowingly collect personal information from children.</p>
 
-    <h2>9. Changes to This Policy</h2>
-    <p>We may update this Privacy Policy from time to time. We will notify you of significant changes via email or an in-app notice. Continued use of the Service after changes constitutes acceptance.</p>
+    <h2>10. Changes to This Policy</h2>
+    <p>We may update this Privacy Policy from time to time. We will notify you of significant changes via email or in-app notice.</p>
 
-    <h2>10. Contact</h2>
-    <p>For privacy-related questions or requests, contact us at: <a href="mailto:hello@foodnfitness.ai">hello@foodnfitness.ai</a></p>
+    <h2>11. Contact</h2>
+    <p>For privacy-related questions, contact us at: <a href="mailto:hello@foodnfitness.ai">hello@foodnfitness.ai</a></p>
+
+    <div class="section-divider"></div>
   </div>
-  <footer>foodnfitness.ai · Eat well. Move well. Live well.</footer>
+
+  <footer>
+    foodnfitness.ai &nbsp;·&nbsp; Eat well. Move well. Live well.
+    &nbsp;&nbsp;
+    <a href="/terms.html">Terms</a> &nbsp;·&nbsp;
+    <a href="/refund.html">Refund Policy</a>
+  </footer>
 </body>
 </html>
