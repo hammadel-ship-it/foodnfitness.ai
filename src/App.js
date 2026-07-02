@@ -3608,15 +3608,13 @@ function App() {
               <FnfLogo size={72} animated={true}/>
             </div>
             <h1 style={{fontSize:"clamp(2rem,5vw,3.8rem)",fontWeight:400,color:"#8ea898",margin:"0 0 8px",letterSpacing:"-.02em"}}>
-              {user ? "What do you need today?" : "Feel better. Specifically."}
+              How are you feeling today?
             </h1>
             <p style={{color:"#8ea898",fontSize:"clamp(.9rem,1.6vw,1.05rem)",fontStyle:"italic",margin:"0 0 6px"}}>
               Food · Movement · Breathwork · Sleep
             </p>
             <p style={{color:"#6a7e6e",fontSize:"clamp(.82rem,1.3vw,.95rem)",lineHeight:1.7,margin:"0 0 20px"}}>
-              {user
-                ? "Describe what you are going through — we will build your personalised protocol"
-                : "Not generic tips. A specific protocol with exact timings and when you will feel better."}
+              Describe what you are going through — we will build your personalised wellness plan
             </p>
 
             {/* Personalisation badges */}
