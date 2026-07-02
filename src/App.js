@@ -3568,122 +3568,93 @@ function App() {
         {/* HOME - always mounted, just hidden when convo starts */}
         <div style={{display: hasConvo ? "none" : "block"}}>
 
-          {/* ── DAILY SCORE WIDGET ── */}
-          {user && (
-            <>
-              <div style={{padding:"clamp(20px,4vw,40px) 0 0"}}>
-                <WellnessScoreWidget
-                  user={user}
-                  checkins={checkins}
-                  onCheckin={()=>setShowCheckin(true)}
-                  onQuery={(q)=>handleQuery(q)}
-                />
-              </div>
-              <WeeklyInsight checkins={checkins} onQuery={(q)=>handleQuery(q)}/>
-              <div style={{height:24}}/>
-            </>
-          )}
-
-          {/* ── HERO: Concept C — The Comparison ── */}
-          <div style={{padding:user?"0 clamp(16px,4vw,40px) 0":"clamp(32px,5vw,60px) clamp(16px,4vw,40px) 0"}}>
-
-            {/* Eyebrow */}
-            <div style={{display:"flex",justifyContent:"center",marginBottom:20}}>
-              <div style={{display:"inline-flex",alignItems:"center",gap:8,background:"rgba(111,207,151,.08)",border:"0.5px solid rgba(111,207,151,.2)",borderRadius:20,padding:"5px 14px"}}>
-                <div style={{width:6,height:6,borderRadius:"50%",background:"#6fcf97"}}/>
-                <span style={{fontSize:".75rem",color:"#6fcf97",letterSpacing:".04em"}}>{user?"Your daily score is tracked and growing":"Free to try — no sign-up needed"}</span>
-              </div>
-            </div>
-
-            {/* Headline */}
-            <h1 style={{textAlign:"center",fontSize:"clamp(1.7rem,4vw,2.8rem)",fontWeight:600,color:"#eaf0eb",lineHeight:1.2,marginBottom:12,letterSpacing:"-.01em"}}>
-              Yes, you could ask ChatGPT.<br/>
-              <span style={{color:"#6fcf97"}}>Here is what you get instead.</span>
-            </h1>
-            <p style={{textAlign:"center",color:"#8ea898",fontSize:"clamp(.9rem,1.4vw,1.05rem)",lineHeight:1.7,maxWidth:520,margin:"0 auto 28px"}}>
-              Generic AI gives generic advice. foodnfitness.ai gives you a specific protocol — with exact timings, mechanisms, and a timeline for when you will feel better.
-            </p>
-
-            {/* Side-by-side comparison */}
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:24,maxWidth:760,margin:"0 auto 24px"}}>
-
-              {/* ChatGPT side */}
-              <div style={{background:"#1a1c1e",borderRadius:14,overflow:"hidden",border:"0.5px solid rgba(255,255,255,.06)"}}>
-                <div style={{padding:"10px 14px",background:"rgba(255,255,255,.04)",borderBottom:"0.5px solid rgba(255,255,255,.06)",display:"flex",alignItems:"center",gap:8}}>
-                  <div style={{width:8,height:8,borderRadius:"50%",background:"rgba(255,255,255,.2)"}}/>
-                  <span style={{fontSize:".72rem",color:"rgba(255,255,255,.3)",fontWeight:600,letterSpacing:".04em"}}>Generic AI</span>
+          {/* ── SCORE STRIP (logged in only, very compact) ── */}
+          {user && checkins.length > 0 && (()=>{
+            const today = checkins.find(c=>c.date===todayStr());
+            const streak = (()=>{let s=0;const sorted=[...checkins].sort((a,b)=>b.date.localeCompare(a.date));let cur=new Date();cur.setHours(0,0,0,0);for(const c of sorted){const d=new Date(c.date+"T00:00:00");const diff=Math.round((cur-d)/86400000);if(diff<=1){s++;cur=d;}else break;}return s;})();
+            if (!today) return null;
+            const {label,color}=getScoreLabel(today.score);
+            return (
+              <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:12,padding:"14px 20px 0",flexWrap:"wrap"}}>
+                <div style={{display:"flex",alignItems:"baseline",gap:4}}>
+                  <span style={{fontSize:"1.4rem",fontWeight:700,color,lineHeight:1}}>{today.score}</span>
+                  <span style={{fontSize:".7rem",color:"#6a7e6e"}}>/15</span>
+                  <span style={{fontSize:".78rem",color,marginLeft:4,fontWeight:600}}>{label}</span>
                 </div>
-                <div style={{padding:"14px",fontSize:".82rem",color:"rgba(255,255,255,.35)",lineHeight:1.7,fontStyle:"italic"}}>
-                  "Here are some tips for managing inflammation: eat anti-inflammatory foods like berries and fatty fish, exercise regularly, get enough sleep, consider turmeric supplements, reduce stress..."
-                </div>
-                <div style={{margin:"0 14px 14px",padding:"8px 12px",background:"rgba(220,80,80,.07)",border:"0.5px solid rgba(220,80,80,.15)",borderRadius:8}}>
-                  <span style={{fontSize:".72rem",color:"rgba(200,80,80,.7)"}}>Generic. No timeline. No outcome. You already knew this.</span>
-                </div>
-              </div>
-
-              {/* foodnfitness side */}
-              <div style={{background:"#1a1c1e",borderRadius:14,overflow:"hidden",border:"1px solid rgba(111,207,151,.3)"}}>
-                <div style={{padding:"10px 14px",background:"rgba(111,207,151,.08)",borderBottom:"0.5px solid rgba(111,207,151,.15)",display:"flex",alignItems:"center",gap:8}}>
-                  <div style={{width:8,height:8,borderRadius:"50%",background:"#6fcf97"}}/>
-                  <span style={{fontSize:".72rem",color:"#6fcf97",fontWeight:600,letterSpacing:".04em"}}>foodnfitness.ai</span>
-                </div>
-                <div style={{padding:"12px 14px",display:"flex",flexDirection:"column",gap:10}}>
-                  {[
-                    {e:"🐟",n:"Sardines or mackerel",w:"At breakfast",f:"In 2-3 weeks"},
-                    {e:"🔄",n:"Joint mobility flows",w:"5 min on waking",f:"From session 1"},
-                    {e:"🫁",n:"4-7-8 breathing",w:"Before meals",f:"Within 20 min"},
-                  ].map((item,i)=>(
-                    <div key={i} style={{background:"rgba(255,255,255,.04)",borderRadius:8,padding:"9px 11px",border:"0.5px solid rgba(255,255,255,.06)"}}>
-                      <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:3}}>
-                        <span style={{fontSize:14}}>{item.e}</span>
-                        <span style={{fontSize:".8rem",fontWeight:600,color:"#eaf0eb"}}>{item.n}</span>
-                      </div>
-                      <div style={{fontSize:".72rem",color:"#6a7e6e",marginBottom:3}}>{item.w}</div>
-                      <div style={{fontSize:".72rem",color:"#6fcf97"}}>You will feel better: {item.f}</div>
-                    </div>
+                <div style={{display:"flex",gap:10}}>
+                  {[["⚡",today.energy],["🌙",today.sleep],["💪",today.body]].map(([ico,val],i)=>(
+                    <span key={i} style={{fontSize:".75rem",color:"#6a7e6e"}}>{ico} {val}/5</span>
                   ))}
                 </div>
-                <div style={{margin:"0 14px 14px",padding:"8px 12px",background:"rgba(111,207,151,.07)",border:"0.5px solid rgba(111,207,151,.15)",borderRadius:8}}>
-                  <span style={{fontSize:".72rem",color:"rgba(111,207,151,.8)"}}>Specific. Structured. Tells you exactly what to do and when you will feel it.</span>
-                </div>
+                {streak>1&&<span style={{fontSize:".72rem",color:"#f0a500",background:"rgba(240,165,0,.08)",border:"0.5px solid rgba(240,165,0,.15)",borderRadius:20,padding:"2px 10px"}}>{streak} day streak 🔥</span>}
+                <button onClick={()=>setShowCheckin(true)} style={{background:"none",border:"0.5px solid rgba(255,255,255,.1)",borderRadius:20,padding:"3px 12px",color:"#6a7e6e",fontSize:".72rem",cursor:"pointer"}}>Update</button>
               </div>
+            );
+          })()}
+
+          {/* ── SCORE PROMPT (logged in, no checkin yet today) ── */}
+          {user && !checkins.find(c=>c.date===todayStr()) && (
+            <div style={{textAlign:"center",padding:"16px 20px 0"}}>
+              <button onClick={()=>setShowCheckin(true)}
+                style={{background:"rgba(111,207,151,.08)",border:"0.5px solid rgba(111,207,151,.18)",borderRadius:20,padding:"7px 20px",color:"#6fcf97",fontSize:".82rem",cursor:"pointer"}}>
+                📊 How is your body today? — check in
+              </button>
             </div>
+          )}
+
+          {/* ── MAIN HERO ── */}
+          <div style={{textAlign:"center",padding:"clamp(32px,5vw,60px) clamp(24px,8vw,120px) clamp(16px,3vw,28px)"}}>
+            <div style={{display:"flex",justifyContent:"center",marginBottom:18}}>
+              <FnfLogo size={72} animated={true}/>
+            </div>
+            <h1 style={{fontSize:"clamp(2rem,5vw,3.8rem)",fontWeight:400,color:"#8ea898",margin:"0 0 8px",letterSpacing:"-.02em"}}>
+              {user ? "What do you need today?" : "Feel better. Specifically."}
+            </h1>
+            <p style={{color:"#8ea898",fontSize:"clamp(.9rem,1.6vw,1.05rem)",fontStyle:"italic",margin:"0 0 6px"}}>
+              Food · Movement · Breathwork · Sleep
+            </p>
+            <p style={{color:"#6a7e6e",fontSize:"clamp(.82rem,1.3vw,.95rem)",lineHeight:1.7,margin:"0 0 20px"}}>
+              {user
+                ? "Describe what you are going through — we will build your personalised protocol"
+                : "Not generic tips. A specific protocol with exact timings and when you will feel better."}
+            </p>
 
             {/* Personalisation badges */}
-            {(user?.allergies?.length>0||user?.sex||user&&(!user.sex||!user.age||!user.weight))&&(
-              <div style={{display:"flex",flexWrap:"wrap",justifyContent:"center",gap:8,marginBottom:12}}>
-                {user?.allergies?.length>0&&<div style={{display:"inline-flex",alignItems:"center",gap:5,background:"rgba(200,70,70,.07)",border:"0.5px solid rgba(200,70,70,.17)",borderRadius:20,padding:"3px 12px"}}><span style={{color:"#c08888",fontSize:".78rem"}}>Avoiding: {user.allergies.join(", ")}</span></div>}
-                {user?.sex&&<div style={{display:"inline-flex",alignItems:"center",gap:5,background:"rgba(61,184,118,.07)",border:"0.5px solid rgba(61,184,118,.18)",borderRadius:20,padding:"3px 12px"}}><span style={{color:"#8ea898",fontSize:".78rem"}}>{user.sex==="female"?"Female profile":"Male profile"}</span></div>}
-                {user&&(!user.sex||!user.age||!user.weight)&&<button onClick={()=>setShowProfile(true)} style={{background:"none",border:"0.5px dashed rgba(61,184,118,.3)",borderRadius:20,padding:"3px 12px",color:"#8ea898",fontSize:".75rem",cursor:"pointer"}}>+ personalise results</button>}
-              </div>
-            )}
-
-            {/* Search bar */}
-            <div style={{maxWidth:680,margin:"0 auto 12px"}}>
-              <SearchBar value={input} onChange={setInput} onSubmit={handleQuery} loading={loading} hasConvo={false} placeholder="Describe what you are feeling — we will build your protocol"/>
+            <div style={{display:"flex",flexWrap:"wrap",justifyContent:"center",gap:8,marginBottom:14}}>
+              {user?.allergies?.length>0&&<div style={{display:"inline-flex",alignItems:"center",gap:5,background:"rgba(200,70,70,.07)",border:"0.5px solid rgba(200,70,70,.17)",borderRadius:20,padding:"3px 12px"}}><span style={{color:"#c08888",fontSize:".78rem"}}>Avoiding: {user.allergies.join(", ")}</span></div>}
+              {user?.sex&&<div style={{display:"inline-flex",alignItems:"center",gap:5,background:"rgba(61,184,118,.07)",border:"0.5px solid rgba(61,184,118,.18)",borderRadius:20,padding:"3px 12px"}}><span style={{color:"#8ea898",fontSize:".78rem"}}>{user.sex==="female"?"Female profile":"Male profile"}</span></div>}
+              {user&&(!user.sex||!user.age||!user.weight)&&<button onClick={()=>setShowProfile(true)} style={{background:"none",border:"0.5px dashed rgba(61,184,118,.25)",borderRadius:20,padding:"3px 12px",color:"#6a7e6e",fontSize:".75rem",cursor:"pointer"}}>+ personalise results</button>}
             </div>
-
-            {/* Disclaimer */}
-            <div style={{maxWidth:680,margin:"0 auto 20px",background:"rgba(255,200,70,.04)",border:"0.5px solid rgba(255,200,70,.1)",borderRadius:10,padding:"9px 14px",display:"flex",gap:8,alignItems:"flex-start"}}>
-              <span style={{fontSize:12,flexShrink:0,marginTop:1,opacity:.6}}></span>
-              <p style={{margin:0,color:"#7a6a30",fontSize:".78rem",lineHeight:1.6}}><strong style={{color:"#8a7a40"}}>Disclaimer:</strong> General wellness suggestions only. Always consult a healthcare professional before changing diet, exercise or medication.</p>
-            </div>
-
-            {/* Sign up CTA (logged out only) */}
-            {!user&&<div style={{textAlign:"center",marginBottom:8}}>
-              <button onClick={()=>{setAuthMode("signup");setShowAuth(true);if(window.tlTrack)window.tlTrack("signup_started");}}
-                style={{background:"none",border:"0.5px solid rgba(111,207,151,.3)",borderRadius:24,padding:"9px 26px",color:"#6fcf97",fontSize:".88rem",cursor:"pointer",letterSpacing:".02em"}}>
-                Sign up free — track your daily score
-              </button>
-            </div>}
           </div>
 
+          {/* ── SEARCH ── */}
+          <div style={{padding:"0 clamp(20px,5vw,80px) 16px"}}>
+            <SearchBar value={input} onChange={setInput} onSubmit={handleQuery} loading={loading} hasConvo={false} placeholder="How are you feeling? What do you want to improve?"/>
+          </div>
+
+          {/* ── DISCLAIMER ── */}
+          <div style={{margin:"0 clamp(20px,5vw,80px) 16px",background:"rgba(255,200,70,.04)",border:"0.5px solid rgba(255,200,70,.1)",borderRadius:10,padding:"9px 14px",display:"flex",gap:8,alignItems:"flex-start"}}>
+            <span style={{fontSize:12,flexShrink:0,marginTop:1,opacity:.5}}>⚠</span>
+            <p style={{margin:0,color:"#7a6a30",fontSize:".78rem",lineHeight:1.6}}><strong style={{color:"#8a7a40"}}>Disclaimer:</strong> General wellness suggestions only. Always consult a healthcare professional before changing diet, exercise or medication.</p>
+          </div>
+
+          {/* ── SIGN UP (logged out) ── */}
+          {!user&&<div style={{textAlign:"center",padding:"8px 0 4px"}}>
+            <button onClick={()=>{setAuthMode("signup");setShowAuth(true);if(window.tlTrack)window.tlTrack("signup_started");}}
+              style={{background:"linear-gradient(135deg,rgba(61,184,118,.15),rgba(61,184,118,.06))",border:"1px solid rgba(61,184,118,.35)",borderRadius:24,padding:"10px 28px",color:"#6fcf97",fontSize:".92rem",cursor:"pointer",fontWeight:600,letterSpacing:".02em",boxShadow:"0 2px 16px rgba(61,184,118,.12)"}}>
+               Sign up free — unlimited searches
+            </button>
+          </div>}
+
+          {/* ── WEEKLY INSIGHT (logged in, 5+ checkins) ── */}
+          <WeeklyInsight checkins={checkins} onQuery={(q)=>handleQuery(q)}/>
+
           {/* ── OR PICK A TOPIC ── */}
-          <div style={{padding:"20px 0 10px"}}>
-            <div style={{display:"flex",alignItems:"center",gap:11,padding:"0 clamp(16px,4vw,40px)",marginBottom:14}}>
-              <div style={{flex:1,height:"0.5px",background:"rgba(111,207,151,.08)"}}/>
-              <span style={{color:"#6a7e6e",fontSize:".8rem",letterSpacing:".08em",whiteSpace:"nowrap"}}>or pick a concern</span>
-              <div style={{flex:1,height:"0.5px",background:"rgba(111,207,151,.08)"}}/>
+          <div style={{padding:"16px 0 10px"}}>
+            <div style={{display:"flex",alignItems:"center",gap:11,padding:"0 20px",marginBottom:14}}>
+              <div style={{flex:1,height:1,background:"rgba(61,184,118,.09)"}}/>
+              <span style={{color:"#8ea898",fontSize:"clamp(.8rem,1.2vw,.92rem)",letterSpacing:".1em",whiteSpace:"nowrap"}}>or pick a topic</span>
+              <div style={{flex:1,height:1,background:"rgba(61,184,118,.09)"}}/>
             </div>
             <ChipSection onQuery={handleQuery}/>
           </div>
