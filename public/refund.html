@@ -4,42 +4,131 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Refund Policy — foodnfitness.ai</title>
+  <meta name="description" content="Refund Policy for foodnfitness.ai"/>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0;}
-    body{background:#0b1a0d;color:#e0ede2;font-family:'Georgia',serif;-webkit-font-smoothing:antialiased;line-height:1.8;}
-    a{color:#4ec97a;text-decoration:none;}
-    a:hover{text-decoration:underline;}
-    nav{padding:18px 32px;border-bottom:1px solid rgba(80,180,100,.1);display:flex;align-items:center;justify-content:space-between;}
-    nav span{color:#5a9a6a;font-size:1rem;font-weight:600;}
-    nav span em{color:#22a35a;font-style:normal;}
-    .back{color:#4a7a56;font-size:.85rem;}
-    .wrap{max-width:720px;margin:0 auto;padding:60px 32px 100px;}
-    h1{font-size:2rem;font-weight:400;color:#a8ddb5;margin-bottom:8px;letter-spacing:-.02em;}
-    .date{color:#3a6644;font-size:.85rem;margin-bottom:48px;}
-    h2{font-size:.8rem;font-weight:600;color:#4ec97a;margin:36px 0 12px;letter-spacing:.04em;text-transform:uppercase;}
-    p{color:#8dc89e;margin-bottom:16px;font-size:.97rem;}
-    footer{text-align:center;color:#1e3d25;font-size:.8rem;padding:32px 0;}
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #16181a;
+      color: #c8d9cb;
+      font-family: Georgia, serif;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.8;
+      min-height: 100vh;
+    }
+    a { color: #6fcf97; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    strong { color: #eaf0eb; }
+
+    /* Nav */
+    nav {
+      padding: 14px 32px;
+      border-bottom: 0.5px solid rgba(255,255,255,.06);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      background: rgba(22,24,26,.95);
+      backdrop-filter: blur(10px);
+      z-index: 10;
+    }
+    .logo { color: #8ea898; font-size: 1rem; font-weight: 600; }
+    .logo em { color: #6fcf97; font-style: normal; }
+    .back {
+      color: #6a7e6e;
+      font-size: .82rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 0.5px solid rgba(255,255,255,.08);
+      border-radius: 20px;
+      padding: 4px 14px;
+      transition: color .15s;
+    }
+    .back:hover { color: #6fcf97; text-decoration: none; }
+
+    /* Content */
+    .wrap { max-width: 700px; margin: 0 auto; padding: 60px 32px 100px; }
+
+    h1 {
+      font-size: clamp(1.6rem, 4vw, 2.2rem);
+      font-weight: 400;
+      color: #eaf0eb;
+      margin-bottom: 6px;
+      letter-spacing: -.02em;
+      line-height: 1.2;
+    }
+    .date {
+      color: #4a5e4e;
+      font-size: .8rem;
+      margin-bottom: 52px;
+      letter-spacing: .02em;
+    }
+    h2 {
+      font-size: .7rem;
+      font-weight: 700;
+      color: #6fcf97;
+      margin: 40px 0 10px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+    p { color: #8ea898; margin-bottom: 16px; font-size: .95rem; line-height: 1.8; }
+    ul { color: #8ea898; margin: 0 0 16px 20px; font-size: .95rem; }
+    ul li { margin-bottom: 8px; line-height: 1.7; }
+
+    /* Divider */
+    .section-divider {
+      height: 0.5px;
+      background: rgba(255,255,255,.06);
+      margin: 48px 0 0;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      color: #2e3e32;
+      font-size: .78rem;
+      padding: 32px 0 48px;
+      border-top: 0.5px solid rgba(255,255,255,.04);
+    }
+    footer a { color: #3a5040; }
+    footer a:hover { color: #6fcf97; }
   </style>
 </head>
 <body>
   <nav>
-    <span>foodnfitness<em>.ai</em></span>
+    <span class="logo">foodnfitness<em>.ai</em></span>
     <a class="back" href="/">← Back to app</a>
   </nav>
+
   <div class="wrap">
     <h1>Refund Policy</h1>
     <p class="date">Last updated: March 8, 2026</p>
 
-    <h2>All Sales Are Final</h2>
-    <p>All purchases on foodnfitness.ai — including one-time credit packs and monthly subscriptions — are <strong style="color:#a8ddb5">non-refundable</strong>. Once a payment is made, no refunds will be issued.</p>
-    <p>By completing a purchase, you acknowledge and agree that you have read this policy and accept that all sales are final.</p>
+    <h2>Individual Plans</h2>
+    <p>All purchases on foodnfitness.ai — including one-time credit packs and monthly subscriptions — are <strong>non-refundable</strong>. Once a payment is made, no refunds will be issued.</p>
+    <p>By completing a purchase, you acknowledge that you have read this policy and accept that all sales are final.</p>
 
-    <h2>Monthly Subscriptions</h2>
-    <p>You may cancel your monthly subscription at any time from your account settings. Cancellation takes effect at the end of your current billing period and you retain access to your credits until then. No partial refunds are issued for unused credits or remaining days in a billing period.</p>
+    <h2>Subscriptions</h2>
+    <p>You may cancel your subscription at any time from your account settings. Cancellation takes effect at the end of your current billing period. You retain full access until then. No partial refunds are issued for unused days in a billing period.</p>
+
+    <h2>B2B and Corporate Plans</h2>
+    <p>Corporate and team plans are governed by the terms of your signed agreement. The 14-day free pilot period allows your organisation to evaluate the Service fully before any payment is required. After the pilot, payments are non-refundable except as specified in your written agreement.</p>
+
+    <h2>Exceptions</h2>
+    <p>We may issue refunds at our sole discretion in cases of significant technical failure on our part that prevented you from using the Service entirely. To request an exception, contact us within 7 days of your purchase with details of the issue.</p>
 
     <h2>Contact</h2>
-    <p>If you have a question about your purchase, contact us at <a href="mailto:hello@foodnfitness.ai">hello@foodnfitness.ai</a>.</p>
+    <p>If you have a question about your purchase or a billing issue, contact us at <a href="mailto:hello@foodnfitness.ai">hello@foodnfitness.ai</a> and we will respond within 2 business days.</p>
+
+    <div class="section-divider"></div>
   </div>
-  <footer>foodnfitness.ai · Eat well. Move well. Live well.</footer>
+
+  <footer>
+    foodnfitness.ai &nbsp;·&nbsp; Eat well. Move well. Live well.
+    &nbsp;&nbsp;
+    <a href="/terms.html">Terms</a> &nbsp;·&nbsp;
+    <a href="/privacy.html">Privacy</a>
+  </footer>
 </body>
 </html>
